@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_metadata
+
+# Datasets and large files (use DVC or document sources in datasets/README.md)
+datasets/**/*.csv
+datasets/**/*.json
+datasets/**/*.parquet
+datasets/**/*.h5
+datasets/**/*.hdf5
+datasets/**/*.pkl
+datasets/**/*.npy
+datasets/**/*.npz
+datasets/**/*.zip
+datasets/**/*.tar.gz
+datasets/**/*.pcap
+
+# Model checkpoints
+*.pt
+*.pth
+*.onnx
+*.bin
+checkpoints/
+models/weights/
+
+# Logs
+logs/
+*.log
+*.out
+
+# Secrets and credentials — NEVER commit these
+.env
+.env.*
+secrets/
+credentials/
+*.key
+*.pem
+*.cert
+
+# Results that can be reproduced
+experiments/results/*.png
+experiments/results/*.pdf
