@@ -15,7 +15,7 @@ Be honest — problems and blockers are normal and help your supervisor support 
 ## Week 1
 
 **Branch:** `asma-week-01`
-**PR link:** _[Add link after opening PR]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/1
 
 ### Completed this week
 - [x] Read README and proposal
