@@ -1,7 +1,7 @@
 # Weekly Progress Log: SOC Co-pilot: LLM-Assisted Threat Analysis and Alert Triage
 
-**Student:** _[Fill in your name]_
-**GitHub username:** _[Fill in]_
+**Student:** Asma
+**GitHub username:** urpinklipbalm
 
 ---
 
@@ -14,21 +14,20 @@ Be honest — problems and blockers are normal and help your supervisor support 
 
 ## Week 1
 
-**Branch:** `your-name-week-01`
+**Branch:** `asma-week-01`
 **PR link:** _[Add link after opening PR]_
 
 ### Completed this week
-- [ ] Read README and proposal
-- [ ] Set up local environment (Python venv, dependencies)
-- [ ] Ran `src/main.py` successfully
-- [ ] Wrote personal introduction (below)
-- [ ] Identified 5 related papers / tools / datasets
+- [x] Read README and proposal
+- [x] Set up local environment (Python venv, dependencies)
+- [x] Wrote personal introduction (below)
+- [x] Identified 3 related papers / tools / datasets
 
 ### Personal Introduction
-_Write 3–5 sentences about your background, skills, and what you hope to learn._
+I'm Asma, a third-year BS Computer Science student at NUST SEECS, Islamabad. My background is in Python, PyTorch, scikit-learn, LangChain, and the Groq API, with projects spanning anomaly detection, LLM-based apps, and graph-based systems. I'm particularly interested in how LLMs can assist SOC analysts in alert triage and threat correlation. Through this internship I hope to build practical experience in AI-assisted blue team operations and understand real-world SOC workflows.
 
 ### Problems / Blockers
-_Describe any issues you faced. Did you solve them? How?_
+System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv venv` instead.
 
 ### Next week plan
 - Read the 5 papers identified this week
