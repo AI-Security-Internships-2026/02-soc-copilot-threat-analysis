@@ -43,20 +43,22 @@ _Describe any issues you faced. Did you solve them? How?_
 **PR link:** _[Add link after opening PR]_
 
 ### Completed this week
-- [ ] Created `asma-week-02` branch from `dev`
-- [ ] Drafted `docs/proposal.md`
-- [ ] Built GUIDE dataset ingestion script (download/sample + load)
-- [ ] Basic preprocessing (cleaning, feature selection)
-- [ ] [I'll add as I go]
+- [x] Created `asma-week-02` branch from `dev`
+- [x] Drafted `docs/proposal.md` (problem statement, research questions, methodology)
+- [x] Built GUIDE dataset schema reference + synthetic sample generator (for local dev without the full Kaggle download)
+- [x] Built data loader + preprocessing pipeline (feature engineering, encoding)
+- [x] Built baseline Random Forest triage classifier (TP/BP/FP) with eval metrics
+- [x] Wired `src/main.py` to run the full pipeline end to end — confirmed working
+- [ ] Expand literature review to 10 papers/tools (in progress)
+- [ ] Real GUIDE dataset download/preprocessing pipeline (currently running on synthetic sample)
 
 ### Problems / Blockers
--
+Hit a merge conflict in `docs/weekly-progress.md` after stashing local changes across a branch switch — resolved by manually merging the conflicting "Next week plan" section.
 
 ### Next week plan
 - Continue triage agent implementation (LangGraph)
 - Architecture design doc (due Week 3)
 - Expand literature review toward 10 papers/tools (carried over)
-
 
 ---
 
