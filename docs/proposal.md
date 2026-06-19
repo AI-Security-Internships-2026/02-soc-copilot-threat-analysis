@@ -46,4 +46,38 @@ The dataset is built to predict incident triage grades — true positive, benign
   3. Report-generation node (plain-language analyst summary)
   4. Human-review checkpoint before final disposition
 - Expose the pipeline via a FastAPI backend; Streamlit front-end for the analyst-facing review UI.
-- LLM
+- LLM backend: OpenAI API, with agent logic in LangChain/LangGraph.
+- Baseline: a classical ML classifier (Random Forest, see `src/models/baseline.py`) trained on the same data, used as the reference point the LLM pipeline is evaluated against for RQ1.
+
+### 4.3 Evaluation Metrics
+
+- Classification accuracy / F1 against GUIDE ground-truth triage grades
+- Precision/recall@K on prioritized alert ranking
+- End-to-end latency per alert
+- Qualitative report quality (reviewed against a rubric)
+- Reduction in alerts requiring full manual investigation (proxy for analyst time saved)
+
+### 4.4 Tooling
+
+Python, LangChain, LangGraph, OpenAI API, Elasticsearch, FastAPI, Streamlit, pandas, sklearn (baseline comparison models)
+
+---
+
+## 5. Expected Outcome
+
+A working prototype: an end-to-end alert triage pipeline running on a GUIDE dataset subset, with a Streamlit dashboard showing alert classification, auto-generated analyst report, and human-review/override step — plus an evaluation write-up comparing pipeline decisions against GUIDE ground truth.
+
+---
+
+## 6. Risks and Mitigations
+
+| Risk | Likelihood | Mitigation |
+|---|---|---|
+| Dataset not publicly available | Medium | Use synthetic data or reach out to CNIT partners |
+| Compute resources insufficient | Low | Use university HPC cluster |
+| Scope too broad | High | Focus on one sub-problem; extend if time allows |
+| GUIDE train CSV is large (~2.4 GB) | Medium | Work with a stratified sample rather than the full dataset for prototyping |
+
+---
+
+_Last updated: 2026-06-19_
