@@ -22,11 +22,13 @@ Be honest — problems and blockers are normal and help your supervisor support 
 - [x] Set up local environment (Python venv, dependencies)
 - [x] Wrote personal introduction (below)
 - [x] Identified 3 related papers / tools / datasets
+- [x] Run starter script (`python src/main.py`) — confirmed working
 
 ### Personal Introduction
 I'm Asma, a third-year BS Computer Science student at NUST SEECS, Islamabad. My background is in Python, PyTorch, scikit-learn, LangChain, and the Groq API, with projects spanning anomaly detection, LLM-based apps, and graph-based systems. I'm particularly interested in how LLMs can assist SOC analysts in alert triage and threat correlation. Through this internship I hope to build practical experience in AI-assisted blue team operations and understand real-world SOC workflows.
 
 ### Problems / Blockers
+System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv venv` instead.
 System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv venv` instead.
 
 ### Next week plan
