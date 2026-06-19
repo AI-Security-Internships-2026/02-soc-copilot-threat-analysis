@@ -39,17 +39,24 @@ _Describe any issues you faced. Did you solve them? How?_
 
 ## Week 2
 
-**Branch:** `your-name-week-02`
+**Branch:** `asma-week-02`
 **PR link:** _[Add link after opening PR]_
 
 ### Completed this week
--
+- [ ] Created `asma-week-02` branch from `dev`
+- [ ] Drafted `docs/proposal.md`
+- [ ] Built GUIDE dataset ingestion script (download/sample + load)
+- [ ] Basic preprocessing (cleaning, feature selection)
+- [ ] [I'll add as I go]
 
 ### Problems / Blockers
 -
 
 ### Next week plan
--
+- Continue triage agent implementation (LangGraph)
+- Architecture design doc (due Week 3)
+- Expand literature review toward 10 papers/tools (carried over)
+
 
 ---
 
