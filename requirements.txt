@@ -7,3 +7,6 @@ streamlit
 pandas
 requests
 python-dotenv
+scikit-learn
+joblib
+kaggle
