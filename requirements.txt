@@ -10,3 +10,4 @@ python-dotenv
 scikit-learn
 joblib
 kaggle
+langchain-groq>=0.1.0
