@@ -1,0 +1,344 @@
+{
+  "sample_size": 48,
+  "accuracy": 0.375,
+  "macro_f1": 0.347,
+  "baseline_comparison": "RF baseline: acc=N/A, f1=0.2959790960052975",
+  "per_alert_results": [
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1059 is a common technique used for initial access, but without additional context, it's difficult to determine if this is malicious or legitimate activity. Further investigation is required to confirm the intent behind this alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1547 is a technique related to Windows API calls, which can be legitimate in certain scenarios. Without further context, it's difficult to determine if this is malicious activity or a false alarm.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1059 is a common technique used for process creation, which can be legitimate in many scenarios. Without additional context, it's difficult to determine if this is malicious activity or a legitimate process creation event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1110 is a broad technique that can be used for both malicious and benign purposes, such as system startup or maintenance tasks. Without additional context, it's difficult to determine the intent behind this alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1087 is a known technique for achieving persistence, and the alert is triggered by a specific detector, indicating a high likelihood of a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1110 is a broad technique that can be used for both malicious and benign purposes, such as system startup or maintenance scripts. Without additional context, it's difficult to determine the intent behind this alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1547 is a technique related to Windows API calls, which can be legitimate in certain scenarios. Without further context, it's difficult to determine if this is malicious activity or a false alarm.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1059 is a known technique for SysteM Misconfiguration Discovery, which is a common attack vector. The high confidence in this alert suggests a likely successful exploitation of this technique.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1059 is a known technique for Sudo privilege escalation, which is a significant impact on the system. The high confidence is due to the specific MITRE technique being matched.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1087 is a known technique for Account Discovery, which is often used by attackers to gather information about the system. The Execution category and MITRE technique match a known threat pattern.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "Exfiltration via T1110 (Brute Force) is a known malicious activity, and the specific detector 74 suggests a high confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1547 is a technique related to Windows API calls, but without more context, it's likely a false positive due to legitimate system activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1059 is a known technique for process injection, which is a common tactic used by attackers. The Execution category and MITRE technique match a known threat pattern.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1059 is a technique for Command Line Interface (CLI) usage, which is a common activity in many environments. Without additional context, it's difficult to determine if this is malicious or legitimate admin activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1078 is a technique for 'Valid Accounts' which can be used for legitimate administrative purposes, making it difficult to determine malicious intent without further context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1547 is a known technique for Screenshot Capture, which is a malicious activity, and the Impact category suggests a significant potential impact, indicating a likely TruePositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1059 is a common technique used for process creation, which can be legitimate in many scenarios. Without additional context, it's difficult to determine if this is malicious activity or a legitimate process creation event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1078 is a technique often associated with initial access, but without further context, it's possible this is a legitimate administrative action. Further investigation is needed to confirm the intent behind this activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1547 is a technique related to Windows API calls, which can be legitimate for various system operations. Without further context, it's difficult to determine if this is malicious activity or a legitimate system call.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1087 is a technique related to account discovery, which is a common activity in a normal IT environment. Without additional context, it's difficult to determine if this is malicious or not.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1486 is typically associated with lateral movement, not initial access, making this alert likely a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1486 is a technique often associated with lateral movement, but without further context, it's possible this is an administrative action. Further investigation is needed to confirm the intent behind this alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1041 is a known technique for maintaining access, and the Persistence category suggests a malicious intent to maintain a foothold in the system.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1087 is a technique related to account discovery, which is a common activity in a normal IT environment. Without additional context, it's difficult to determine if this is malicious or not.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "Exfiltration via T1041 (Network Service Scanning) is a known malicious activity, and the specific detector 316 suggests a high confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1486 is typically associated with lateral movement, not initial access, making this alert likely a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "Persistence category is often associated with malicious activity, but without further context, it's possible this is a legitimate system maintenance or update process.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1087 is a technique often used by attackers, but it can also be used by legitimate tools, such as Microsoft's 365 suite, for various administrative tasks.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1087 is a known technique for Account Discovery, which is a precursor to lateral movement. The high confidence in this alert suggests a likely malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1547 is a technique related to Windows API calls, which can be legitimate for various system operations. Without further context, it's difficult to determine if this is malicious activity or a legitimate system call.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1087 is a known technique for achieving persistence, and the alert is triggered by a specific detector, indicating a high likelihood of a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1486 is a known technique for Data Encrypted for Impact, indicating a potential ransomware attack, which warrants a high confidence TruePositive verdict.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "Exfiltration via T1087 is a common technique, but without further context, it's unclear if this is malicious or a legitimate data transfer. Further investigation is needed to determine the intent behind this activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1486 is a known technique for Obfuscated Files or Information Execution, indicating a potential malicious activity. The Execution category and MITRE technique match known threat actor tactics.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1087 is a known technique for Account Discovery, which is a precursor to lateral movement. The high confidence in this alert suggests a likely successful exploitation of this technique.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "Execution category alerts can sometimes be triggered by legitimate system processes, and without further context, it's difficult to determine the malicious intent behind T1087. Further investigation is needed to confirm the legitimacy of this alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1078 is typically associated with Domain Controller compromise, which is unlikely to occur via a single detector 81 without additional supporting evidence.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "Exfiltration via T1078 is a common technique, but without further context, it's unclear if this is malicious or a legitimate data transfer. Further investigation is needed to determine the intent behind this activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "MITRE Technique T1110 (Brute Force) is a known indicator of a potential attack, and the Impact category suggests a significant threat to the system.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1087 is a known technique for achieving persistence, and the alert is triggered by a specific detector, indicating a high likelihood of a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1547 is a technique related to Windows API calls, but without more context, it's likely a false positive due to a legitimate Windows process or application making the same API calls.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1547 is a technique related to Windows API calls, which can be legitimate in certain scenarios. Without further context, it's difficult to determine if this is malicious activity or a false alarm.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "T1041 is a technique that can be used for both malicious and benign purposes, such as system reboots or updates. Without further context, it's difficult to determine the intent behind this alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "Exfiltration via T1041 (Network Service Scanning) is a known malicious activity, and the high confidence in this alert suggests a likely successful attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "T1078 is a technique that can be used for persistence, but it's also commonly used by administrators for legitimate purposes, such as installing software updates. Without further context, it's difficult to determine the intent behind this action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "MITRE Technique T1110 (Brute Force) is a known indicator of a potential attack, and the Impact category suggests a significant threat to the system.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1078 is a known technique for scheduled task or service execution, indicating potential malicious activity. The Execution category and MITRE technique align with known attack patterns.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1110 is a known technique for maintaining access, and the Persistence category suggests a malicious intent to maintain a foothold in the system.",
+      "error": null
+    }
+  ]
+}
