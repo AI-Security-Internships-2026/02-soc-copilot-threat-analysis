@@ -40,18 +40,23 @@ System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv 
 
 ## Week 2
 
-**Branch:** `your-name-week-02`
+**Branch:** `asma-week-02`
 **PR link:** _[Add link after opening PR]_
 
 ### Completed this week
--
+- [x] Created `asma-week-02` branch from `dev`
+- [x] Drafted `docs/proposal.md` (problem statement, research questions, methodology)
+- [x] Built GUIDE dataset schema reference + synthetic sample generator (for local dev without the full Kaggle download)
+- [x] Built data loader + preprocessing pipeline (feature engineering, encoding)
+- [x] Built baseline Random Forest triage classifier (TP/BP/FP) with eval metrics
+- [x] Wired `src/main.py` to run the full pipeline end to end — confirmed working
+- [ ] Expand literature review to 10 papers/tools (in progress)
+- [ ] Real GUIDE dataset download/preprocessing pipeline (currently running on synthetic sample)
 
 ### Problems / Blockers
--
+Hit a merge conflict in `docs/weekly-progress.md` after stashing local changes across a branch switch — resolved by manually merging the conflicting "Next week plan" section.
 
 ### Next week plan
--
-
----
-
-_(Add a new section each week)_
+- Continue triage agent implementation (LangGraph)
+- Architecture design doc (due Week 3)
+- Expand literature review toward 10 papers/tools (carried over)
