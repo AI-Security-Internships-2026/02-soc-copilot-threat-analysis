@@ -89,7 +89,7 @@ PR #3 was accidentally merged into `main` instead of `dev`. Dr. Rana approved it
 ## Week 4
 
 **Branch:** `asma-week-04`
-**PR link:** _[Add link after opening PR — target `dev`, not `main`]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/4
 
 ### Completed this week
 - [x] Added human-review checkpoint node with conditional routing — alerts with confidence != "high" get flagged (`needs_human_review: True`) and routed through a review node instead of auto-closing
