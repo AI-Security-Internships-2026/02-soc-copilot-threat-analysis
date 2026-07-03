@@ -1,7 +1,7 @@
 # Literature Review: SOC Co-pilot: LLM-Assisted Threat Analysis and Alert Triage
 
 **Student:** Asma
-**Updated:** 2026-06-19
+**Updated:** 2026-07-03
 
 ---
 

@@ -11,6 +11,12 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agent.state import AlertState
 
+# add this import near your other imports at the top of nodes.py
+from src.agent.mitre_lookup import get_technique_info, load_technique_map
+
+# load once at module level so it's not re-reading the cache file on every alert
+_MITRE_TECHNIQUE_MAP = None
+
 load_dotenv()  # loads OPENAI_API_KEY from .env file
 
 # initialise the LLM once at module level so it's reused across calls
@@ -62,6 +68,9 @@ def build_context(state: AlertState) -> dict:
 
     # join into a clean block
     alert_context = "\n".join(context_parts) if context_parts else "No alert details available."
+    
+    if state.get("mitre_context"):
+        alert_context += f"\n\nMITRE ATT&CK context: {state['mitre_context']}"
 
     return {"alert_context": alert_context}
 
@@ -149,3 +158,47 @@ def parse_verdict(state: AlertState) -> dict:
             "confidence": "low",
             "reasoning": f"Parse error: {str(e)}. Raw: {raw}",
         }
+        
+
+def fetch_mitre_context(state: AlertState) -> AlertState:
+    """
+    week 4 node: looks up MITRE ATT&CK technique info if the alert has a
+    MitreTechniques field, and adds it to state so it can be injected into
+    the LLM prompt in classify_with_llm.
+    """
+    global _MITRE_TECHNIQUE_MAP
+    if _MITRE_TECHNIQUE_MAP is None:
+        _MITRE_TECHNIQUE_MAP = load_technique_map()
+
+    technique_id = state["raw_alert"].get("MitreTechniques", "")
+    mitre_info = get_technique_info(technique_id, _MITRE_TECHNIQUE_MAP)
+
+    if mitre_info:
+        state["mitre_context"] = mitre_info
+    else:
+        state["mitre_context"] = "no MITRE ATT&CK technique info available for this alert"
+
+    return state
+
+
+def human_review_node(state: AlertState) -> AlertState:
+    """
+    week 4 node: checkpoint that fires when the LLM's confidence is
+    medium or low. doesn't actually block on a human, just flags the
+    alert so a human can review it later instead of auto-triaging it.
+    """
+    state["needs_human_review"] = True
+    state["reasoning"] = (state.get("reasoning") or "") + \
+        " [flagged for human review: confidence was not high]"
+    return state
+
+
+def route_after_verdict(state: AlertState) -> str:
+    """
+    conditional edge function: decides where to go after parse_verdict.
+    returns the name of the next node as a string, which graph.py uses
+    to wire up the conditional edge.
+    """
+    if state.get("confidence") == "high":
+        return "end"
+    return "human_review"
