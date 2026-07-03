@@ -112,7 +112,7 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
     if baseline_path.exists():
         with open(baseline_path) as f:
             baseline = json.load(f)
-        baseline_acc = baseline.get("accuracy", "N/A")
+        baseline_acc = baseline.get("classification_report", {}).get("accuracy", "N/A")
         baseline_f1 = baseline.get("macro_f1", "N/A")
         print(f"=== vs RF baseline ===")
         print(f"baseline accuracy: {baseline_acc}  →  agent accuracy: {accuracy:.4f}")
@@ -138,4 +138,11 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
 
 
 if __name__ == "__main__":
-    run_evaluation()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="evaluate the SOC Co-pilot agent on GUIDE alerts")
+    parser.add_argument("--sample-size", type=int, default=50, help="total alerts to sample (split evenly across 3 classes)")
+    parser.add_argument("--output", type=str, default="experiments/results/agent_metrics.json", help="path to save results json")
+    args = parser.parse_args()
+
+    run_evaluation(sample_size=args.sample_size, output_path=args.output)

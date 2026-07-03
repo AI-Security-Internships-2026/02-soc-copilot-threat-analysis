@@ -13,6 +13,7 @@ build/
 .venv/
 venv/
 env/
+.env
 ENV/
 
 # IDE / editor
@@ -64,4 +65,5 @@ credentials/
 
 # Results that can be reproduced
 experiments/results/*.png
-experiments/results/*.pdf
+experiments/results/*.pdfdatasets/mitre_technique_cache.json
+experiments/results/baseline_model.joblib
