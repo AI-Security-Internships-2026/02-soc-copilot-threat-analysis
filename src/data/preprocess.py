@@ -33,7 +33,10 @@ def engineer_timestamp_features(df: pd.DataFrame) -> pd.DataFrame:
 def encode_categoricals(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     df = df.copy()
     encoders = {}
-    for col in CATEGORICAL_COLUMNS:
+    # auto-detect all string columns instead of using a hardcoded list
+    # this handles columns like SuspicionLevel, LastVerdict, DetectorId
+    # that appear in the real GUIDE data but aren't in the schema list
+    for col in df.select_dtypes(include="object").columns:
         le = LabelEncoder()
         df[col] = le.fit_transform(df[col].astype(str))
         encoders[col] = le
