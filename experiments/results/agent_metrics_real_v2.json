@@ -1,0 +1,2108 @@
+{
+  "sample_size": 300,
+  "accuracy": 0.2867,
+  "macro_f1": 0.1751,
+  "baseline_comparison": "RF baseline: acc=0.374375, f1=0.2959790960052975",
+  "per_alert_results": [
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the lack of contradictory information, it's likely a real event occurred, but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear malicious verdict and is categorized as InitialAccess, which is a common stage of a cyber attack. The presence of T1566.001, a known technique for gaining initial access, further supports this conclusion.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and a low-level MITRE technique, suggesting it's a real event but not necessarily malicious. Without clear signs of malicious intent, I'm classifying it as a BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the sparse metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CredentialAccess, which is a known malicious activity, and the MITRE techniques listed are also associated with credential access and exploitation.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CredentialAccess and matches MITRE Technique T1110, indicating a potential attack on credentials.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of SuspiciousActivity but lacks clear signs of malicious intent, and the missing suspicion level and last verdict do not necessarily indicate a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious category and a Suspicion Level of Suspicious, but lacks specific details about the MITRE Technique and Last Verdict, suggesting it may be a legitimate event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert has a ransomware category, but missing MITRE technique and suspicion level, which could indicate a false positive, but without clear evidence of misfiring, I'm leaning towards a benign positive, possibly admin activity or a false alarm from legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as InitialAccess, which is a stage of the attack lifecycle, but the Last Verdict indicates no threats were found, suggesting it's likely admin activity or a false alarm from legitimate use.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a valid category and detector, but missing MITRE technique and suspicion level, which suggests a real event but not necessarily malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear malicious verdict and is categorized as InitialAccess, which is a common stage of a cyber attack. The presence of T1566.001, a known technique for gaining initial access, further supports this conclusion.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as InitialAccess, which is a stage of the attack lifecycle, but the Last Verdict indicates no threats were found, suggesting it's likely admin activity or a false alarm from legitimate use.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level information, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a malicious verdict and is categorized as InitialAccess, which is a common technique used by attackers to gain access to a network.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the sparse metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, but the lack of MITRE technique and sparse fields makes it difficult to determine the nature of the event. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it's a real event but not necessarily malicious. The lack of additional context doesn't indicate the alert misfired.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of CredentialAccess, but missing MITRE technique and suspicion level make it difficult to determine malicious intent. Given the lack of contradictory information, it's possible a legitimate event occurred. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it's a real event but not necessarily malicious. Without clear signs of malicious intent, I'm classifying it as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level of 'nan' which suggests it's not a malicious activity, and the category is 'Discovery' which typically indicates a legitimate event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and a low-level MITRE technique, suggesting it's a real event but not necessarily malicious. Without explicit signs of malicious intent, I'm leaning towards a benign positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, but missing suspicion level and last verdict. Without clear signs of malicious intent or contradictory fields, it's likely a real event but not an attack. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a valid category and MITRE technique, but missing suspicion level and last verdict. Given the lack of clear malicious intent, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and detector information, suggesting it may be a legitimate event or admin activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level and multiple MITRE techniques associated with it, indicating a potential malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and a legitimate detector, but lacks specific MITRE technique information, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": " [flagged for human review: confidence was not high]",
+      "error": "LLM call failed: Connection error."
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it's a real event but not necessarily malicious. The lack of additional context doesn't indicate the alert misfired.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of CredentialAccess, but missing MITRE technique and suspicion level make it difficult to determine malicious intent. Given the lack of contradictory information, it's possible a legitimate event occurred. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a valid category and detector, but missing MITRE technique and suspicion level, which suggests a real event but not necessarily malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and suspicion level indicating a real event, but the lack of MITRE technique and sparse metadata makes it unclear if it's malicious or not. Given the information, it's more likely a real event rather than a misfired alert. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a valid category and MITRE techniques, suggesting a real event occurred, but the missing suspicion level and last verdict do not indicate malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and detector information, suggesting it may be a legitimate event or admin activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Malware category and a Malicious last verdict, indicating a real attack or malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and detector information, suggesting it may be a legitimate event or admin activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it's a real event but not necessarily malicious. The lack of additional context doesn't indicate the alert misfired.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it's a real event but not necessarily malicious. Without clear signs of malicious intent, I'm classifying it as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, but the lack of MITRE technique and sparse fields makes it difficult to determine the nature of the event. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, but the lack of MITRE technique and sparse fields makes it difficult to determine the nature of the event. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and suspicion level indicating a real event, but no clear sign of malicious intent or misfiring of the alert itself.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the sparse metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CommandAndControl, which suggests malicious activity, and the presence of MITRE techniques T1071 and T1048 further supports this, indicating lateral movement and data transfer.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level and matches a known persistence technique, indicating a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as InitialAccess, which is a stage of the attack lifecycle, but the Last Verdict indicates no threats were found, suggesting it's likely admin activity or a false alarm from legitimate use.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it's a real event but not necessarily malicious. The lack of additional context doesn't indicate the alert misfired.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level and a specific MITRE technique, indicating a likely malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the sparse metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CommandAndControl, which suggests malicious activity, and the presence of MITRE techniques T1071 and T1048 further supports this, indicating lateral movement and data transfer.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific details such as MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of CredentialAccess, but missing MITRE technique and suspicion level make it difficult to determine malicious intent. Given the lack of contradictory information, it's possible a legitimate event occurred. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific details such as MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques associated with CommandAndControl activity, but the lack of suspicion level and last verdict suggests it may be a legitimate admin activity or false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent or a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a valid category and MITRE techniques, suggesting a real event occurred, but the lack of suspicion level and last verdict makes it unclear if it's malicious or not. Given the information, it's more likely a benign event than a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear Suspicious category and verdict, but lacks specific MITRE technique and other details, suggesting it's a real event but not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but lacks specific details to indicate malicious intent. Given the missing metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear malicious verdict and is categorized as InitialAccess, which is a common phase of an attack. The presence of T1566, a known technique for gaining initial access, further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and detector, but missing MITRE technique and suspicion level, which suggests a real event occurred but the detector didn't capture extra context. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the sparse metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear malicious verdict and is categorized as InitialAccess, which is a common stage of a cyber attack. The presence of T1566.002, a known MITRE technique, further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques associated with CommandAndControl activity, but the lack of suspicion level and last verdict suggests it may be a legitimate admin activity or false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques associated with CommandAndControl activity, but the lack of suspicion level and last verdict suggests it may be a legitimate admin activity or false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of InitialAccess, but lacks specific technique and suspicion level, suggesting it may be a legitimate system access event rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific details such as MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a category of Exfiltration, but the MITRE technique is missing, which suggests it might be a false positive. However, the lack of clear malicious intent and contradictory information leads me to classify it as a BenignPositive. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the sparse metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE techniques, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "Lack of suspicion level and last verdict suggests sparse metadata, but lateral movement is a common legitimate activity, so it's possible this is a real event rather than a misfired alert. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the sparse metadata, it's likely a real event but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a valid category and detector, but missing MITRE technique and suspicion level, which suggests a real event but not necessarily malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of SuspiciousActivity, but missing MITRE technique and suspicion level do not necessarily indicate malicious intent. Given the lack of contradictory information, it's likely a real event occurred, but not an attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CredentialAccess, which is a common indicator of malicious activity, and the presence of multiple MITRE techniques suggests a sophisticated attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category of Execution, but lacks specific details such as MITRE technique and suspicion level, suggesting it may be a legitimate system activity rather than malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, suggesting a real event but not necessarily an attack. The missing MITRE technique and sparse fields do not indicate a misfired alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the suspicion level is missing, which is common in sparse fields. The last verdict also suggests no malicious activity was found.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level of 'nan' which suggests it's not a malicious activity, and the category is 'Discovery' which typically indicates a legitimate event.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a valid category and detector, but missing MITRE technique and suspicion level, which suggests a real event but not necessarily malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CredentialAccess with MITRE Techniques T1110 and T1078, which are both related to credential access and exfiltration, indicating a potential malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level and a clear MITRE technique, but the category is Discovery, which typically indicates a legitimate system or network discovery event rather than malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CredentialAccess with MITRE Techniques T1110 and T1078, which are both related to credential access and exfiltration, indicating a potential malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, but the lack of MITRE technique and sparse fields makes it difficult to determine the nature of the event. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level and is categorized as DefenseEvasion, which is a common technique used by attackers to evade detection.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a clear malicious verdict and is categorized as InitialAccess, which is a common entry point for attackers. The presence of MITRE technique T1566 further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicious verdict and no clear indication of malicious intent, but the lack of MITRE technique and sparse fields makes it difficult to determine the cause of the alert. Given the available information, it's possible that this is a legitimate event or a false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category of Exfiltration, but missing MITRE technique and suspicion level, suggesting it may be a legitimate event or false alarm from a legitimate use, rather than a clear indication of malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a clear category and MITRE technique, indicating a real event occurred, but the missing suspicion level and last verdict suggest it may not be malicious. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CredentialAccess, which is a known malicious activity, and the MITRE techniques listed are also associated with credential access and exploitation.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert has a category of 'Impact', which suggests it's related to a system or network event, but there's no clear indication of malicious intent. The missing MITRE technique and suspicion level don't necessarily imply a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious suspicion level and matches multiple MITRE techniques associated with initial access, indicating a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as CredentialAccess, which is a common indicator of malicious activity, and the presence of multiple MITRE techniques suggests a sophisticated attack.",
+      "error": null
+    }
+  ]
+}
