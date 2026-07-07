@@ -121,3 +121,62 @@ None blocking — the real-data evaluation confirmed the agent generalizes well 
 - Address any remaining supervisor feedback from Week 4 PR review
 
 ---
+
+## Week 5
+
+**Branch:** `asma-week-05`
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/5
+
+### What I did
+Dr. Rana's ask for this week was to check whether class imbalance in the 300-row eval
+sample was causing BenignPositive to be under-predicted. Went digging into evaluate.py
+and the actual sample first, before touching any code.
+
+Turned out the sample isn't imbalanced at all - evaluate.py deliberately draws exactly
+100 rows per class (min(100, len(class_df)), random_state=42), and I confirmed that
+against the actual saved results: 100/100/100 exactly. Also checked the full 9.5M-row
+GUIDE_train.csv distribution directly, and BenignPositive is actually the most common
+class overall (4.1M rows), not the rarest. So the imbalance theory doesn't hold up.
+
+Went looking for the real cause in the per-alert reasoning logs instead. Found that 186
+out of 300 alerts (62%) get a "not enough information" type of reasoning from the LLM -
+happens whenever MITRE technique / suspicion level fields are missing on the alert. Of
+those 186 sparse-context alerts, the model defaults to FalsePositive 156 times (84%),
+regardless of what the alert actually was. Ground truth for those same 186 alerts is
+mostly not FalsePositive (74 BenignPositive, 58 FalsePositive, 54 TruePositive) - so
+BenignPositive takes the biggest hit just because it's the largest chunk of that sparse
+bucket.
+
+Tried fixing this with two different prompt rewrites telling the model not to default
+to FalsePositive when context is sparse, and to reason from what IS present instead of
+what's missing. Both made things meaningfully worse - not because the fix was ignored,
+but because the model just swapped its lazy default from FalsePositive to BenignPositive
+instead. In both reruns, FalsePositive precision and recall dropped to 0.00 - the model
+almost stopped predicting it entirely (v2: 91/100 and 79/100 TruePositive/FalsePositive
+alerts misclassified as BenignPositive respectively; v3: similar). Macro F1 dropped from
+0.386 (original prompt) to 0.175 and 0.184 for the two attempts.
+
+Reverted back to the original prompt since it's still the best-performing version. Kept
+both failed experiment result files (agent_metrics_real_v2.json, _v3.json) in the PR as
+evidence of what was tried and why it didn't work.
+
+### Results summary
+| version | accuracy | macro F1 | FalsePositive precision/recall |
+|---|---|---|---|
+| original prompt (week 4) | 0.400 | 0.386 | 0.34 / 0.61 |
+| v2 (sparse-context fix, prefer BenignPositive) | 0.287 | 0.175 | 0.00 / 0.00 |
+| v3 (evidence-based reasoning fix) | 0.280 | 0.184 | 0.00 / 0.00 |
+
+### Problems / Blockers
+The root cause looks less like a prompt wording issue and more like a model capacity
+limitation - llama-3.1-8b-instant seems to fall back on a single dominant guess for
+low-context alerts rather than actually weighing evidence per-alert, and changing the
+wording just moves which label it defaults to. Prompt tuning alone doesn't seem to be
+enough to fix this.
+
+### Next week plan
+Waiting on Dr. Rana's input on how to proceed - possible directions are adding a few
+worked examples to the prompt (few-shot) instead of instructions, or testing whether a
+larger/different model handles the sparse-context alerts better. Not going to keep
+iterating on plain prompt wording without direction, since two attempts already showed
+it just shifts the bias rather than fixing it.
