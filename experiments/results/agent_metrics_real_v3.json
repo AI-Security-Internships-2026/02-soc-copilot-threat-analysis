@@ -1,0 +1,2108 @@
+{
+  "sample_size": 300,
+  "accuracy": 0.28,
+  "macro_f1": 0.1836,
+  "baseline_comparison": "RF baseline: acc=0.374375, f1=0.2959790960052975",
+  "per_alert_results": [
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a routine system access, which is a common event, and the MITRE technique supports this interpretation.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '715' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '20' and category 'Impact' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the nature of the event, leading me to classify it as a benign positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '21' and category 'SuspiciousActivity' suggest a real event occurred, but without further information, it's likely a routine or benign activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes InitialAccess, which is a plausible action, and the MITRE technique T1566.001 indicates a malicious action, suggesting a real attack occurred.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a suspicious activity (T1070.001) under the DefenseEvasion category, indicating a potential malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '171' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '20' and category 'Impact' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the nature of the event, leading me to classify it as a benign positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically InitialAccess, which is a common system action. The MITRE technique T1566 also supports this, as it is related to Lateral Tool Transfer, a common technique used in initial access.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '49' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine malicious intent, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '6' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '20' and category 'Impact' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the nature of the event, leading me to classify it as a benign positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '983' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a legitimate system access event, and the MITRE technique T1566 is related to credential dumping, which is a common and non-malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access attempt, which is a plausible malicious action, and the MITRE techniques listed are consistent with this category.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '6' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the malicious intent. Given the category, it's likely a routine access attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access attempt, which is a plausible malicious action, and the MITRE technique T1110 supports this interpretation.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a suspicious activity, but the MITRE techniques T1586 and T1584 are related to data encryption and discovery, which are not inherently malicious actions. This suggests a real event occurred, but it's likely a routine activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '273' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '108' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, and the MITRE technique T1586 is not clearly associated with malicious activity, suggesting a routine event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '689' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '671' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '6' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the malicious intent. Given the category, it's likely a routine access attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine malicious intent, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a ransomware attack, which is a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event. The MITRE technique T1566.002 further supports this, as it is a technique for 'Forced Authentication' which is a common system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically InitialAccess, which is a common phase in the attack lifecycle. Without further information, it's likely a routine event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '117' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '6' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '6' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the malicious intent. Given the category, it's likely a routine access attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes InitialAccess, which is a plausible action, and the MITRE technique T1566.001 indicates a malicious action, suggesting a real attack occurred.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action (InitialAccess), but the MITRE technique (T1566.001) is associated with a lateral movement technique, which doesn't fit with the initial access category, indicating a potential FalsePositive, but given the lack of other indicators, it's more likely a benign action that was misclassified.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a real action occurred, but the MITRE technique T1566.002 (Squirtle) is typically associated with lateral movement, which doesn't fit with the InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '60' and category 'InitialAccess' suggest a plausible real action on a system, likely a routine login or access attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '715' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '108' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, and the MITRE technique T1586 is not clearly associated with malicious activity, suggesting a routine event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '67' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title '48' and category 'InitialAccess' suggest a real action occurred, and the last verdict is 'Malicious', indicating a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '171' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of specific details makes it likely a routine action rather than malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration event, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this is a malicious or routine activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible action on a system, and the MITRE techniques (T1559, T1106, T1059.005) suggest a malicious activity, likely a web shell or a remote access tool.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '24' and category 'CredentialAccess' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it unclear whether it's malicious or routine, so I'm classifying it as BenignPositive with high confidence.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '58' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes persistence, which is a common malicious activity, and the MITRE techniques T1078 and T1098 are associated with persistence and credential access.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a discovery action, which is a plausible real event, and the MITRE technique T1087;T1087.002 is associated with OS discovery, indicating a routine system scan.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a suspicious activity (DefenseEvasion) with a specific MITRE technique (T1218.005), indicating a potential malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '53' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible action on a system, and the MITRE techniques (T1559, T1106, T1059.005) suggest a malicious activity, likely a web shell or a remote access tool.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible action on a system, and the MITRE techniques (T1559, T1106, T1059.005) suggest a malicious activity, likely a web shell or a remote access tool.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration event, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this is a malicious or routine activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event. The MITRE technique T1078 also supports this, as it is a technique for obtaining a foothold on a target system.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes CommandAndControl activity, which is a plausible malicious action, and is associated with multiple MITRE techniques that indicate a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '2023' is not descriptive of a malicious action, and the category 'DefenseEvasion' typically describes techniques used by attackers to evade detection, but in this case, it's unclear what action is being evaded.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a routine system access, and the MITRE technique T1566 is related to credential dumping, which is a common and non-malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action. The MITRE technique T1078 also supports this, as it is a technique for obtaining a foothold on a target system.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a suspicious execution event with multiple MITRE techniques indicating potential malicious activity, suggesting a real attack or malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '725' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration event, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this is a malicious or routine activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '1092' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and specific details makes it likely a routine or benign activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes CommandAndControl activity, which is a plausible malicious action, and is associated with known MITRE techniques T1071 and T1571, indicating a likely real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '1286' does not describe a malicious action, and the category 'Impact' suggests a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a real action on the system, but the MITRE technique T1566 (Credential Dumping) does not necessarily imply malicious intent, as it can be used for legitimate purposes such as password recovery.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes persistence, which is a common malicious activity, and the MITRE techniques T1078 and T1098 are associated with persistence and defense evasion, indicating a likely real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of specific details makes it likely a routine action rather than malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '58' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a real action on the system, but the MITRE technique T1566 (Credential Dumping) does not necessarily imply malicious intent, as it can be used for legitimate purposes such as password recovery.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a CommandAndControl activity, which is a common malicious action, and is associated with multiple MITRE techniques, indicating a sophisticated attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a routine system access, and the MITRE technique T1566 is related to credential dumping, which is a common and non-malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '24' and category 'CredentialAccess' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it unclear whether it's malicious or routine, so I'm classifying it as BenignPositive with high confidence.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a real action on the system, but the MITRE technique T1566 (Credential Dumping) does not necessarily imply malicious intent, as it can be used for legitimate purposes such as password recovery.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '91' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a potential credential access issue, which is a plausible malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration attempt, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this was a malicious or routine action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a collection action, which is a plausible real event, and the MITRE techniques T1113 and T0852 are related to data collection and exfiltration, indicating a routine action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '1261' and category 'Impact' suggest a system event, but lack of MITRE technique and suspicion level makes it unclear what the event is. Given the sparse information, it's likely a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a malware-related event, and the suspicion level is marked as suspicious, indicating a potential malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration event, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this is a malicious or routine activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration attempt, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this was a malicious or routine action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action. The MITRE technique T1566 also supports this, as it is related to initial access.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '410' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of a specific MITRE technique and the vague nature of the title make it unlikely to be malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a routine system access, and the MITRE technique T1566 is related to credential dumping, which is a common and non-malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '253' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes InitialAccess, which is a plausible action on a system, and the MITRE technique T1566 is associated with gaining initial access, indicating a potential malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '97' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine malicious intent, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action (InitialAccess), but the MITRE technique (T1566.001) is associated with a lateral movement technique, which doesn't fit with the initial access category, indicating a potential FalsePositive, but given the lack of other indicators, it's more likely a benign action that was misclassified.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action. The MITRE technique T1566 also supports this, as it is related to initial access.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes CommandAndControl activity, which is a plausible malicious action, and is associated with known MITRE techniques T1071 and T1048, indicating a likely real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration attempt, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this was a malicious or routine action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a persistence technique (T1112;T1547.001), indicating a malicious action, and has a suspicious suspicion level and verdict.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '158' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a real action occurred, but the MITRE technique T1566.002 (Squirtle) is typically associated with lateral movement, which doesn't fit with the InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a suspicious process execution (MITRE Technique T1059.003), which is a known malicious activity, and the suspicion level is already marked as suspicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '142' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and specific details makes it likely a routine or benign activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '25' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '148' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and specific details makes it likely a routine or benign activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration event, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this is a malicious or routine activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '49' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine malicious intent, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes CommandAndControl activity, which is a plausible malicious action, and is associated with known MITRE techniques T1071 and T1048, indicating a likely real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a routine system access, and the MITRE technique T1566 is related to credential dumping, which is a common and non-malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access event, which is a plausible real action on a system, but without further information, it's likely a routine login or authentication attempt rather than a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a CommandAndControl activity, which is a common malicious action, and is associated with multiple MITRE techniques, indicating a sophisticated attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes CommandAndControl activity, which is a plausible malicious action, and is associated with multiple MITRE techniques that indicate a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '279' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '85' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event. The MITRE technique T1566.002 further supports this, as it is a technique for 'Forced Authentication' which is a common system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '22' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a collection activity, which could be a scheduled task or data transfer, indicating a real event occurred. The MITRE techniques T1098 and T1114 are related to data collection and exfiltration, but without further context, it's likely a routine activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '4' and category 'SuspiciousActivity' do not provide enough context to classify as malicious, suggesting a real event occurred but was not malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '2302' and category 'Impact' suggest a system event, but the lack of MITRE technique and other details makes it unclear what the event is. Given the sparse information, it's likely a routine system action rather than a malicious attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest an initial access attempt, and the MITRE technique T1566 (Credential Dumping) further supports this, indicating a malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '1095' and category 'Exfiltration' suggest a plausible real action, but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '10' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '56' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the activity, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system event.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes InitialAccess, a plausible real action on a system, and the MITRE technique T1566.002 indicates a malicious action, suggesting a real malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes CommandAndControl activity, which is a plausible malicious action, and is associated with multiple MITRE techniques that indicate a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration attempt, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this was a malicious or routine action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes CommandAndControl activity, which is a plausible malicious action, and is associated with multiple MITRE techniques that indicate a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a real event occurred, but without more information, it's unclear whether it's malicious or routine exfiltration. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '3' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access event.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration attempt, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this was a malicious or routine action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title '1998' and category 'Exfiltration' suggest a plausible real action, but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically InitialAccess, which is a common system action. Without further information, it's likely a routine event rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action on a system (process execution), which suggests a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine malicious intent, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes InitialAccess, which is a plausible action on a system, and the combination of T1190 and T1133 MITRE techniques suggests a malicious activity such as exploiting a vulnerability and using a web shell.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '50' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine malicious intent, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a plausible real action (exfiltration), but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible system action, but the MITRE technique T1566 (Credential Dumping) implies a malicious action, however, the lack of suspicion level and last verdict suggests this may be a routine event or a false positive, but the initial access category is often used for benign actions, so I'm leaning towards a benign positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes InitialAccess, which is a plausible action on a system, and the combination of T1190 and T1133 MITRE techniques suggests a malicious activity such as exploiting a vulnerability and using a web shell.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but without further information, it's likely a benign event such as a scheduled task or login.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a lateral movement attempt, which is a common malicious activity, and the MITRE technique T1021 is associated with this behavior.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration attempt, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this is a malicious or routine action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '56' and category 'SuspiciousActivity' suggest a real event occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the activity, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a routine system access, and the MITRE technique T1566 is related to credential dumping, which is a common and non-malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '457' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it unclear what the action is. Given the category, it's likely a routine access attempt rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '414' and category 'SuspiciousActivity' suggest a real event occurred, but without further information, it's likely a routine or benign action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access attempt, which is a plausible malicious action, and the MITRE techniques listed are consistent with this category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a process execution, which is a plausible real action on a system, and the category 'Execution' suggests a routine system activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '10' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible system action, but the MITRE technique T1566 (Credential Dumping) implies a malicious action, however, the lack of suspicion level and last verdict suggests this may be a routine event or a false positive, but the initial access category is often used for benign actions, so I'm leaning towards a benign positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a routine system access, and the MITRE technique T1566 is related to credential dumping, which is a common and non-malicious action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a discovery action, which is a plausible real event, and the MITRE technique T1087;T1087.002 is associated with OS discovery, indicating a routine system scan.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible system action, but the MITRE technique T1566 (Credential Dumping) implies a malicious action, however, the lack of suspicion level and last verdict suggests this may be a routine event or a false positive, but the initial access category is often used for benign actions, so I'm leaning towards a benign positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '22' and category 'InitialAccess' suggest a real action occurred, but the lack of MITRE technique and suspicion level makes it difficult to determine the maliciousness of the action, so it's classified as BenignPositive.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a plausible real action on a system, specifically initial access, which is a routine system action.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access attempt, which is a plausible malicious action, and the MITRE techniques T1110 and T1078 are associated with credential access and lateral movement, indicating a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a discovery action, which is a plausible real action on a system, and the MITRE techniques T1007 and T1059.001 are associated with discovery and enumeration, indicating a potential malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access attempt, which is a plausible malicious action, and the MITRE techniques T1110 and T1078 are associated with credential access and lateral movement, indicating a potential attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The CommandAndControl category suggests a malicious activity, and the Suspicious suspicion level further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a DefenseEvasion technique, which is a common tactic used by attackers to evade detection. The presence of multiple MITRE techniques further supports this classification.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a malicious action, and the MITRE technique T1566 (Credential Dumping) further supports this, indicating a high confidence in a malicious event.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title is a number, which doesn't describe a malicious action, but the category is Malware, which suggests a real event occurred. However, without more information, it's hard to determine if it's malicious or not. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title and category suggest a data exfiltration attempt, but the lack of MITRE technique and suspicion level makes it difficult to determine the severity of the event. Further investigation is needed to confirm whether this is a malicious or routine action. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert describes a plausible real action (InitialAccess) that could be part of a routine system process, but the MITRE technique suggests a specific method of initial access which is not necessarily malicious.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access attempt, which is a plausible malicious action, and the MITRE techniques listed are consistent with this category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The alert title '51' and category 'Impact' suggest a real event occurred, but without further information, it's likely a routine system action rather than a malicious one.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert describes InitialAccess, which is a plausible action on a system, and the MITRE techniques listed (T1204.002, T1547.009, T1566.001) are all related to lateral movement and data transfer, indicating a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert title and category suggest a credential access attempt, which is a plausible malicious action, and the MITRE techniques listed are consistent with this category.",
+      "error": null
+    }
+  ]
+}
