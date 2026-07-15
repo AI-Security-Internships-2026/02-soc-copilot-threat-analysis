@@ -186,7 +186,7 @@ it just shifts the bias rather than fixing it.
 ## Week 6
 
 **Branch:** `asma-week-06`
-**PR link:** _[Add link after opening PR]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/6
 
 ### Root cause recorded from Week 5
 The failure is a **sparse-context collapse**, not a class-imbalance issue. The
