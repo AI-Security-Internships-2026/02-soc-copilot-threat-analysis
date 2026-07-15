@@ -10,6 +10,11 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agent.state import AlertState
+from src.agent.fallback_classifier import (
+    evidence_field_count,
+    predict_with_fallback,
+    should_use_fallback,
+)
 
 # add this import near your other imports at the top of nodes.py
 from src.agent.mitre_lookup import get_technique_info, load_technique_map
@@ -110,10 +115,51 @@ Respond ONLY with a JSON object in this exact format, no extra text:
             SystemMessage(content=system_prompt),
             HumanMessage(content=user_message),
         ])
-        return {"llm_response": response.content}
+        return {"llm_response": response.content, "triage_path": "llm"}
 
     except Exception as e:
         return {"error": f"LLM call failed: {str(e)}"}
+
+
+# ---------------------------------------------------------------------------
+# week 6: low-context fallback classifier
+# ---------------------------------------------------------------------------
+def route_by_context(state: AlertState) -> str:
+    """Route sparse GUIDE alerts to RF; retain the LLM path otherwise."""
+    alert = state["raw_alert"]
+    return "rf_fallback" if should_use_fallback(alert) else "llm"
+
+
+def classify_with_fallback(state: AlertState) -> dict:
+    """Classify a sparse alert with the structured-data RF baseline.
+
+    The fallback is deliberately narrow. If its model cannot run, return a
+    low-confidence result for human review instead of silently guessing.
+    """
+    signal_count = evidence_field_count(state["raw_alert"])
+    try:
+        label, probability = predict_with_fallback(state["raw_alert"])
+    except Exception as exc:
+        return {
+            "confidence": "low",
+            "triage_path": "rf_fallback",
+            "context_signal_count": signal_count,
+            "reasoning": f"RF fallback unavailable; requires human review: {exc}",
+            "error": f"RF fallback failed: {exc}",
+        }
+
+    confidence = "high" if probability >= 0.80 else "medium" if probability >= 0.55 else "low"
+    return {
+        "predicted_label": label,
+        "confidence": confidence,
+        "triage_path": "rf_fallback",
+        "context_signal_count": signal_count,
+        "fallback_probability": probability,
+        "reasoning": (
+            f"RF fallback used because only {signal_count}/{len(('MitreTechniques', 'SuspicionLevel', 'LastVerdict'))} "
+            f"discriminative context fields were populated (model probability: {probability:.2f})."
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------

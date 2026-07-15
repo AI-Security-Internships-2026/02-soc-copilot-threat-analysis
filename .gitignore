@@ -67,3 +67,4 @@ credentials/
 experiments/results/*.png
 experiments/results/*.pdfdatasets/mitre_technique_cache.json
 experiments/results/baseline_model.joblib
+experiments/results/evaluation_samples/

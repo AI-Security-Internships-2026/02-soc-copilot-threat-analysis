@@ -14,5 +14,8 @@ class AlertState(TypedDict):
     predicted_label: Optional[str]      # after parse_verdict
     reasoning: Optional[str]
     confidence: Optional[str]           # "high" | "medium" | "low"
+    triage_path: Optional[str]          # "llm" | "rf_fallback"
+    context_signal_count: Optional[int] # populated MITRE/suspicion/verdict fields
+    fallback_probability: Optional[float]
     needs_human_review: Optional[bool]  # after human_review_node
     error: Optional[str]

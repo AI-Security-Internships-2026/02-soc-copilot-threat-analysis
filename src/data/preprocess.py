@@ -43,6 +43,23 @@ def encode_categoricals(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     return df, encoders
 
 
+def transform_with_encoders(df: pd.DataFrame, encoders: dict) -> pd.DataFrame:
+    """Apply saved training encoders to new alerts for model inference.
+
+    ``LabelEncoder`` has no unknown-category mode. GUIDE's production values
+    should be covered by encoders fitted on the training data; an unexpected
+    value is represented as -1 instead of crashing the triage graph.
+    """
+    df = df.copy()
+    for col, encoder in encoders.items():
+        if col not in df:
+            df[col] = float("nan")
+        codes = {value: index for index, value in enumerate(encoder.classes_)}
+        values = df[col].astype("object").where(df[col].notna(), float("nan")).astype(str)
+        df[col] = values.map(codes).fillna(-1).astype(int)
+    return df
+
+
 def preprocess(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, dict]:
     """
     Returns (X, y, encoders) ready for model training.
