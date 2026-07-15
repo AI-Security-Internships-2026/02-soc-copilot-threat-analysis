@@ -180,3 +180,58 @@ worked examples to the prompt (few-shot) instead of instructions, or testing whe
 larger/different model handles the sparse-context alerts better. Not going to keep
 iterating on plain prompt wording without direction, since two attempts already showed
 it just shifts the bias rather than fixing it.
+
+---
+
+## Week 6
+
+**Branch:** `asma-week-06`
+**PR link:** _[Add link after opening PR]_
+
+### Root cause recorded from Week 5
+The failure is a **sparse-context collapse**, not a class-imbalance issue. The
+evaluation sample is balanced (100 examples per class), but 186/300 alerts (62%)
+do not include enough of the prompt's discriminative evidence — MITRE technique,
+suspicion level, or last verdict. For these alerts, the LLM receives mostly opaque
+numeric GUIDE values and responds with an unsupported default label rather than a
+per-alert decision. With the original prompt that default was FalsePositive
+(156/186 sparse alerts); the two prompt variants merely moved the default to
+BenignPositive. Their macro F1 scores (0.175 and 0.184) remain below both the
+original LLM result (0.386) and the RF baseline (0.296).
+
+### Targeted fix implemented
+- [x] Added a **gated Random Forest fallback** for alerts with fewer than two of
+  `MitreTechniques`, `SuspicionLevel`, and `LastVerdict` populated. These are the
+  alerts where the LLM lacks analyst-readable evidence; alerts with richer context
+  continue through the LLM and MITRE-enrichment path unchanged.
+- [x] The fallback uses the RF baseline artifact (classifier plus its fitted
+  categorical encoders) and recreates its saved feature order plus timestamp
+  features. It returns the RF probability, route, and context-signal count in the
+  graph state for auditability. The baseline must be regenerated once to replace
+  the older classifier-only artifact.
+- [x] Low-probability fallback outcomes still pass through the existing human-review
+  checkpoint. A missing or incompatible fallback model fails safely to human review
+  rather than substituting a label.
+- [x] Extended evaluation logs with the route taken and fallback probability so the
+  next run can report overall and sparse-alert performance separately.
+
+### Validation completed
+Trained a reusable 100k-row RF artifact and evaluated the hybrid on a fresh,
+class-balanced 300-alert real-GUIDE sample. The evaluation records its route and RF
+probability per alert, and future runs cache the evaluation sample after one streamed
+pass through GUIDE rather than loading the entire dataset into memory each time.
+
+### Results — fallback evaluation (300 balanced real GUIDE alerts)
+
+| Metric | Week 5 best LLM-only prompt | Week 6 hybrid | 100k-row RF baseline |
+|---|---:|---:|---:|
+| Accuracy | 0.400 | 0.753 | 0.772 |
+| Macro F1 | 0.386 | 0.750 | 0.751 |
+
+The Week 6 hybrid is within 0.001 macro F1 of the RF baseline, a large improvement
+over prompt-only variants (0.175–0.386). The fallback handled 244/300 alerts (81.3%)
+with 82.0% accuracy; the LLM retained the richer-context route for 56 alerts. This
+is evidence that the targeted fallback addresses sparse-context collapse, but it is
+not evidence that the hybrid outperforms the RF baseline. Future evaluation runs
+cache the small balanced sample after one streamed pass through GUIDE, avoiding a
+full in-memory load on every experiment.
