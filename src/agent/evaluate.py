@@ -7,10 +7,11 @@ import json
 import time
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 
-from src.data.load_data import load_alerts
-from src.data.preprocess import preprocess
+from src.data.load_data import REAL_DATA_PATH, SAMPLE_DATA_PATH
 from src.agent.graph import triage_graph
 
 
@@ -23,6 +24,74 @@ LABEL_MAP = {
     "FalsePositive": "FalsePositive",
 }
 
+SAMPLE_SEED = 42
+SAMPLE_CACHE_DIR = Path("experiments/results/evaluation_samples")
+
+
+def _active_data_path() -> Path:
+    return REAL_DATA_PATH if REAL_DATA_PATH.exists() else SAMPLE_DATA_PATH
+
+
+def _data_signature(path: Path) -> dict:
+    stat = path.stat()
+    return {"path": str(path), "size_bytes": stat.st_size, "modified_ns": stat.st_mtime_ns}
+
+
+def load_balanced_evaluation_sample(sample_size: int, seed: int = SAMPLE_SEED) -> pd.DataFrame:
+    """Return a cached, reproducible class-balanced sample without loading all data.
+
+    The first run streams the CSV in chunks and keeps a reservoir sample for
+    each class. Later runs reuse the small cache unless the source dataset,
+    requested sample size, or seed changed.
+    """
+    sample_per_class = sample_size // 3
+    path = _active_data_path()
+    SAMPLE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_path = SAMPLE_CACHE_DIR / f"guide_balanced_{sample_per_class}_per_class_seed_{seed}.csv"
+    metadata_path = cache_path.with_suffix(".json")
+    expected_metadata = {
+        "data": _data_signature(path),
+        "sample_per_class": sample_per_class,
+        "seed": seed,
+    }
+
+    if cache_path.exists() and metadata_path.exists():
+        with open(metadata_path) as file:
+            if json.load(file) == expected_metadata:
+                cached = pd.read_csv(cache_path)
+                if len(cached) == sample_per_class * len(LABEL_MAP):
+                    print(f"Reusing cached evaluation sample: {cache_path}")
+                    return cached
+
+    print(f"Creating a balanced evaluation sample by streaming {path}...")
+    rng = np.random.default_rng(seed)
+    reservoirs = {label: pd.DataFrame() for label in LABEL_MAP}
+    rows_seen = 0
+    for chunk_number, chunk in enumerate(pd.read_csv(path, chunksize=100_000), start=1):
+        chunk = chunk.dropna(subset=["IncidentGrade"])
+        rows_seen += len(chunk)
+        for label in LABEL_MAP:
+            candidates = chunk[chunk["IncidentGrade"] == label].copy()
+            if candidates.empty:
+                continue
+            candidates["_sample_key"] = rng.random(len(candidates))
+            reservoirs[label] = pd.concat([reservoirs[label], candidates], ignore_index=True).nsmallest(
+                sample_per_class, "_sample_key"
+            )
+        if chunk_number % 10 == 0:
+            print(f"  scanned {rows_seen:,} rows...", flush=True)
+
+    missing = [label for label, sample in reservoirs.items() if len(sample) < sample_per_class]
+    if missing:
+        raise ValueError(f"Not enough examples for evaluation classes: {', '.join(missing)}")
+
+    sample = pd.concat(reservoirs.values(), ignore_index=True).drop(columns="_sample_key")
+    sample.to_csv(cache_path, index=False)
+    with open(metadata_path, "w") as file:
+        json.dump(expected_metadata, file, indent=2)
+    print(f"Cached balanced evaluation sample: {cache_path}")
+    return sample
+
 
 def run_evaluation(sample_size: int = 50, output_path: str = "experiments/results/agent_metrics.json"):
     """
@@ -32,23 +101,9 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
     we keep sample_size small (default 50) because each row = one LLM API call.
     with gpt-4o-mini at ~$0.00015/1K input tokens this costs < $0.10 for 50 rows.
     """
-    print(f"loading data...")
-    df_raw = load_alerts()
-
-    # preprocess gives us numeric features — but we also need original string columns
-    # for the LLM context. so we work with df_raw directly for alert building,
-    # and use the IncidentGrade column (before encoding) as ground truth.
-    df_raw = df_raw.dropna(subset=["IncidentGrade"])
-
-    # sample evenly across all 3 classes so evaluation isn't skewed
+    print("loading evaluation sample...")
     sample_per_class = sample_size // 3
-    sampled_frames = []
-    for grade in ["TruePositive", "BenignPositive", "FalsePositive"]:
-        class_df = df_raw[df_raw["IncidentGrade"] == grade]
-        n = min(sample_per_class, len(class_df))
-        sampled_frames.append(class_df.sample(n=n, random_state=42))
-
-    sample_df = sampled_frames[0]._append(sampled_frames[1])._append(sampled_frames[2]).reset_index(drop=True)
+    sample_df = load_balanced_evaluation_sample(sample_size).reset_index(drop=True)
 
     print(f"evaluating agent on {len(sample_df)} alerts ({sample_per_class} per class)...")
     print("this makes one LLM API call per row — expect ~1-2 minutes for 50 rows.\n")
@@ -70,12 +125,18 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             reasoning = result.get("reasoning", "")
             confidence = result.get("confidence", "low")
             error = result.get("error", None)
+            triage_path = result.get("triage_path", "llm")
+            context_signal_count = result.get("context_signal_count", None)
+            fallback_probability = result.get("fallback_probability", None)
 
         except Exception as e:
             predicted = "FalsePositive"
             reasoning = f"agent crash: {str(e)}"
             confidence = "low"
             error = str(e)
+            triage_path = "error"
+            context_signal_count = None
+            fallback_probability = None
 
         y_true.append(ground_truth)
         y_pred.append(predicted)
@@ -87,6 +148,9 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             "confidence": confidence,
             "reasoning": reasoning,
             "error": error,
+            "triage_path": triage_path,
+            "context_signal_count": context_signal_count,
+            "fallback_probability": fallback_probability,
         })
 
         # print progress every 10 rows
@@ -126,6 +190,13 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
         "macro_f1": round(macro_f1, 4),
         "baseline_comparison": baseline_note,
         "per_alert_results": results_log,
+    }
+
+    fallback_count = sum(item["triage_path"] == "rf_fallback" for item in results_log)
+    output["routing_summary"] = {
+        "rf_fallback_count": fallback_count,
+        "llm_count": sum(item["triage_path"] == "llm" for item in results_log),
+        "fallback_rate": round(fallback_count / len(results_log), 4) if results_log else 0.0,
     }
 
     out_path = Path(output_path)
