@@ -18,7 +18,7 @@ REAL_DATA_PATH = Path("datasets/GUIDE_train.csv")  # gitignored -- download your
 SAMPLE_DATA_PATH = Path("datasets/sample/guide_sample.csv")
 
 
-def load_alerts(path: Path | None = None) -> pd.DataFrame:
+def load_alerts(path: Path | None = None, nrows: int | None = None) -> pd.DataFrame:
     """
     Load alert data. If `path` isn't given, prefers the real dataset if
     present, otherwise falls back to the synthetic sample.
@@ -33,13 +33,14 @@ def load_alerts(path: Path | None = None) -> pd.DataFrame:
             "datasets/README.md)."
         )
 
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, nrows=nrows)
 
     missing = set(ALL_RAW_COLUMNS) - set(df.columns)
     if missing:
         raise ValueError(f"Loaded file is missing expected GUIDE columns: {missing}")
 
-    print(f"Loaded {len(df)} rows from {path}")
+    limit_note = f" (limited to {nrows:,} rows)" if nrows is not None else ""
+    print(f"Loaded {len(df):,} rows from {path}{limit_note}")
     return df
 
 
