@@ -240,17 +240,20 @@ full in-memory load on every experiment.
 
 ## Week 7
 
-### Scalability, guardrail, and resource evaluation
+**Branch:** `asma-week-07`
+**PR link:** _[add link after opening PR — base `dev`, compare `asma-week-07`]_
 
-- [x] Added a deterministic regex input guardrail before either automated route.
-  It detects common prompt-injection/role-impersonation patterns and oversize
-  text fields, then sends the alert to human review without passing the text to
-  the LLM or RF classifier.
+### Completed this week
+- [x] Added a deterministic regex input guardrail that runs before either automated
+  route (LLM or RF). Detects common prompt-injection/role-impersonation patterns
+  and oversize text fields, and routes matches straight to human review without
+  exposing the text to the LLM or RF classifier.
 - [x] Added `src/agent/benchmark.py`, which records prompt count, worker count,
   wall time, throughput, process CPU time, per-core utilization estimate, peak
-  RSS memory, routing outcomes, errors, and scored accuracy/F1.
+  RSS memory, routing outcomes, errors, and scored accuracy/F1 for RF, LLM, and
+  hybrid modes.
 - [x] Measured RF and hybrid throughput with 30 balanced GUIDE alerts using one
-  and four workers. RF improved from 16.69 to 41.85 alerts/s (1.80 s to 0.72 s);
+  and four workers. RF improved from 16.69 to 41.85 alerts/s (1.80s → 0.72s);
   the four-worker run used about 14.23% of the available eight logical cores.
 - [x] Microbenchmarked the regex guardrail: 4.076 microseconds per check across
   10,000 benign and 10,000 injection-like inputs; it blocked 10,000/10,000 of
@@ -269,3 +272,37 @@ venv/bin/python -m src.agent.benchmark --modes rf hybrid --prompt-counts 30 60 1
 
 After confirming Groq connectivity, rerun the LLM cases separately with the
 same prompt counts and workers so remote inference latency is comparable.
+
+### Problems / Blockers
+Spent a significant chunk of this week untangling a branching mistake rather
+than writing new code. Summary (full detail kept in a separate session log,
+not duplicated here):
+
+- Week 7 work (guardrail, benchmark script, new result JSONs) was built and
+  left uncommitted on the old, already-merged `asma-week-06` branch instead of
+  a fresh branch off `dev`.
+- While fixing that, discovered a second, unrelated issue: a local-only commit
+  (`fix: --force-retrain wasn't actually retraining`) existed on local `dev`
+  but had never been pushed or merged — it wasn't on `origin/dev` at all.
+  Investigated it and confirmed the bug it fixed had already been solved a
+  different way by the Week 6 RF-fallback rewrite of `baseline.py`
+  (`expected_metadata()` / `load_reusable_artifact()`), so the old fix was
+  obsolete and was discarded (branch deleted locally and on origin) rather
+  than merged, to avoid regressing the Week 6 provenance-checking logic.
+- Also found two unused, harmless branches on origin — `revert-6-asma-week-06`
+  and `revert-3-asma-week-03` — created by GitHub's "Revert" button at some
+  point but with no PR ever opened from either. Confirmed via the Pull
+  Requests tab that no PR exists for them, so they're inert. Left alone
+  rather than deleted, since this is a shared repo — didn't want to remove
+  something a collaborator or Dr. Rana might still reference.
+- Once `dev` was confirmed clean and up to date with `origin/dev`, recreated
+  `asma-week-07` from the correct base and reapplied the stashed Week 7 work.
+  Verified no leftover conflict markers and reviewed the one incidental diff
+  (trailing whitespace in `baseline_metrics.json`, not a data change) before
+  committing.
+
+### Next week plan
+Rerun the LLM-vs-RF-vs-hybrid latency comparison once Groq is reachable, to
+get a full throughput/latency picture across all three paths instead of just
+RF and hybrid. Also: delete stale local branches (`asma-week-05`,
+`asma-week-06`) now that Week 7 is pushed cleanly off current `dev`.
