@@ -1,0 +1,2108 @@
+{
+  "sample_size": 300,
+  "accuracy": 0.4,
+  "macro_f1": 0.3861,
+  "baseline_comparison": "RF baseline: acc=0.374375, f1=0.2959790960052975",
+  "per_alert_results": [
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as InitialAccess, but the Suspicion Level is nan, indicating a lack of confidence in the detection. Additionally, the last verdict was NoThreatsFound, suggesting that previous analysis did not indicate malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert title and category do not indicate a specific malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1566.001 is a known technique for gaining initial access, and the alert has been previously classified as Malicious, indicating a high likelihood of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "T1070.001 is a technique often used for legitimate system maintenance, and without further context, it's difficult to determine malicious intent. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a test or a system error.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert title and category do not indicate a specific malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1566 is a technique related to credential dumping, but the Suspicion Level is nan, indicating a lack of confidence in the alert's accuracy, and the Last Verdict was NoThreatsFound, suggesting previous analysis did not support this alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "CredentialAccess category and multiple MITRE techniques (T1110, T1110.003, T1110.001) indicate a high likelihood of a real attack, specifically credential theft or brute-force attempts.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks a Suspicion Level and Last Verdict, indicating a potential system or data issue, and the MITRE Technique T1110 is a broad category that could be triggered by various benign activities.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the legitimacy of the alert, and the absence of a suspicion level and last verdict suggests a lack of context. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's admin activity or a false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level makes this alert less likely to be a real attack, but it's still possible it's a legitimate activity that triggered the detector. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks MITRE technique and suspicion level information, which are typically present in ransomware alerts, suggesting it may be a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1566.002 is a technique related to credential dumping, but the Suspicion Level is nan, indicating a lack of confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the alert's validity, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1566.001 is a known technique for gaining initial access, and the alert has been previously classified as Malicious, indicating a high likelihood of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The MITRE technique T1566.001 is related to credential dumping, but without any Suspicion Level or Last Verdict, it's likely a false positive or a misconfigured detector.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1566.002 is a technique related to credential dumping, but the Suspicion Level is nan, indicating a lack of confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as InitialAccess, which is a common MITRE technique used by attackers to gain access to a network. The previous verdict was also Malicious, indicating a high likelihood of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert lacks specific details about the suspicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of T1559 (Scheduled Transfer) and T1106 (Executing Remote Scripts) and T1059.005 (Scheduled Task/Job) suggests a coordinated attack, likely a lateral movement attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks a clear MITRE technique or suspicion level, indicating a potential false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of a suspicion level and last verdict suggests a lack of context. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert is categorized as Discovery, which typically indicates a system or network scan, and the MITRE techniques listed are common for legitimate system discovery and enumeration. Without further context or a higher suspicion level, it's difficult to determine malicious intent. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1218.005 is a known technique for code signing, which is often used by malware to evade detection. The high suspicion level and lack of previous verdicts suggest a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of T1559 (Scheduled Transfer) and T1106 (Executing Remote Scripts) and T1059.005 (Scheduled Task/Job) suggests a coordinated attack, likely a lateral movement attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of T1559 (Scheduled Transfer) and T1106 (Executing Remote Scripts) and T1059.005 (Scheduled Task/Job) suggests a coordinated attack, likely a lateral movement attempt.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a false positive or a system error.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of multiple MITRE techniques (T1046, T1071, T1210) suggests a sophisticated C2 activity, which is a strong indicator of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert lacks sufficient information to determine its validity, and the Suspicion Level is undefined, making it difficult to assess the alert's credibility. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of nan, indicating a lack of confidence in the detection, and the Last Verdict was NoThreatsFound, suggesting previous analysis did not find any threats.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks a Suspicion Level and Last Verdict, indicating a potential system or data issue, and the MITRE Technique T1078 is typically associated with Privilege Escalation, not InitialAccess.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of multiple MITRE techniques (T1489, T1543.003, T1569.002) suggests a sophisticated attack, and the Execution category indicates a high-risk activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks specific MITRE technique information, making it difficult to assess its validity. Given the lack of detail, it's possible this is a legitimate activity or a false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert indicates CommandAndControl activity, which is a common tactic used by attackers to communicate with their C2 servers. The combination of T1071 and T1571 techniques suggests a high likelihood of malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate activity that triggered the detector. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, making it difficult to assess its validity, and the MITRE Technique T1566 is a broad category that could be triggered by various benign activities.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the legitimacy of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert lacks specific details about the suspicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, making it difficult to assess its validity, and the MITRE Technique T1566 is a broad category that could be triggered by various benign activities.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert indicates CommandAndControl activity, which is a common tactic used by attackers, and is supported by multiple MITRE techniques (T1568 and T1008).",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of nan, indicating a lack of confidence in the detection, and the Last Verdict was NoThreatsFound, suggesting previous analysis did not find any threats.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, making it difficult to assess its validity, and the MITRE Technique T1566 is a broad category that could be triggered by various benign activities.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the alert's validity, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of a MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert title '100' is too generic and does not provide enough context to determine malicious activity. Further investigation is needed to confirm the legitimacy of the CredentialAccess attempt. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks a Suspicion Level and Last Verdict, indicating a potential system or data issue, and the MITRE Techniques T1113 and T0852 are not commonly associated with malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's admin activity or a false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level and a Malware category, indicating a potential malicious activity. The lack of a specific MITRE technique does not necessarily indicate a false positive.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate activity that triggered the detector. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a test or a misconfigured alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert title and category suggest a legitimate system error (HTTP 410), and the lack of MITRE technique information makes it difficult to assess the alert's severity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of nan, indicating a lack of confidence in the detection, and the Last Verdict was NoThreatsFound, suggesting previous analysis did not find any threats.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a test or a system error.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert title and category do not indicate a specific malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The MITRE technique T1566.001 is related to credential dumping, but without any Suspicion Level or Last Verdict, it's likely a false positive or a misconfigured detector.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1566 is not specific enough to confirm InitialAccess without further context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert indicates CommandAndControl activity, which is a common tactic used by attackers to communicate with their C2 servers. The combination of T1071 and T1048 techniques suggests a sophisticated attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of Persistence category and specific MITRE techniques T1112 (Abnormal Account Authentication) and T1547.001 (Server Software Component) suggests a potential malicious activity, warranting a high confidence TruePositive verdict.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1566.002 is a technique related to credential dumping, but the Suspicion Level is nan, indicating a lack of confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "Execution of a Windows service is a suspicious activity, and T1059.003 is a known technique used by attackers to establish persistence.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks specific MITRE technique information, making it difficult to assess its validity. Given the lack of detail, it's possible this is a legitimate activity or a false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks specific MITRE technique information, making it difficult to assess its validity. Given the lack of detail, it's possible this is a legitimate activity or a false alarm from a legitimate use. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert title and category do not indicate a specific malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert indicates CommandAndControl activity, which is a common tactic used by attackers to communicate with their C2 servers. The combination of T1071 and T1048 techniques suggests a sophisticated attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of nan, indicating a lack of confidence in the detection, and the Last Verdict was NoThreatsFound, suggesting previous analysis did not find any threats.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks sufficient information to determine its validity, and the absence of a MITRE technique and suspicion level suggests a lack of concrete evidence to support a malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert indicates CommandAndControl activity, which is a common tactic used by attackers, and is supported by multiple MITRE techniques (T1568 and T1008).",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of multiple MITRE techniques (T1046, T1071, T1210) suggests a sophisticated C2 activity, which is a strong indicator of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert title '85' does not provide context for the potential threat.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "T1566.002 is a technique related to credential dumping, but the Suspicion Level is nan, indicating a lack of confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the alert's validity, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks a Suspicion Level and Last Verdict, indicating a potential system or data issue, and the MITRE Techniques T1098 and T1114 are not typically associated with a single alert title like '344'.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1566 is a known technique for initial access, and the alert has been previously classified as Malicious, indicating a high likelihood of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details about the detected activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert title and category do not indicate a specific malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as InitialAccess, which is a common technique used by attackers to gain access to a system, and the MITRE technique T1566.002 is a specific method of achieving this, indicating a high likelihood of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of multiple MITRE techniques (T1046, T1071, T1210) suggests a sophisticated C2 activity, which is a strong indicator of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of multiple MITRE techniques (T1046, T1071, T1210) suggests a sophisticated C2 activity, which is a strong indicator of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks sufficient information to determine its validity, and the absence of a MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a test or a system error.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert title and category do not indicate a specific malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a test or a misconfigured alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the Suspicion Level is undefined. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Lack of Suspicion Level and Last Verdict information suggests the alert may not be properly configured or there may be a data quality issue.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the alert title and category do not indicate a specific malicious activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of nan, indicating a lack of confidence in the detection, and the Last Verdict was NoThreatsFound, suggesting previous analysis did not find any threats.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the alert's validity, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to make an accurate assessment, and the absence of MITRE technique and suspicion level suggests a lack of context. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "CredentialAccess category and multiple MITRE techniques (T1110, T1110.001, T1110.003) indicate a high likelihood of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to determine the validity of the alert, and the lack of MITRE technique and suspicion level suggests a low confidence in the alert's accuracy.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the absence of a MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a test or a misconfigured alert.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of nan, indicating a lack of confidence in the detection, and the Last Verdict was NoThreatsFound, suggesting previous analysis did not find any threats.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert is categorized as Discovery, which typically indicates a system or network scan, and the MITRE techniques listed are common for legitimate system discovery and enumeration. Without further context or a higher suspicion level, it's difficult to determine malicious intent. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, which are typically present in actionable alerts, suggesting it may be a test or a misconfigured detector.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the alert's validity, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert lacks Suspicion Level and Last Verdict information, indicating a potential system or data issue, and the MITRE Technique T1133 is not typically associated with InitialAccess category.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "CredentialAccess (T1110) and Lateral Movement (T1078) techniques are indicative of a potential attack, warranting further investigation.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert is categorized as Discovery and uses MITRE techniques T1007 and T1059.001, which are often used for legitimate system discovery and enumeration, making it likely a benign admin activity. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "CredentialAccess (T1110) and Lateral Movement (T1078) techniques are indicative of a potential attack, warranting further investigation.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as DefenseEvasion, which is a common tactic used by attackers to evade detection, and the MITRE techniques listed are all related to process injection, a known malicious activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1566 is a known technique for initial access, and the alert has been previously classified as Malicious, indicating a high likelihood of a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "The alert is categorized as Malware and has a Suspicious verdict, indicating potential malicious activity, but lacks specific MITRE technique information for further context. [flagged for human review: confidence was not high]",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information provided to determine the validity of the alert, and the absence of MITRE technique and suspicion level suggests a lack of context.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "InitialAccess category and T1078/T1078.004 MITRE Technique indicate a likely successful exploitation of a vulnerability, suggesting a real attack.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "CredentialAccess category and multiple MITRE techniques (T1110, T1110.003, T1110.001) indicate a high likelihood of a real attack, specifically credential theft or brute-force attempts.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "Insufficient information is provided to make an accurate assessment, and the alert lacks specific details such as MITRE technique and suspicion level.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of multiple MITRE techniques (T1204.002, T1547.009, T1566.001) suggests a sophisticated attack, and the InitialAccess category indicates a high-risk activity.",
+      "error": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "CredentialAccess category and multiple MITRE techniques (T1110, T1110.001, T1110.003) indicate a high likelihood of a real attack.",
+      "error": null
+    }
+  ]
+}

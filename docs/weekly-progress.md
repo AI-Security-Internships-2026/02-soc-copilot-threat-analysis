@@ -235,3 +235,37 @@ is evidence that the targeted fallback addresses sparse-context collapse, but it
 not evidence that the hybrid outperforms the RF baseline. Future evaluation runs
 cache the small balanced sample after one streamed pass through GUIDE, avoiding a
 full in-memory load on every experiment.
+
+---
+
+## Week 7
+
+### Scalability, guardrail, and resource evaluation
+
+- [x] Added a deterministic regex input guardrail before either automated route.
+  It detects common prompt-injection/role-impersonation patterns and oversize
+  text fields, then sends the alert to human review without passing the text to
+  the LLM or RF classifier.
+- [x] Added `src/agent/benchmark.py`, which records prompt count, worker count,
+  wall time, throughput, process CPU time, per-core utilization estimate, peak
+  RSS memory, routing outcomes, errors, and scored accuracy/F1.
+- [x] Measured RF and hybrid throughput with 30 balanced GUIDE alerts using one
+  and four workers. RF improved from 16.69 to 41.85 alerts/s (1.80 s to 0.72 s);
+  the four-worker run used about 14.23% of the available eight logical cores.
+- [x] Microbenchmarked the regex guardrail: 4.076 microseconds per check across
+  10,000 benign and 10,000 injection-like inputs; it blocked 10,000/10,000 of
+  the injection test inputs and 0/10,000 benign inputs.
+- [ ] Complete a valid live LLM-vs-RF latency comparison after Groq connectivity
+  is restored. During this run all six direct LLM requests failed with
+  `Connection error`; the JSON artifact records those failures rather than
+  treating failure time as model latency.
+
+Results are saved in `experiments/results/week7_scalability_benchmark.json`.
+To rerun the local/hybrid cases:
+
+```bash
+venv/bin/python -m src.agent.benchmark --modes rf hybrid --prompt-counts 30 60 120 --workers 1 4
+```
+
+After confirming Groq connectivity, rerun the LLM cases separately with the
+same prompt counts and workers so remote inference latency is comparable.
