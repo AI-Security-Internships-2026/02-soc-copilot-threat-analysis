@@ -1,6 +1,6 @@
 {
   "benchmark": "week7_scalability",
-  "generated_at_utc": "2026-07-21T10:02:50.322877+00:00",
+  "generated_at_utc": "2026-07-24T13:05:33.391817+00:00",
   "measurement_notes": {
     "llm": "Includes remote Groq inference and network latency; request concurrency is controlled by workers.",
     "cpu": "Process CPU time divided by wall time; it is not whole-system CPU load.",
@@ -9,158 +9,152 @@
   },
   "regex_guardrail_microbenchmark": {
     "iterations_per_case": 10000,
-    "wall_time_seconds": 0.081522,
-    "mean_check_time_microseconds": 4.076,
+    "wall_time_seconds": 0.072327,
+    "mean_check_time_microseconds": 3.616,
     "benign_alerts_blocked": 0,
     "injection_alerts_blocked": 10000
   },
   "results": [
     {
-      "mode": "rf",
+      "mode": "llm",
       "prompt_count": 30,
       "workers": 1,
       "logical_cpu_cores": 8,
-      "wall_time_seconds": 1.7975,
-      "throughput_alerts_per_second": 16.6901,
-      "mean_latency_seconds": 0.0599,
-      "process_cpu_seconds": 1.4993,
-      "mean_process_cpu_utilization_percent": 83.41,
-      "mean_machine_core_utilization_percent": 10.43,
-      "peak_rss_bytes": 708886528,
-      "peak_rss_mib": 676.05,
-      "peak_rss_growth_mib": 483.78,
+      "wall_time_seconds": 52.8873,
+      "throughput_alerts_per_second": 0.5672,
+      "mean_latency_seconds": 1.7629,
+      "process_cpu_seconds": 0.3706,
+      "mean_process_cpu_utilization_percent": 0.7,
+      "mean_machine_core_utilization_percent": 0.09,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 1.44,
       "completed_predictions": 30,
-      "accuracy_scored_only": 0.6333,
-      "macro_f1_scored_only": 0.6222,
+      "accuracy_scored_only": 0.4333,
+      "macro_f1_scored_only": 0.2016,
       "routing_counts": {
-        "rf": 30
+        "llm": 30
       },
       "errors": 0,
       "error_messages": {}
     },
     {
-      "mode": "rf",
+      "mode": "llm",
       "prompt_count": 30,
       "workers": 4,
       "logical_cpu_cores": 8,
-      "wall_time_seconds": 0.7168,
-      "throughput_alerts_per_second": 41.8531,
-      "mean_latency_seconds": 0.0239,
-      "process_cpu_seconds": 0.816,
-      "mean_process_cpu_utilization_percent": 113.84,
-      "mean_machine_core_utilization_percent": 14.23,
-      "peak_rss_bytes": 710459392,
-      "peak_rss_mib": 677.55,
-      "peak_rss_growth_mib": 1.5,
+      "wall_time_seconds": 80.2942,
+      "throughput_alerts_per_second": 0.3736,
+      "mean_latency_seconds": 2.6765,
+      "process_cpu_seconds": 0.9202,
+      "mean_process_cpu_utilization_percent": 1.15,
+      "mean_machine_core_utilization_percent": 0.14,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
       "completed_predictions": 30,
-      "accuracy_scored_only": 0.6333,
-      "macro_f1_scored_only": 0.6222,
+      "accuracy_scored_only": 0.4333,
+      "macro_f1_scored_only": 0.2016,
       "routing_counts": {
-        "rf": 30
+        "llm": 30
       },
       "errors": 0,
       "error_messages": {}
     },
     {
-      "mode": "hybrid",
-      "prompt_count": 30,
+      "mode": "llm",
+      "prompt_count": 60,
       "workers": 1,
       "logical_cpu_cores": 8,
-      "wall_time_seconds": 13.3305,
-      "throughput_alerts_per_second": 2.2505,
-      "mean_latency_seconds": 0.4444,
-      "process_cpu_seconds": 0.9097,
-      "mean_process_cpu_utilization_percent": 6.82,
-      "mean_machine_core_utilization_percent": 0.85,
-      "peak_rss_bytes": 710459392,
-      "peak_rss_mib": 677.55,
+      "wall_time_seconds": 161.9481,
+      "throughput_alerts_per_second": 0.3705,
+      "mean_latency_seconds": 2.6991,
+      "process_cpu_seconds": 0.8124,
+      "mean_process_cpu_utilization_percent": 0.5,
+      "mean_machine_core_utilization_percent": 0.06,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
       "peak_rss_growth_mib": 0.0,
-      "completed_predictions": 21,
-      "accuracy_scored_only": 0.619,
-      "macro_f1_scored_only": 0.6186,
+      "completed_predictions": 60,
+      "accuracy_scored_only": 0.3333,
+      "macro_f1_scored_only": 0.2765,
       "routing_counts": {
-        "rf_fallback": 21,
-        "llm_error": 9
+        "llm": 60
       },
-      "errors": 9,
-      "error_messages": {
-        "LLM call failed: Connection error.": 9
-      }
-    },
-    {
-      "mode": "hybrid",
-      "prompt_count": 30,
-      "workers": 4,
-      "logical_cpu_cores": 8,
-      "wall_time_seconds": 4.3302,
-      "throughput_alerts_per_second": 6.9282,
-      "mean_latency_seconds": 0.1443,
-      "process_cpu_seconds": 0.7422,
-      "mean_process_cpu_utilization_percent": 17.14,
-      "mean_machine_core_utilization_percent": 2.14,
-      "peak_rss_bytes": 710459392,
-      "peak_rss_mib": 677.55,
-      "peak_rss_growth_mib": 0.0,
-      "completed_predictions": 21,
-      "accuracy_scored_only": 0.619,
-      "macro_f1_scored_only": 0.6186,
-      "routing_counts": {
-        "rf_fallback": 21,
-        "llm_error": 9
-      },
-      "errors": 9,
-      "error_messages": {
-        "LLM call failed: Connection error.": 9
-      }
+      "errors": 0,
+      "error_messages": {}
     },
     {
       "mode": "llm",
-      "prompt_count": 6,
-      "workers": 1,
+      "prompt_count": 60,
+      "workers": 4,
       "logical_cpu_cores": 8,
-      "wall_time_seconds": 8.1528,
-      "throughput_alerts_per_second": 0.7359,
-      "mean_latency_seconds": 1.3588,
-      "process_cpu_seconds": 0.0749,
-      "mean_process_cpu_utilization_percent": 0.92,
-      "mean_machine_core_utilization_percent": 0.11,
-      "peak_rss_bytes": 206159872,
-      "peak_rss_mib": 196.61,
-      "peak_rss_growth_mib": 3.92,
-      "completed_predictions": 0,
-      "accuracy_scored_only": null,
-      "macro_f1_scored_only": null,
+      "wall_time_seconds": 161.6743,
+      "throughput_alerts_per_second": 0.3711,
+      "mean_latency_seconds": 2.6946,
+      "process_cpu_seconds": 2.0149,
+      "mean_process_cpu_utilization_percent": 1.25,
+      "mean_machine_core_utilization_percent": 0.16,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 60,
+      "accuracy_scored_only": 0.3333,
+      "macro_f1_scored_only": 0.2765,
       "routing_counts": {
-        "llm_error": 6
+        "llm": 60
       },
-      "errors": 6,
-      "error_messages": {
-        "LLM call failed: Connection error.": 6
-      }
+      "errors": 0,
+      "error_messages": {}
     },
     {
       "mode": "llm",
-      "prompt_count": 6,
+      "prompt_count": 120,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 327.4073,
+      "throughput_alerts_per_second": 0.3665,
+      "mean_latency_seconds": 2.7284,
+      "process_cpu_seconds": 1.6643,
+      "mean_process_cpu_utilization_percent": 0.51,
+      "mean_machine_core_utilization_percent": 0.06,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 120,
+      "accuracy_scored_only": 0.4,
+      "macro_f1_scored_only": 0.3727,
+      "routing_counts": {
+        "llm": 120
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "llm",
+      "prompt_count": 120,
       "workers": 4,
       "logical_cpu_cores": 8,
-      "wall_time_seconds": 2.7182,
-      "throughput_alerts_per_second": 2.2074,
-      "mean_latency_seconds": 0.453,
-      "process_cpu_seconds": 0.0561,
-      "mean_process_cpu_utilization_percent": 2.06,
-      "mean_machine_core_utilization_percent": 0.26,
-      "peak_rss_bytes": 206159872,
-      "peak_rss_mib": 196.61,
+      "wall_time_seconds": 319.4669,
+      "throughput_alerts_per_second": 0.3756,
+      "mean_latency_seconds": 2.6622,
+      "process_cpu_seconds": 3.6454,
+      "mean_process_cpu_utilization_percent": 1.14,
+      "mean_machine_core_utilization_percent": 0.14,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
       "peak_rss_growth_mib": 0.0,
-      "completed_predictions": 0,
-      "accuracy_scored_only": null,
-      "macro_f1_scored_only": null,
+      "completed_predictions": 118,
+      "accuracy_scored_only": 0.3983,
+      "macro_f1_scored_only": 0.3656,
       "routing_counts": {
-        "llm_error": 6
+        "llm": 118,
+        "llm_error": 2
       },
-      "errors": 6,
+      "errors": 2,
       "error_messages": {
-        "LLM call failed: Connection error.": 6
+        "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01jv2357mse6rtfwpsnepg88v7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 5925, Requested 283. Please try again in 2.08s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}": 1,
+        "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01jv2357mse6rtfwpsnepg88v7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 5965, Requested 294. Please try again in 2.59s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}": 1
       }
     }
   ]
