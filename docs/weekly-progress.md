@@ -258,10 +258,25 @@ full in-memory load on every experiment.
 - [x] Microbenchmarked the regex guardrail: 4.076 microseconds per check across
   10,000 benign and 10,000 injection-like inputs; it blocked 10,000/10,000 of
   the injection test inputs and 0/10,000 benign inputs.
-- [ ] Complete a valid live LLM-vs-RF latency comparison after Groq connectivity
-  is restored. During this run all six direct LLM requests failed with
-  `Connection error`; the JSON artifact records those failures rather than
-  treating failure time as model latency.
+- [x] Completed the live LLM latency/throughput benchmark after Groq connectivity
+  was restored. At `workers=1` (30/60/120 prompts), all requests completed
+  cleanly with 0 errors — mean latency 1.9–2.7s/alert, throughput 0.37–0.52
+  alerts/s. At `workers=4`, Groq's free-tier rate limit (6,000 tokens/minute)
+  was hit consistently: 15/30, 27/60, and 52/120 requests failed with
+  `429 rate_limit_exceeded`. The `workers=4` throughput numbers are therefore
+  **not a valid concurrency comparison** to RF/hybrid — they reflect partial
+  completion under rate-limiting, not genuine parallel speedup. The
+  `workers=1` results are the reliable LLM baseline for comparison purposes.
+
+| Mode | Workers | Alerts/s | Mean latency | Errors |
+|---|---|---|---|---|
+| LLM | 1 | 0.37–0.52 | 1.9–2.7s | 0 |
+| LLM | 4 | 0.45–0.74 | 1.4–2.2s | 15–52 (429 rate limit) |
+| RF | 4 | 41.85 | — | 0 |
+
+RF remains ~80–110x faster than LLM even at LLM's best-case (workers=1,
+uncontended) throughput — expected, since RF is a local classifier and LLM
+involves remote network calls plus per-token generation.
 
 Results are saved in `experiments/results/week7_scalability_benchmark.json`.
 To rerun the local/hybrid cases:
