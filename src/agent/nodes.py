@@ -8,6 +8,8 @@ import json
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
+import re
+import time
 
 from src.agent.state import AlertState
 from src.agent.fallback_classifier import (
@@ -15,6 +17,7 @@ from src.agent.fallback_classifier import (
     predict_with_fallback,
     should_use_fallback,
 )
+from src.agent.guardrails import inspect_alert
 
 # add this import near your other imports at the top of nodes.py
 from src.agent.mitre_lookup import get_technique_info, load_technique_map
@@ -32,6 +35,22 @@ llm = ChatGroq(
     max_tokens=512,
 )
 
+llm = ChatGroq(
+    model="llama-3.1-8b-instant",
+    temperature=0,
+    max_tokens=512,
+)
+
+MAX_LLM_RETRIES = 5
+
+
+def _extract_retry_seconds(error_message: str, default: float = 2.0) -> float:
+    """Parse Groq's 'Please try again in X.Xs' out of its own error message
+    instead of guessing a backoff — Groq already tells us the exact wait."""
+    match = re.search(r"try again in ([\d.]+)s", error_message)
+    if match:
+        return float(match.group(1)) + 0.25  # small safety buffer
+    return default
 
 # ---------------------------------------------------------------------------
 # node 1: context_builder
@@ -81,6 +100,28 @@ def build_context(state: AlertState) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# input guardrail
+# ---------------------------------------------------------------------------
+def apply_regex_guardrail(state: AlertState) -> dict:
+    """Block prompt-injection-like alert text before it can reach the LLM."""
+    reasons = inspect_alert(state["raw_alert"])
+    if not reasons:
+        return {"guardrail_status": "passed", "guardrail_reasons": []}
+    return {
+        "guardrail_status": "blocked",
+        "guardrail_reasons": reasons,
+        "confidence": "low",
+        "needs_human_review": True,
+        "reasoning": "Input regex guardrail blocked LLM processing: " + ", ".join(reasons),
+    }
+
+
+def route_after_guardrail(state: AlertState) -> str:
+    """Keep blocked text out of both LLM and automated RF disposition paths."""
+    return "human_review" if state.get("guardrail_status") == "blocked" else "continue"
+
+
+# ---------------------------------------------------------------------------
 # node 2: llm_classifier
 # ---------------------------------------------------------------------------
 def classify_with_llm(state: AlertState) -> dict:
@@ -89,9 +130,12 @@ def classify_with_llm(state: AlertState) -> dict:
     asks for a verdict (TruePositive / BenignPositive / FalsePositive),
     a confidence level, and a short reasoning.
     the LLM is instructed to respond in JSON so we can parse it reliably.
+
+    retries on Groq 429 rate-limit errors using the wait time Groq itself
+    returns, instead of failing immediately. non-rate-limit errors are not
+    retried.
     """
     if state.get("error"):
-        # skip if a previous node already errored
         return {}
 
     system_prompt = """You are a senior SOC analyst. Your job is to triage cybersecurity alerts.
@@ -109,17 +153,25 @@ Respond ONLY with a JSON object in this exact format, no extra text:
 }"""
 
     user_message = f"Triage this alert:\n\n{state['alert_context']}"
+    messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=user_message),
+    ]
 
-    try:
-        response = llm.invoke([
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_message),
-        ])
-        return {"llm_response": response.content, "triage_path": "llm"}
+    last_error = None
+    for attempt in range(MAX_LLM_RETRIES):
+        try:
+            response = llm.invoke(messages)
+            return {"llm_response": response.content, "triage_path": "llm"}
+        except Exception as e:
+            last_error = str(e)
+            if "rate_limit_exceeded" in last_error or "429" in last_error:
+                wait_seconds = _extract_retry_seconds(last_error)
+                time.sleep(wait_seconds)
+                continue
+            break  # non-rate-limit error: don't retry, fail immediately
 
-    except Exception as e:
-        return {"error": f"LLM call failed: {str(e)}"}
-
+    return {"error": f"LLM call failed after {MAX_LLM_RETRIES} attempts: {last_error}", "triage_path": "llm_error"}
 
 # ---------------------------------------------------------------------------
 # week 6: low-context fallback classifier

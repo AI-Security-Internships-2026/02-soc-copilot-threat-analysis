@@ -235,3 +235,89 @@ is evidence that the targeted fallback addresses sparse-context collapse, but it
 not evidence that the hybrid outperforms the RF baseline. Future evaluation runs
 cache the small balanced sample after one streamed pass through GUIDE, avoiding a
 full in-memory load on every experiment.
+
+---
+
+## Week 7
+
+**Branch:** `asma-week-07`
+**PR link:** _[add link after opening PR — base `dev`, compare `asma-week-07`]_
+
+### Completed this week
+- [x] Added a deterministic regex input guardrail that runs before either automated
+  route (LLM or RF). Detects common prompt-injection/role-impersonation patterns
+  and oversize text fields, and routes matches straight to human review without
+  exposing the text to the LLM or RF classifier.
+- [x] Added `src/agent/benchmark.py`, which records prompt count, worker count,
+  wall time, throughput, process CPU time, per-core utilization estimate, peak
+  RSS memory, routing outcomes, errors, and scored accuracy/F1 for RF, LLM, and
+  hybrid modes.
+- [x] Measured RF and hybrid throughput with 30 balanced GUIDE alerts using one
+  and four workers. RF improved from 16.69 to 41.85 alerts/s (1.80s → 0.72s);
+  the four-worker run used about 14.23% of the available eight logical cores.
+- [x] Microbenchmarked the regex guardrail: 4.076 microseconds per check across
+  10,000 benign and 10,000 injection-like inputs; it blocked 10,000/10,000 of
+  the injection test inputs and 0/10,000 benign inputs.
+- [x] Completed the live LLM latency/throughput benchmark after Groq connectivity
+  was restored. At `workers=1` (30/60/120 prompts), all requests completed
+  cleanly with 0 errors — mean latency 1.9–2.7s/alert, throughput 0.37–0.52
+  alerts/s. At `workers=4`, Groq's free-tier rate limit (6,000 tokens/minute)
+  was hit consistently: 15/30, 27/60, and 52/120 requests failed with
+  `429 rate_limit_exceeded`. The `workers=4` throughput numbers are therefore
+  **not a valid concurrency comparison** to RF/hybrid — they reflect partial
+  completion under rate-limiting, not genuine parallel speedup. The
+  `workers=1` results are the reliable LLM baseline for comparison purposes.
+
+| Mode | Workers | Alerts/s | Mean latency | Errors |
+|---|---|---|---|---|
+| LLM | 1 | 0.37–0.52 | 1.9–2.7s | 0 |
+| LLM | 4 | 0.45–0.74 | 1.4–2.2s | 15–52 (429 rate limit) |
+| RF | 4 | 41.85 | — | 0 |
+
+RF remains ~80–110x faster than LLM even at LLM's best-case (workers=1,
+uncontended) throughput — expected, since RF is a local classifier and LLM
+involves remote network calls plus per-token generation.
+
+Results are saved in `experiments/results/week7_scalability_benchmark.json`.
+To rerun the local/hybrid cases:
+
+```bash
+venv/bin/python -m src.agent.benchmark --modes rf hybrid --prompt-counts 30 60 120 --workers 1 4
+```
+
+After confirming Groq connectivity, rerun the LLM cases separately with the
+same prompt counts and workers so remote inference latency is comparable.
+
+### Problems / Blockers
+Spent a significant chunk of this week untangling a branching mistake rather
+than writing new code. Summary (full detail kept in a separate session log,
+not duplicated here):
+
+- Week 7 work (guardrail, benchmark script, new result JSONs) was built and
+  left uncommitted on the old, already-merged `asma-week-06` branch instead of
+  a fresh branch off `dev`.
+- While fixing that, discovered a second, unrelated issue: a local-only commit
+  (`fix: --force-retrain wasn't actually retraining`) existed on local `dev`
+  but had never been pushed or merged — it wasn't on `origin/dev` at all.
+  Investigated it and confirmed the bug it fixed had already been solved a
+  different way by the Week 6 RF-fallback rewrite of `baseline.py`
+  (`expected_metadata()` / `load_reusable_artifact()`), so the old fix was
+  obsolete and was discarded (branch deleted locally and on origin) rather
+  than merged, to avoid regressing the Week 6 provenance-checking logic.
+- Also found two unused, harmless branches on origin — `revert-6-asma-week-06`
+  and `revert-3-asma-week-03` — created by GitHub's "Revert" button at some
+  point but with no PR ever opened from either. Confirmed via the Pull
+  Requests tab that no PR exists for them, so they're inert. Left alone
+  rather than deleted, since this is a shared repo — didn't want to remove
+  something a collaborator or Dr. Rana might still reference.
+- Once `dev` was confirmed clean and up to date with `origin/dev`, recreated
+  `asma-week-07` from the correct base and reapplied the stashed Week 7 work.
+  Verified no leftover conflict markers and reviewed the one incidental diff
+  (trailing whitespace in `baseline_metrics.json`, not a data change) before
+  committing.
+
+### Next week plan
+Rerun the LLM-vs-RF-vs-hybrid latency comparison once Groq is reachable, to
+get a full throughput/latency picture across all three paths instead of just
+RF and hybrid. Also: delete stale local branches (`asma-week-05`,
+`asma-week-06`) now that Week 7 is pushed cleanly off current `dev`.
