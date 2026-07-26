@@ -1,0 +1,161 @@
+{
+  "benchmark": "week7_scalability",
+  "generated_at_utc": "2026-07-24T13:05:33.391817+00:00",
+  "measurement_notes": {
+    "llm": "Includes remote Groq inference and network latency; request concurrency is controlled by workers.",
+    "cpu": "Process CPU time divided by wall time; it is not whole-system CPU load.",
+    "memory": "Peak RSS for this Python process. The maximum is process-lifetime high-water mark.",
+    "guardrail": "Regex gate runs before automated processing; blocked inputs are routed to human review and excluded from accuracy/F1."
+  },
+  "regex_guardrail_microbenchmark": {
+    "iterations_per_case": 10000,
+    "wall_time_seconds": 0.072327,
+    "mean_check_time_microseconds": 3.616,
+    "benign_alerts_blocked": 0,
+    "injection_alerts_blocked": 10000
+  },
+  "results": [
+    {
+      "mode": "llm",
+      "prompt_count": 30,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 52.8873,
+      "throughput_alerts_per_second": 0.5672,
+      "mean_latency_seconds": 1.7629,
+      "process_cpu_seconds": 0.3706,
+      "mean_process_cpu_utilization_percent": 0.7,
+      "mean_machine_core_utilization_percent": 0.09,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 1.44,
+      "completed_predictions": 30,
+      "accuracy_scored_only": 0.4333,
+      "macro_f1_scored_only": 0.2016,
+      "routing_counts": {
+        "llm": 30
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "llm",
+      "prompt_count": 30,
+      "workers": 4,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 80.2942,
+      "throughput_alerts_per_second": 0.3736,
+      "mean_latency_seconds": 2.6765,
+      "process_cpu_seconds": 0.9202,
+      "mean_process_cpu_utilization_percent": 1.15,
+      "mean_machine_core_utilization_percent": 0.14,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 30,
+      "accuracy_scored_only": 0.4333,
+      "macro_f1_scored_only": 0.2016,
+      "routing_counts": {
+        "llm": 30
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "llm",
+      "prompt_count": 60,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 161.9481,
+      "throughput_alerts_per_second": 0.3705,
+      "mean_latency_seconds": 2.6991,
+      "process_cpu_seconds": 0.8124,
+      "mean_process_cpu_utilization_percent": 0.5,
+      "mean_machine_core_utilization_percent": 0.06,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 60,
+      "accuracy_scored_only": 0.3333,
+      "macro_f1_scored_only": 0.2765,
+      "routing_counts": {
+        "llm": 60
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "llm",
+      "prompt_count": 60,
+      "workers": 4,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 161.6743,
+      "throughput_alerts_per_second": 0.3711,
+      "mean_latency_seconds": 2.6946,
+      "process_cpu_seconds": 2.0149,
+      "mean_process_cpu_utilization_percent": 1.25,
+      "mean_machine_core_utilization_percent": 0.16,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 60,
+      "accuracy_scored_only": 0.3333,
+      "macro_f1_scored_only": 0.2765,
+      "routing_counts": {
+        "llm": 60
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "llm",
+      "prompt_count": 120,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 327.4073,
+      "throughput_alerts_per_second": 0.3665,
+      "mean_latency_seconds": 2.7284,
+      "process_cpu_seconds": 1.6643,
+      "mean_process_cpu_utilization_percent": 0.51,
+      "mean_machine_core_utilization_percent": 0.06,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 120,
+      "accuracy_scored_only": 0.4,
+      "macro_f1_scored_only": 0.3727,
+      "routing_counts": {
+        "llm": 120
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "llm",
+      "prompt_count": 120,
+      "workers": 4,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 319.4669,
+      "throughput_alerts_per_second": 0.3756,
+      "mean_latency_seconds": 2.6622,
+      "process_cpu_seconds": 3.6454,
+      "mean_process_cpu_utilization_percent": 1.14,
+      "mean_machine_core_utilization_percent": 0.14,
+      "peak_rss_bytes": 190234624,
+      "peak_rss_mib": 181.42,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 118,
+      "accuracy_scored_only": 0.3983,
+      "macro_f1_scored_only": 0.3656,
+      "routing_counts": {
+        "llm": 118,
+        "llm_error": 2
+      },
+      "errors": 2,
+      "error_messages": {
+        "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01jv2357mse6rtfwpsnepg88v7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 5925, Requested 283. Please try again in 2.08s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}": 1,
+        "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01jv2357mse6rtfwpsnepg88v7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 5965, Requested 294. Please try again in 2.59s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}": 1
+      }
+    }
+  ]
+}

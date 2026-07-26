@@ -12,6 +12,7 @@ from langgraph.graph import StateGraph, START, END
 from src.agent.state import AlertState
 from src.agent.nodes import (
     build_context,
+    apply_regex_guardrail,
     fetch_mitre_context,
     classify_with_llm,
     classify_with_fallback,
@@ -19,6 +20,7 @@ from src.agent.nodes import (
     human_review_node,
     route_after_verdict,
     route_by_context,
+    route_after_guardrail,
 )
 
 
@@ -33,6 +35,7 @@ def build_triage_graph():
 
     # register each node — the string name is how langgraph refers to it
     graph.add_node("build_context", build_context)
+    graph.add_node("regex_guardrail", apply_regex_guardrail)
     graph.add_node("fetch_mitre_context", fetch_mitre_context)   # week 4
     graph.add_node("classify_with_llm", classify_with_llm)
     graph.add_node("rf_fallback", classify_with_fallback)       # week 6
@@ -41,7 +44,12 @@ def build_triage_graph():
 
     # define edges — the execution order
     graph.add_edge(START, "build_context")
-    graph.add_edge("build_context", "fetch_mitre_context")       # week 4
+    graph.add_edge("build_context", "regex_guardrail")
+    graph.add_conditional_edges(
+        "regex_guardrail",
+        route_after_guardrail,
+        {"continue": "fetch_mitre_context", "human_review": "human_review"},
+    )
     graph.add_conditional_edges(
         "fetch_mitre_context",
         route_by_context,
