@@ -99,6 +99,24 @@ python src/main.py
 
 ---
 
+## Roadmap to September 8, 2026
+
+**Current state:** LangGraph triage agent (Groq/Llama), real GUIDE-dataset evaluation, MITRE ATT&CK RAG, and a regex-based input guardrail (PR #8, currently conflicting — needs a rebase onto `dev`). See issue #10.
+
+**Novel contribution target:** upgrade the guardrail from regex-only to a proper two-stage defense, and quantify what that buys you against paraphrase/obfuscated attacks the regex alone can't see.
+
+| Date | Milestone |
+|---|---|
+| Aug 2 | Rebase PR #8 onto `dev`, resolve conflicts, get it merged |
+| Aug 9 | Implement a second-stage classifier behind the regex fast-path (LlamaFirewall or Prompt Guard — see issue #10) |
+| Aug 16 | Re-run the full GUIDE-dataset evaluation with the two-stage guardrail active; measure latency/accuracy tradeoff |
+| Aug 23 | Stress-test with paraphrased/obfuscated injection attempts to quantify the improvement over regex-only |
+| Aug 30 | Finalize combined scalability + guardrail-effectiveness writeup |
+| Sep 6 | Paper/report draft |
+| **Sep 8** | **Final submission** |
+
+---
+
 ## Supervisor Note
 
 This repository is managed by **CNIT/PNTLab Pisa, TECIP, Scuola Superiore Sant'Anna**.
