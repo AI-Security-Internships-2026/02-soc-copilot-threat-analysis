@@ -140,7 +140,7 @@
       "mean_latency_seconds": 2.6622,
       "process_cpu_seconds": 3.6454,
       "mean_process_cpu_utilization_percent": 1.14,
-      "mean_machine_core_utilization_percent": 0.14,
+      "mean_machine_core_utilization_percent": 0.16,
       "peak_rss_bytes": 190234624,
       "peak_rss_mib": 181.42,
       "peak_rss_growth_mib": 0.0,
@@ -156,6 +156,52 @@
         "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01jv2357mse6rtfwpsnepg88v7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 5925, Requested 283. Please try again in 2.08s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}": 1,
         "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.1-8b-instant` in organization `org_01jv2357mse6rtfwpsnepg88v7` service tier `on_demand` on tokens per minute (TPM): Limit 6000, Used 5965, Requested 294. Please try again in 2.59s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}": 1
       }
+    },
+    {
+      "mode": "rf",
+      "prompt_count": 30,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 1.7975,
+      "throughput_alerts_per_second": 16.6901,
+      "mean_latency_seconds": 0.0599,
+      "process_cpu_seconds": 1.4993,
+      "mean_process_cpu_utilization_percent": 83.41,
+      "mean_machine_core_utilization_percent": 10.43,
+      "peak_rss_bytes": 708886528,
+      "peak_rss_mib": 676.05,
+      "peak_rss_growth_mib": 483.78,
+      "completed_predictions": 30,
+      "accuracy_scored_only": 0.6333,
+      "macro_f1_scored_only": 0.6222,
+      "routing_counts": {
+        "rf": 30
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "rf",
+      "prompt_count": 30,
+      "workers": 4,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 0.7168,
+      "throughput_alerts_per_second": 41.8531,
+      "mean_latency_seconds": 0.0239,
+      "process_cpu_seconds": 0.816,
+      "mean_process_cpu_utilization_percent": 113.84,
+      "mean_machine_core_utilization_percent": 14.23,
+      "peak_rss_bytes": 710459392,
+      "peak_rss_mib": 677.55,
+      "peak_rss_growth_mib": 1.5,
+      "completed_predictions": 30,
+      "accuracy_scored_only": 0.6333,
+      "macro_f1_scored_only": 0.6222,
+      "routing_counts": {
+        "rf": 30
+      },
+      "errors": 0,
+      "error_messages": {}
     }
   ]
 }

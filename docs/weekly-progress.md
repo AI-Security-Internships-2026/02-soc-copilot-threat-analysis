@@ -259,24 +259,28 @@ full in-memory load on every experiment.
   10,000 benign and 10,000 injection-like inputs; it blocked 10,000/10,000 of
   the injection test inputs and 0/10,000 benign inputs.
 - [x] Completed the live LLM latency/throughput benchmark after Groq connectivity
-  was restored. At `workers=1` (30/60/120 prompts), all requests completed
-  cleanly with 0 errors — mean latency 1.9–2.7s/alert, throughput 0.37–0.52
-  alerts/s. At `workers=4`, Groq's free-tier rate limit (6,000 tokens/minute)
-  was hit consistently: 15/30, 27/60, and 52/120 requests failed with
-  `429 rate_limit_exceeded`. The `workers=4` throughput numbers are therefore
-  **not a valid concurrency comparison** to RF/hybrid — they reflect partial
-  completion under rate-limiting, not genuine parallel speedup. The
-  `workers=1` results are the reliable LLM baseline for comparison purposes.
+  was restored. The initial run showed heavy rate-limiting at `workers=4`
+  (15–52 of N requests failing with `429`), which made concurrency look like
+  it helped when it was actually just dropping requests faster. Fixed in a
+  separate branch (`asma-week-07-llm-retry`, not bundled into this PR) by
+  retrying 429s using the wait time Groq's own error message provides,
+  instead of failing immediately.
 
-| Mode | Workers | Alerts/s | Mean latency | Errors |
-|---|---|---|---|---|
-| LLM | 1 | 0.37–0.52 | 1.9–2.7s | 0 |
-| LLM | 4 | 0.45–0.74 | 1.4–2.2s | 15–52 (429 rate limit) |
-| RF | 4 | 41.85 | — | 0 |
+  After the fix, errors dropped to 0–2 per run (down from 15–52), and
+  `workers=1` vs `workers=4` wall time converged to nearly identical —
+  confirming the earlier "speedup" from more workers was an artifact of
+  dropped requests, not real concurrency, since all workers share the same
+  per-minute token budget.
 
-RF remains ~80–110x faster than LLM even at LLM's best-case (workers=1,
-uncontended) throughput — expected, since RF is a local classifier and LLM
-involves remote network calls plus per-token generation.
+| Mode | Workers | Alerts/s | Mean latency | Completed | Errors |
+|---|---|---|---|---|---|
+| LLM | 1 | 0.37–0.57 | 1.8–2.7s | 30/30, 60/60, 120/120 | 0 |
+| LLM | 4 | 0.37–0.37 | 2.7–2.7s | 30/30, 60/60, 118/120 | 0, 0, 2 |
+| RF | 4 | 41.85 | — | — | 0 |
+
+RF remains ~75–110x faster than LLM regardless of worker count — expected,
+since RF is local CPU inference and LLM involves remote network calls plus
+per-token generation, both gated by Groq's free-tier rate limit.
 
 Results are saved in `experiments/results/week7_scalability_benchmark.json`.
 To rerun the local/hybrid cases:
