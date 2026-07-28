@@ -325,3 +325,25 @@ Rerun the LLM-vs-RF-vs-hybrid latency comparison once Groq is reachable, to
 get a full throughput/latency picture across all three paths instead of just
 RF and hybrid. Also: delete stale local branches (`asma-week-05`,
 `asma-week-06`) now that Week 7 is pushed cleanly off current `dev`.
+
+## Week 8
+
+**Branch:** `asma-week-08`
+**PR link:** _[Add link after opening PR]_
+
+### Completed this week
+- [x] Implemented issue #10: layered a model-based guardrail behind the regex input filter
+- [x] Benchmarked the two options suggested in #10 (Meta Llama Prompt Guard, Protect AI LLM Guard) against Ehsanullah's own TF-IDF + Logistic Regression detector from 03-prompt-injection-detection, using his guardrail_comparison.json results
+- [x] Chose the TF-IDF/LogReg detector over both suggested frameworks — it scored higher F1 (0.88 vs 0.75 Prompt Guard / 0.72 LLM Guard) and ~225x lower latency (0.8ms vs ~180ms median)
+- [x] Added `ml_guardrail.py`, wired a new `ml_guardrail` node into the graph between the regex guardrail and MITRE/LLM/RF routing
+- [x] Caught and fixed a real sklearn version-mismatch bug: the pickled model was trained on scikit-learn 1.7.1, and running it under 1.7.2 produced non-deterministic scores for identical input — pinned scikit-learn==1.7.1 to fix
+
+### Key findings
+- Regex fast-path -> ML classifier -> MITRE/LLM/RF is now the guardrail pipeline
+- Reused detector avoids the HuggingFace gated-model auth friction that Prompt Guard would have required
+
+### Problems / Blockers
+- sklearn InconsistentVersionWarning wasn't just cosmetic — it was producing genuinely non-deterministic predict_proba output; fixed by pinning to the training version
+
+### Next week plan
+- [fill in]
