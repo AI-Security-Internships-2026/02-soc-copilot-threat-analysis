@@ -101,18 +101,28 @@ python src/main.py
 
 ## Roadmap to September 8, 2026
 
-**Current state:** LangGraph triage agent (Groq/Llama), real GUIDE-dataset evaluation, MITRE ATT&CK RAG, and a regex-based input guardrail (PR #8, currently conflicting — needs a rebase onto `dev`). See issue #10.
+**Current state:** LangGraph triage agent (Groq/Llama), real GUIDE-dataset evaluation, MITRE ATT&CK RAG, and a regex-based input guardrail. PR #8 (guardrail + scalability benchmark) and PR #9 (Groq 429 retry fix) are both merged into `dev` as of **Jul 28**.
 
-**Novel contribution target:** upgrade the guardrail from regex-only to a proper two-stage defense, and quantify what that buys you against paraphrase/obfuscated attacks the regex alone can't see.
+**Novel contribution target:** upgrade the guardrail from regex-only to a proper two-stage defense, and quantify what that buys you against paraphrase/obfuscated attacks the regex alone can't see. See issue #10.
+
+**This week (day by day, through Friday's PR):**
+
+| Day | Task |
+|---|---|
+| Tue Jul 28 | PR #8/#9 merge confirmed. Pick the second-stage classifier (LlamaFirewall vs. Prompt Guard — see issue #10) and set up a local eval harness reusing the existing GUIDE dataset split |
+| Wed Jul 29 | Integrate the chosen classifier as a second-stage check behind the regex fast-path in `src/agent/guardrails.py`; wire it into the graph so regex-clean input still gets the slower/stronger check |
+| Thu Jul 30 | Re-run the full GUIDE-dataset evaluation with the two-stage guardrail active; capture latency and accuracy numbers against the regex-only baseline |
+| Fri Jul 31 | Write up results in `docs/weekly-progress.md`, open this week's PR against `dev` (per the weekly Friday cadence above) |
+
+**From here, weekly:**
 
 | Date | Milestone |
 |---|---|
-| Aug 2 | Rebase PR #8 onto `dev`, resolve conflicts, get it merged |
-| Aug 9 | Implement a second-stage classifier behind the regex fast-path (LlamaFirewall or Prompt Guard — see issue #10) |
-| Aug 16 | Re-run the full GUIDE-dataset evaluation with the two-stage guardrail active; measure latency/accuracy tradeoff |
-| Aug 23 | Stress-test with paraphrased/obfuscated injection attempts to quantify the improvement over regex-only |
-| Aug 30 | Finalize combined scalability + guardrail-effectiveness writeup |
-| Sep 6 | Paper/report draft |
+| Aug 9 | Stress-test the two-stage guardrail with paraphrased/obfuscated injection attempts to quantify the improvement over regex-only |
+| Aug 16 | Finalize combined scalability + guardrail-effectiveness writeup |
+| Aug 23 | Buffer week — address review feedback, polish results and figures |
+| Aug 30 | Paper/report draft |
+| Sep 6 | Revise draft based on feedback |
 | **Sep 8** | **Final submission** |
 
 ---
