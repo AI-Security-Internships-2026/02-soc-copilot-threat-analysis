@@ -13,8 +13,6 @@ from src.agent.state import AlertState
 from src.agent.nodes import (
     build_context,
     apply_regex_guardrail,
-    apply_ml_guardrail,        # new add
-    route_after_ml_guardrail,  # new add
     fetch_mitre_context,
     classify_with_llm,
     classify_with_fallback,
@@ -43,7 +41,7 @@ def build_triage_graph():
     graph.add_node("rf_fallback", classify_with_fallback)       # week 6
     graph.add_node("parse_verdict", parse_verdict)
     graph.add_node("human_review", human_review_node)            # week 4
-    graph.add_node("ml_guardrail", apply_ml_guardrail)  # week 8
+    # graph.add_node("ml_guardrail", apply_ml_guardrail)  # week 8
 
     # define edges — the execution order
     graph.add_edge(START, "build_context")
@@ -51,11 +49,6 @@ def build_triage_graph():
     graph.add_conditional_edges(
         "regex_guardrail",
         route_after_guardrail,
-        {"continue": "ml_guardrail", "human_review": "human_review"},
-    )
-    graph.add_conditional_edges(
-        "ml_guardrail",
-        route_after_ml_guardrail,
         {"continue": "fetch_mitre_context", "human_review": "human_review"},
     )
     graph.add_conditional_edges(

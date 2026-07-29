@@ -326,24 +326,62 @@ get a full throughput/latency picture across all three paths instead of just
 RF and hybrid. Also: delete stale local branches (`asma-week-05`,
 `asma-week-06`) now that Week 7 is pushed cleanly off current `dev`.
 
-## Week 8
+## Week 8 — Issue #10: model-based guardrail investigation
 
-**Branch:** `asma-week-08`
-**PR link:** _[Add link after opening PR]_
+**Branch:** asma-week-08
+**PR link:** (add after opening)
 
-### Completed this week
-- [x] Implemented issue #10: layered a model-based guardrail behind the regex input filter
-- [x] Benchmarked the two options suggested in #10 (Meta Llama Prompt Guard, Protect AI LLM Guard) against Ehsanullah's own TF-IDF + Logistic Regression detector from 03-prompt-injection-detection, using his guardrail_comparison.json results
-- [x] Chose the TF-IDF/LogReg detector over both suggested frameworks — it scored higher F1 (0.88 vs 0.75 Prompt Guard / 0.72 LLM Guard) and ~225x lower latency (0.8ms vs ~180ms median)
-- [x] Added `ml_guardrail.py`, wired a new `ml_guardrail` node into the graph between the regex guardrail and MITRE/LLM/RF routing
-- [x] Caught and fixed a real sklearn version-mismatch bug: the pickled model was trained on scikit-learn 1.7.1, and running it under 1.7.2 produced non-deterministic scores for identical input — pinned scikit-learn==1.7.1 to fix
+Issue #10 asked for a second-stage ML classifier behind the regex guardrail,
+pointing at Ehsanullah's benchmark of Meta Llama Prompt Guard and Protect AI
+LLM Guard (`03-prompt-injection-detection` PR #10).
 
-### Key findings
-- Regex fast-path -> ML classifier -> MITRE/LLM/RF is now the guardrail pipeline
-- Reused detector avoids the HuggingFace gated-model auth friction that Prompt Guard would have required
+**What I did:**
+- Pulled Ehsanullah's benchmark data (`guardrail_comparison.json`,
+  `eval_dataset_v2.csv`, 1000 rows balanced) to compare all three candidates
+  on the same numbers. His own repo's TF-IDF + Logistic Regression detector
+  actually beat both frameworks he benchmarked:
 
-### Problems / Blockers
-- sklearn InconsistentVersionWarning wasn't just cosmetic — it was producing genuinely non-deterministic predict_proba output; fixed by pinning to the training version
+| Detector | F1 | Median latency | Throughput |
+|---|---|---|---|
+| TF-IDF + LogReg | 0.883 | 0.79ms | 1258/s |
+| Meta Llama Prompt Guard | 0.747 | 179ms | 5.6/s |
+| Protect AI LLM Guard | 0.722 | 183ms | 5.5/s |
 
-### Next week plan
-- [fill in]
+- Wired the TF-IDF/LogReg detector in as a second guardrail stage
+  (`src/agent/ml_guardrail.py`), scoped to `AlertTitle` only.
+- Found and fixed a real bug along the way: the pickled model was trained
+  under scikit-learn 1.7.1, the venv had 1.7.2 — cross-version unpickling
+  was silently producing non-deterministic scores run to run. Pinned to
+  1.7.1, confirmed stable output.
+
+**Finding that changes the plan:** once wired up and run against real GUIDE
+alert data, the detector blocked 100% of alerts (9/9 and 30/30 at both batch
+sizes tested). A 5-title diagnostic on plain benign SOC alert titles
+confirmed why:
+
+| SOC alert title | score |
+|---|---|
+| Suspicious PowerShell execution | 0.749 |
+| Failed login attempt detected | 0.940 |
+| Unusual network traffic pattern | 0.524 |
+| Malware detected on endpoint | 0.945 |
+| Multiple failed authentication attempts | 0.749 |
+
+Every routine, benign title scores above the 0.5 flag threshold, several
+near 1.0. This isn't a threshold-tuning problem — the detector was trained
+purely on conversational jailbreak-style text and doesn't generalize to
+structured SOC alert text. The 0.88 F1 above is only valid on Ehsanullah's
+own eval distribution.
+
+**Decision:** none of the three candidates evaluated for issue #10 have been
+validated on SOC-domain text, and there's no labeled SOC-injection eval set
+to calibrate a threshold against. Rather than ship a gate that blocks 100%
+of real alerts, or pick a threshold with nothing to check it against, I'm
+not wiring this into the live pipeline this week. `ml_guardrail.py` and the
+supporting node functions ship as tested, working infrastructure for once a
+SOC-domain eval set exists — `graph.py` still routes straight from the
+regex guardrail to `fetch_mitre_context`, unchanged from before this issue.
+
+**Next step for issue #10:** needs a small labeled set of realistic SOC
+alert text (benign + actual injection attempts phrased as alert fields)
+before any of these three candidates can be trusted as a hard gate.

@@ -55,15 +55,14 @@ def score_text(text: str) -> float:
     return float(classifier.predict(X)[0])
 
 
-def inspect_alert_ml(alert: dict[str, Any]) -> list[tuple[str, float]]:
-    """Run every string field through the classifier.
+# fields worth ML-checking for injection risk — mirrors the regex guardrail's
+# own reasoning that free text (not structured categorical fields) is the risk
+ML_CHECKED_FIELDS = {"AlertTitle"}
 
-    Returns (field_name, score) pairs for fields scoring above
-    FLAG_THRESHOLD -- mirrors guardrails.inspect_alert()'s shape.
-    """
+def inspect_alert_ml(alert: dict[str, Any]) -> list[tuple[str, float]]:
     flagged = []
     for field, value in alert.items():
-        if not isinstance(value, str):
+        if field not in ML_CHECKED_FIELDS or not isinstance(value, str):
             continue
         score = score_text(value)
         if score >= FLAG_THRESHOLD:
