@@ -21,3 +21,5 @@ class AlertState(TypedDict):
     guardrail_reasons: Optional[list[str]]
     needs_human_review: Optional[bool]  # after human_review_node
     error: Optional[str]
+    ml_guardrail_status: Optional[str]   # "passed" | "blocked"
+    ml_guardrail_reasons: Optional[list[str]]

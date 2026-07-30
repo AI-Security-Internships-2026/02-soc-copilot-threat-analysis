@@ -41,6 +41,7 @@ def build_triage_graph():
     graph.add_node("rf_fallback", classify_with_fallback)       # week 6
     graph.add_node("parse_verdict", parse_verdict)
     graph.add_node("human_review", human_review_node)            # week 4
+    # graph.add_node("ml_guardrail", apply_ml_guardrail)  # week 8
 
     # define edges — the execution order
     graph.add_edge(START, "build_context")
