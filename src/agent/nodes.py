@@ -10,7 +10,6 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 import re
 import time
-
 from src.agent.state import AlertState
 from src.agent.fallback_classifier import (
     evidence_field_count,
@@ -18,9 +17,8 @@ from src.agent.fallback_classifier import (
     should_use_fallback,
 )
 from src.agent.guardrails import inspect_alert
-
-# add this import near your other imports at the top of nodes.py
 from src.agent.mitre_lookup import get_technique_info, load_technique_map
+from src.agent.ml_guardrail import inspect_alert_ml
 
 # load once at module level so it's not re-reading the cache file on every alert
 _MITRE_TECHNIQUE_MAP = None
@@ -119,6 +117,28 @@ def apply_regex_guardrail(state: AlertState) -> dict:
 def route_after_guardrail(state: AlertState) -> str:
     """Keep blocked text out of both LLM and automated RF disposition paths."""
     return "human_review" if state.get("guardrail_status") == "blocked" else "continue"
+
+# ---------------------------------------------------------------------------
+# input guardrail, stage 2: ml classifier fallback (issue #10)
+# ---------------------------------------------------------------------------
+def apply_ml_guardrail(state: AlertState) -> dict:
+    """Second-stage check for alert text the regex guardrail let through."""
+    flagged = inspect_alert_ml(state["raw_alert"])
+    if not flagged:
+        return {"ml_guardrail_status": "passed"}
+
+    reasons = [f"ml_injection_risk:{field}:{score:.2f}" for field, score in flagged]
+    return {
+        "ml_guardrail_status": "blocked",
+        "ml_guardrail_reasons": reasons,
+        "confidence": "low",
+        "needs_human_review": True,
+        "reasoning": "ML guardrail flagged possible injection: " + ", ".join(reasons),
+    }
+
+
+def route_after_ml_guardrail(state: AlertState) -> str:
+    return "human_review" if state.get("ml_guardrail_status") == "blocked" else "continue"
 
 
 # ---------------------------------------------------------------------------
