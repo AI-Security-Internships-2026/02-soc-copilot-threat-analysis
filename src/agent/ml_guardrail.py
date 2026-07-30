@@ -50,7 +50,7 @@ def score_text(text: str) -> float:
     X = vectorizer.transform([text])
 
     if hasattr(classifier, "predict_proba"):
-        return float(classifier.predict_proba(X)[0][0])
+        return float(classifier.predict_proba(X)[0][1])
     # fallback if the pickled model has no predict_proba for some reason
     return float(classifier.predict(X)[0])
 

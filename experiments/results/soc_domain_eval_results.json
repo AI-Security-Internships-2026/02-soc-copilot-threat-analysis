@@ -4,271 +4,271 @@
   "sweep": [
     {
       "threshold": 0.5,
-      "tp": 17,
-      "fp": 17,
-      "tn": 3,
-      "fn": 3,
+      "tp": 3,
+      "fp": 3,
+      "tn": 17,
+      "fn": 17,
       "accuracy": 0.5,
       "precision": 0.5,
-      "recall": 0.85,
-      "f1": 0.63
+      "recall": 0.15,
+      "f1": 0.231
     },
     {
       "threshold": 0.6,
-      "tp": 16,
-      "fp": 17,
-      "tn": 3,
-      "fn": 4,
-      "accuracy": 0.475,
-      "precision": 0.485,
-      "recall": 0.8,
-      "f1": 0.604
+      "tp": 1,
+      "fp": 1,
+      "tn": 19,
+      "fn": 19,
+      "accuracy": 0.5,
+      "precision": 0.5,
+      "recall": 0.05,
+      "f1": 0.091
     },
     {
       "threshold": 0.7,
-      "tp": 13,
-      "fp": 14,
-      "tn": 6,
-      "fn": 7,
-      "accuracy": 0.475,
-      "precision": 0.481,
-      "recall": 0.65,
-      "f1": 0.553
+      "tp": 1,
+      "fp": 0,
+      "tn": 20,
+      "fn": 19,
+      "accuracy": 0.525,
+      "precision": 1.0,
+      "recall": 0.05,
+      "f1": 0.095
     },
     {
       "threshold": 0.8,
-      "tp": 10,
-      "fp": 14,
-      "tn": 6,
-      "fn": 10,
-      "accuracy": 0.4,
-      "precision": 0.417,
-      "recall": 0.5,
-      "f1": 0.455
+      "tp": 0,
+      "fp": 0,
+      "tn": 20,
+      "fn": 20,
+      "accuracy": 0.5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
     },
     {
       "threshold": 0.9,
-      "tp": 10,
-      "fp": 5,
-      "tn": 15,
-      "fn": 10,
-      "accuracy": 0.625,
-      "precision": 0.667,
-      "recall": 0.5,
-      "f1": 0.571
+      "tp": 0,
+      "fp": 0,
+      "tn": 20,
+      "fn": 20,
+      "accuracy": 0.5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
     },
     {
       "threshold": 0.95,
-      "tp": 5,
-      "fp": 2,
-      "tn": 18,
-      "fn": 15,
-      "accuracy": 0.575,
-      "precision": 0.714,
-      "recall": 0.25,
-      "f1": 0.37
+      "tp": 0,
+      "fp": 0,
+      "tn": 20,
+      "fn": 20,
+      "accuracy": 0.5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
     }
   ],
   "per_row": [
     {
       "id": "b01",
       "label": "benign",
-      "score": 0.6855457457763747
+      "score": 0.3144542542236252
     },
     {
       "id": "b02",
       "label": "benign",
-      "score": 0.4738466780873878
+      "score": 0.5261533219126122
     },
     {
       "id": "b03",
       "label": "benign",
-      "score": 0.8742602972791338
+      "score": 0.1257397027208662
     },
     {
       "id": "b04",
       "label": "benign",
-      "score": 0.39210861105823336
+      "score": 0.6078913889417666
     },
     {
       "id": "b05",
       "label": "benign",
-      "score": 0.89827135967603
+      "score": 0.10172864032396997
     },
     {
       "id": "b06",
       "label": "benign",
-      "score": 0.6196710555600126
+      "score": 0.38032894443998744
     },
     {
       "id": "b07",
       "label": "benign",
-      "score": 0.8263579807741854
+      "score": 0.17364201922581463
     },
     {
       "id": "b08",
       "label": "benign",
-      "score": 0.8925987471393491
+      "score": 0.1074012528606509
     },
     {
       "id": "b09",
       "label": "benign",
-      "score": 0.8096929819556138
+      "score": 0.19030701804438616
     },
     {
       "id": "b10",
       "label": "benign",
-      "score": 0.46306725109706326
+      "score": 0.5369327489029367
     },
     {
       "id": "b11",
       "label": "benign",
-      "score": 0.8622939396765604
+      "score": 0.13770606032343957
     },
     {
       "id": "b12",
       "label": "benign",
-      "score": 0.8847943692550818
+      "score": 0.11520563074491816
     },
     {
       "id": "b13",
       "label": "benign",
-      "score": 0.9358999040256687
+      "score": 0.06410009597433126
     },
     {
       "id": "b14",
       "label": "benign",
-      "score": 0.9794534875877559
+      "score": 0.020546512412244193
     },
     {
       "id": "b15",
       "label": "benign",
-      "score": 0.8563622196029779
+      "score": 0.14363778039702216
     },
     {
       "id": "b16",
       "label": "benign",
-      "score": 0.937708020927441
+      "score": 0.06229197907255905
     },
     {
       "id": "b17",
       "label": "benign",
-      "score": 0.9450262194143738
+      "score": 0.05497378058562622
     },
     {
       "id": "b18",
       "label": "benign",
-      "score": 0.6927070819518892
+      "score": 0.3072929180481108
     },
     {
       "id": "b19",
       "label": "benign",
-      "score": 0.8462898756840601
+      "score": 0.15371012431593986
     },
     {
       "id": "b20",
       "label": "benign",
-      "score": 0.9500878454476223
+      "score": 0.04991215455237769
     },
     {
       "id": "i01",
       "label": "injection",
-      "score": 0.9359261832974028
+      "score": 0.06407381670259715
     },
     {
       "id": "i02",
       "label": "injection",
-      "score": 0.782941769556912
+      "score": 0.21705823044308803
     },
     {
       "id": "i03",
       "label": "injection",
-      "score": 0.7542640837625674
+      "score": 0.24573591623743266
     },
     {
       "id": "i04",
       "label": "injection",
-      "score": 0.9874426082894977
+      "score": 0.01255739171050228
     },
     {
       "id": "i05",
       "label": "injection",
-      "score": 0.28875227571755424
+      "score": 0.7112477242824458
     },
     {
       "id": "i06",
       "label": "injection",
-      "score": 0.6945905491210388
+      "score": 0.3054094508789612
     },
     {
       "id": "i07",
       "label": "injection",
-      "score": 0.986746364645994
+      "score": 0.013253635354006022
     },
     {
       "id": "i08",
       "label": "injection",
-      "score": 0.7468349733078006
+      "score": 0.2531650266921994
     },
     {
       "id": "i09",
       "label": "injection",
-      "score": 0.9369967528016335
+      "score": 0.06300324719836647
     },
     {
       "id": "i10",
       "label": "injection",
-      "score": 0.6169849174489369
+      "score": 0.3830150825510631
     },
     {
       "id": "i11",
       "label": "injection",
-      "score": 0.9453039929570596
+      "score": 0.054696007042940406
     },
     {
       "id": "i12",
       "label": "injection",
-      "score": 0.4860981834849769
+      "score": 0.5139018165150231
     },
     {
       "id": "i13",
       "label": "injection",
-      "score": 0.961534969294749
+      "score": 0.03846503070525095
     },
     {
       "id": "i14",
       "label": "injection",
-      "score": 0.9343491835702701
+      "score": 0.0656508164297299
     },
     {
       "id": "i15",
       "label": "injection",
-      "score": 0.9055159761141482
+      "score": 0.09448402388585175
     },
     {
       "id": "i16",
       "label": "injection",
-      "score": 0.981521094224234
+      "score": 0.01847890577576602
     },
     {
       "id": "i17",
       "label": "injection",
-      "score": 0.43014694082388905
+      "score": 0.569853059176111
     },
     {
       "id": "i18",
       "label": "injection",
-      "score": 0.9545080102837215
+      "score": 0.045491989716278526
     },
     {
       "id": "i19",
       "label": "injection",
-      "score": 0.6539882744329504
+      "score": 0.3460117255670497
     },
     {
       "id": "i20",
       "label": "injection",
-      "score": 0.543464403679314
+      "score": 0.45653559632068597
     }
   ]
 }
