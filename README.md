@@ -101,25 +101,16 @@ python src/main.py
 
 ## Roadmap to September 8, 2026
 
-**Current state:** LangGraph triage agent (Groq/Llama), real GUIDE-dataset evaluation, MITRE ATT&CK RAG, and a regex-based input guardrail. PR #8 (guardrail + scalability benchmark) and PR #9 (Groq 429 retry fix) are both merged into `dev` as of **Jul 28**.
+**Current state:** LangGraph triage agent (Groq/Llama), real GUIDE-dataset evaluation, MITRE ATT&CK RAG, regex input guardrail, and a two-stage guardrail investigation (PR #12, merged **Jul 30** — a day ahead of schedule). Issue #10 is closed.
 
-**Novel contribution target:** upgrade the guardrail from regex-only to a proper two-stage defense, and quantify what that buys you against paraphrase/obfuscated attacks the regex alone can't see. See issue #10.
-
-**This week (day by day, through Friday's PR):**
-
-| Day | Task |
-|---|---|
-| Tue Jul 28 | PR #8/#9 merge confirmed. Pick the second-stage classifier (LlamaFirewall vs. Prompt Guard — see issue #10) and set up a local eval harness reusing the existing GUIDE dataset split |
-| Wed Jul 29 | Integrate the chosen classifier as a second-stage check behind the regex fast-path in `src/agent/guardrails.py`; wire it into the graph so regex-clean input still gets the slower/stronger check |
-| Thu Jul 30 | Re-run the full GUIDE-dataset evaluation with the two-stage guardrail active; capture latency and accuracy numbers against the regex-only baseline |
-| Fri Jul 31 | Write up results in `docs/weekly-progress.md`, open this week's PR against `dev` (per the weekly Friday cadence above) |
+**Novel contribution, landed:** built a second-stage ML classifier (TF-IDF+LogReg, selected over LlamaFirewall/Prompt Guard on Ehsanullah's benchmark), then tested it against real GUIDE alert data and found it doesn't transfer — benign and injection scores are statistically indistinguishable on SOC-domain text (0.791 vs 0.776 mean), even though it scores 0.883 F1 on the chat-jailbreak-style set it was benchmarked on. Correctly left ungated rather than deployed broken. This domain-mismatch finding, not the classifier itself, is the actual contribution.
 
 **From here, weekly:**
 
 | Date | Milestone |
 |---|---|
-| Aug 9 | Stress-test the two-stage guardrail with paraphrased/obfuscated injection attempts to quantify the improvement over regex-only |
-| Aug 16 | Finalize combined scalability + guardrail-effectiveness writeup |
+| Aug 9 | Time-boxed: try fine-tuning/retraining the classifier on SOC-domain-labeled text (not the chat-style set) to see if the gap closes. If it doesn't pan out quickly, move straight to writeup — this is exploratory, not required |
+| Aug 16 | Write up the domain-mismatch finding rigorously alongside the scalability results — cross-domain generalization failure is a legitimate result on its own |
 | Aug 23 | Buffer week — address review feedback, polish results and figures |
 | Aug 30 | Paper/report draft |
 | Sep 6 | Revise draft based on feedback |
