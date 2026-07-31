@@ -7,7 +7,7 @@ streamlit
 pandas
 requests
 python-dotenv
-scikit-learn
+scikit-learn==1.7.1
 joblib
 kaggle
 langchain-groq>=0.1.0
