@@ -435,3 +435,66 @@ than a strong-but-wrong signal) makes it clearer this is a training-data gap,
 not something threshold tuning or a bug fix can close. Worth flagging to
 Dr. Rana before the Aug 9 stress-test milestone, since it assumes a working
 second-stage classifier to stress-test.
+
+## Week 9 — Issue #10: root cause found, classifier retired, schema guardrail shipped
+
+**Branch:** `asma-week-09`
+**PR link:** _[add link after opening PR]_
+
+### Reframing the Aug 9 milestone
+The roadmap's Aug 9 plan was to time-box a fine-tune/retrain of the Week 8
+classifier on SOC-domain-labeled text. Before spending that time-box, checked
+what AlertTitle actually contains in the real dataset — and it changes the
+whole picture.
+
+### Root cause: AlertTitle is a numeric ID field, not text
+`schema.py` lists AlertTitle as categorical, and the GUIDE paper's own
+description of the alert dataframe only names OrganizationId, DetectorId,
+ProductId, Category, and Severity as categorical columns — no free-text
+column exists in the schema at all. Confirmed directly against
+`GUIDE_train.csv`: AlertTitle has 86,149 unique values, all plain integers
+(sample: 45654, 99614, 111349, 56759, ...).
+
+This means the Week 8 "domain mismatch" framing was correct in effect but
+imprecise in cause. It wasn't that the classifier was trained on the wrong
+*style* of SOC text — there's no text there to begin with. A TF-IDF
+classifier can't find linguistic signal in a field that was never
+linguistic. No amount of domain-matched training data would have closed
+that gap, so retiring the fine-tune plan rather than time-boxing it — the
+outcome was predictable from the schema alone, and confirming that in
+advance saved the week rather than burning it on a doomed experiment.
+
+### What replaced it: deterministic schema/type validation
+Since AlertTitle (and DetectorId) are supposed to always be numeric IDs,
+the correct second-stage check isn't a classifier — it's verifying the
+field IS a valid integer. Any injection payload is, by definition, not a
+valid integer, so this separates the two classes by construction rather
+than by learned approximation.
+
+`src/agent/schema_guardrail.py` implements this. Tested two ways:
+- Synthetic: 20 realistic numeric IDs (benign) vs. the 20 injection strings
+  from the Week 8 eval set (attack) — 100% accuracy, 0 false positives,
+  0 false negatives.
+- Real data: ran `validate_field_types` against 5,000 real AlertTitle
+  values sampled from `GUIDE_train.csv` — **0 false positives**. The
+  check doesn't misfire on real production-shaped values, not just the
+  synthetic test case.
+
+### Decision: hard-gated, unlike the Week 8 classifier
+Wired into `graph.py` as an actual gate this time
+(`regex_guardrail` → `schema_guardrail` → `fetch_mitre_context`). Safe to
+hard-gate here in a way the ML classifier never was: this check has no
+threshold, no accuracy tradeoff, no probabilistic gray zone — a value
+either parses as an integer or it doesn't. `ml_guardrail.py` stays in the
+repo, untouched, as tested infrastructure for a future dataset that has
+an actual free-text field to defend.
+
+### Problems / Blockers
+None blocking. One open item: `DetectorId` is included in
+`EXPECTED_NUMERIC_FIELDS` based on the GUIDE paper's description rather
+than a direct check like AlertTitle got — confirming that against real
+data is quick cleanup, not a blocker to merging.
+
+### Next step for issue #10
+Closed with a working fix. Reclaimed the Aug 9 time-box — putting the
+freed time toward Aug 16 writeup prep instead, per the roadmap.

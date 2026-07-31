@@ -13,6 +13,8 @@ from src.agent.state import AlertState
 from src.agent.nodes import (
     build_context,
     apply_regex_guardrail,
+    apply_schema_guardrail,        # replaces apply_ml_guardrail
+    route_after_schema_guardrail,  # replaces route_after_ml_guardrail
     fetch_mitre_context,
     classify_with_llm,
     classify_with_fallback,
@@ -36,6 +38,7 @@ def build_triage_graph():
     # register each node — the string name is how langgraph refers to it
     graph.add_node("build_context", build_context)
     graph.add_node("regex_guardrail", apply_regex_guardrail)
+    graph.add_node("schema_guardrail", apply_schema_guardrail)   # week 9
     graph.add_node("fetch_mitre_context", fetch_mitre_context)   # week 4
     graph.add_node("classify_with_llm", classify_with_llm)
     graph.add_node("rf_fallback", classify_with_fallback)       # week 6
@@ -49,12 +52,12 @@ def build_triage_graph():
     graph.add_conditional_edges(
         "regex_guardrail",
         route_after_guardrail,
-        {"continue": "fetch_mitre_context", "human_review": "human_review"},
+        {"continue": "schema_guardrail", "human_review": "human_review"},
     )
     graph.add_conditional_edges(
-        "fetch_mitre_context",
-        route_by_context,
-        {"llm": "classify_with_llm", "rf_fallback": "rf_fallback"},
+        "schema_guardrail",
+        route_after_schema_guardrail,
+        {"continue": "fetch_mitre_context", "human_review": "human_review"},
     )
     graph.add_edge("classify_with_llm", "parse_verdict")
     graph.add_conditional_edges(
