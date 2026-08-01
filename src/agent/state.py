@@ -5,8 +5,6 @@
 
 from typing import TypedDict, Optional, Dict, Any
 
-from numpy import add
-
 
 class AlertState(TypedDict):
     raw_alert: Dict[str, Any]           # input
