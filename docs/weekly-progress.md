@@ -29,7 +29,6 @@ I'm Asma, a third-year BS Computer Science student at NUST SEECS, Islamabad. My 
 
 ### Problems / Blockers
 System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv venv` instead.
-System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv venv` instead.
 
 ### Next week plan
 - Read the 5 papers identified this week
@@ -492,8 +491,7 @@ an actual free-text field to defend.
 ### Problems / Blockers
 None blocking. One open item: `DetectorId` is included in
 `EXPECTED_NUMERIC_FIELDS` based on the GUIDE paper's description rather
-than a direct check like AlertTitle got — confirming that against real
-data is quick cleanup, not a blocker to merging.
+than a direct check like AlertTitle got — confirmed — DetectorId values are small integers, not the large ID space the paper implied, but still integers, so no change needed to the check itself
 
 ### Next step for issue #10
 Closed with a working fix. Reclaimed the Aug 9 time-box — putting the
