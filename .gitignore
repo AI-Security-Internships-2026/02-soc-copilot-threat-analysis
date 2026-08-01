@@ -65,6 +65,7 @@ credentials/
 
 # Results that can be reproduced
 experiments/results/*.png
-experiments/results/*.pdfdatasets/mitre_technique_cache.json
+experiments/results/*.pdf
+datasets/mitre_technique_cache.json
 experiments/results/baseline_model.joblib
 experiments/results/evaluation_samples/

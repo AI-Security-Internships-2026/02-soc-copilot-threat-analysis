@@ -22,7 +22,7 @@ from src.models.baseline import train_and_evaluate
 
 PROJECT_NAME = "SOC Co-pilot: LLM-Assisted Threat Analysis and Alert Triage"
 ORGANISATION = "CNIT/PNTLab Pisa, TECIP, Scuola Superiore Sant'Anna"
-STATUS = "Week 2 — data pipeline + baseline triage classifier"
+STATUS = "Week 9 — LangGraph triage agent, RF baseline, guardrails (see docs/weekly-progress.md)"
 
 
 def main() -> None:

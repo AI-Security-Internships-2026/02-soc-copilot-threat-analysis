@@ -496,3 +496,61 @@ than a direct check like AlertTitle got — confirmed — DetectorId values are 
 ### Next step for issue #10
 Closed with a working fix. Reclaimed the Aug 9 time-box — putting the
 freed time toward Aug 16 writeup prep instead, per the roadmap.
+
+### Post-merge audit finding (Aug 2): graph wiring regression, fixed
+A repo-wide consistency audit against this log found a real bug introduced
+by this week's own schema-guardrail commit (`2975183`): wiring
+`schema_guardrail` into `graph.py` deleted the conditional edge that used
+to run `fetch_mitre_context → (classify_with_llm | rf_fallback)` via
+`route_by_context`, and never replaced it. `route_by_context` stayed
+defined and imported in `nodes.py` but nothing called it anymore.
+
+The graph still compiled without error — LangGraph doesn't validate
+dead-end nodes at compile time — and ran to completion, but silently
+stopped after `fetch_mitre_context`. No `predicted_label`, `verdict`,
+`confidence`, or `reasoning` was ever produced. This was invisible in
+practice because `evaluate.py` reads the missing key with
+`result.get("predicted_label", "FalsePositive")` — every alert would have
+silently scored as a hardcoded `FalsePositive` guess instead of raising.
+`src/app.py`, `benchmark.py`, and `run_agent.py` all invoke the same
+compiled `triage_graph` and were equally affected. No `agent_metrics_real*`
+file had been regenerated since the breaking commit landed (Jul 31 18:18),
+so nothing had surfaced this — there was no automated test to catch it
+either, since the repo had no `tests/` directory at all until now.
+
+**Fix:** restored the `fetch_mitre_context → (classify_with_llm |
+rf_fallback)` conditional edge in `graph.py`, so the schema guardrail now
+sits correctly in front of the pre-existing LLM/RF routing instead of
+replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
+(llm | rf_fallback) → verdict routing → (end | human_review)`.
+
+**Verification, not just claim:**
+- Added `tests/` (new — none existed before): `test_graph_wiring.py`
+  asserts every non-END node has an outgoing edge and that
+  `fetch_mitre_context` reaches both classification paths, plus an
+  end-to-end invoke on a sparse alert confirming a real `predicted_label`
+  comes out. `test_schema_guardrail.py` and `test_ml_guardrail.py` turn
+  this week's and last week's manual spot-checks (20v20 synthetic accuracy,
+  the `[0][1]` predict_proba index fix) into assertions instead of prose.
+  All 9 tests pass (`venv/bin/python3 -m pytest tests/ -v`).
+- Re-ran `evaluate.py` post-fix on a fresh 30-alert sample
+  (`experiments/results/agent_metrics_post_graph_fix_week9.json`):
+  accuracy 0.533, macro F1 0.534, predictions spread across all three
+  classes (12 BenignPositive / 10 TruePositive / 8 FalsePositive) with 9
+  alerts routed through the LLM and 21 through the RF fallback — proof the
+  graph is actually classifying again, not just returning a hardcoded
+  default.
+- Also found and fixed a related but separate issue while verifying:
+  `experiments/results/baseline_model.joblib` (the RF artifact the
+  fallback path loads) had been pickled under scikit-learn 1.7.2, one
+  patch version ahead of the `1.7.1` pinned in `requirements.txt` since
+  the Week 8 `ml_guardrail` fix — the same cross-version unpickling risk
+  that caused non-deterministic scores there. Retrained it
+  (`python -m src.models.baseline --force-retrain`) under the pinned
+  version; macro F1 held at 0.751 (matching the prior artifact), and the
+  `InconsistentVersionWarning` is gone.
+- Reconciled `README.md`'s "Expected Deliverables" table, which still said
+  the final report was due Week 8, against the "Roadmap to September 8"
+  section actually being followed (report drafting Aug 30, final
+  submission Sep 8). Also fixed a stale `STATUS = "Week 2..."` string in
+  `src/main.py`.
