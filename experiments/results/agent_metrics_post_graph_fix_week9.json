@@ -1,0 +1,313 @@
+{
+  "sample_size": 30,
+  "accuracy": 0.5333,
+  "macro_f1": 0.5337,
+  "baseline_comparison": "RF baseline: acc=0.7717516964061322, f1=0.7505392100961124",
+  "per_alert_results": [
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.52). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.5167090070207918
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.69). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.6864824652425018
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.96).",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.965
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.99).",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.995
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert lacks specific MITRE technique information, making it difficult to assess its validity. Without further context, it's likely an admin activity or a false alarm from legitimate use. [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as InitialAccess, which is a common technique used by attackers to gain access to a network. The MITRE technique T1566.002 also supports this classification.",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.74). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.7387586547486171
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.52). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.52
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate activity that triggered the detector. [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.59). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.595
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Lack of MITRE technique and low suspicion level make this alert less likely to be a real attack, but it's still possible it's a legitimate activity that triggered the detector. [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "Insufficient information provided to determine malicious activity, and the alert category is CommandAndControl which can be legitimate in certain contexts. [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.62). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.625
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.98).",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.985
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.53). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.525
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "T1566.002 is a known technique for obtaining elevated privileges, indicating a potential initial access attempt.",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.93).",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.93
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a high suspicion level and a Malware category, indicating a potential malicious activity. The lack of a specific MITRE technique does not necessarily indicate a false positive.",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 1.00).",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 1.0
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.69). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.69
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.56). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.555
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "low",
+      "reasoning": "The alert lacks specific MITRE technique information, making it difficult to assess its validity. Without further context, it's likely an admin activity or a false alarm from legitimate use. [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.60). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.605
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.71). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.715
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.86).",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.865
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.56). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.555
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 1.00).",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 1.0
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The combination of multiple persistence techniques (T1021.002, T1074.002, T1078, T1078.002, T1080, T1543.003, T1569.002, T1570) suggests a sophisticated and ongoing attack.",
+      "error": null,
+      "triage_path": "llm",
+      "context_signal_count": null,
+      "fallback_probability": null
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "RF fallback used because only 1/3 discriminative context fields were populated (model probability: 0.71). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 1,
+      "fallback_probability": 0.71
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "RF fallback used because only 0/3 discriminative context fields were populated (model probability: 0.41). [flagged for human review: confidence was not high]",
+      "error": null,
+      "triage_path": "rf_fallback",
+      "context_signal_count": 0,
+      "fallback_probability": 0.405
+    }
+  ],
+  "routing_summary": {
+    "rf_fallback_count": 21,
+    "llm_count": 9,
+    "fallback_rate": 0.7
+  }
+}

@@ -9,7 +9,7 @@
       "f1-score": 0.8066369543038179,
       "support": 8605.0
     },
-    "FalsePositive": { 
+    "FalsePositive": {
       "precision": 0.7553609181516159,
       "recall": 0.579874797124971,
       "f1-score": 0.6560860440713536,
