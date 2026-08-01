@@ -40,7 +40,7 @@ System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv 
 ## Week 2
 
 **Branch:** `asma-week-02`
-**PR link:** _[Add link after opening PR]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/2
 
 ### Completed this week
 - [x] Created `asma-week-02` branch from `dev`
@@ -49,8 +49,8 @@ System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv 
 - [x] Built data loader + preprocessing pipeline (feature engineering, encoding)
 - [x] Built baseline Random Forest triage classifier (TP/BP/FP) with eval metrics
 - [x] Wired `src/main.py` to run the full pipeline end to end — confirmed working
-- [ ] Expand literature review to 10 papers/tools (in progress)
-- [ ] Real GUIDE dataset download/preprocessing pipeline (currently running on synthetic sample)
+- [ ] Expand literature review to 10 papers/tools (in progress — completed Week 3, see below)
+- [ ] Real GUIDE dataset download/preprocessing pipeline (currently running on synthetic sample — completed Week 4, see below)
 
 ### Problems / Blockers
 Hit a merge conflict in `docs/weekly-progress.md` after stashing local changes across a branch switch — resolved by manually merging the conflicting "Next week plan" section.
@@ -240,7 +240,7 @@ full in-memory load on every experiment.
 ## Week 7
 
 **Branch:** `asma-week-07`
-**PR link:** _[add link after opening PR — base `dev`, compare `asma-week-07`]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/8
 
 ### Completed this week
 - [x] Added a deterministic regex input guardrail that runs before either automated
@@ -328,7 +328,7 @@ RF and hybrid. Also: delete stale local branches (`asma-week-05`,
 ## Week 8 — Issue #10: model-based guardrail investigation
 
 **Branch:** asma-week-08
-**PR:** [Week 08] Two-stage guardrail investigation — domain mismatch confirmed, not gated
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/12
 
 ### Goal
 
@@ -438,7 +438,7 @@ second-stage classifier to stress-test.
 ## Week 9 — Issue #10: root cause found, classifier retired, schema guardrail shipped
 
 **Branch:** `asma-week-09`
-**PR link:** _[add link after opening PR]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/15
 
 ### Reframing the Aug 9 milestone
 The roadmap's Aug 9 plan was to time-box a fine-tune/retrain of the Week 8
