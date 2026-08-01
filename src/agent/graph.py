@@ -59,6 +59,11 @@ def build_triage_graph():
         route_after_schema_guardrail,
         {"continue": "fetch_mitre_context", "human_review": "human_review"},
     )
+    graph.add_conditional_edges(
+        "fetch_mitre_context",
+        route_by_context,
+        {"llm": "classify_with_llm", "rf_fallback": "rf_fallback"},
+    )
     graph.add_edge("classify_with_llm", "parse_verdict")
     graph.add_conditional_edges(
         "rf_fallback",
