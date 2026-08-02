@@ -29,7 +29,6 @@ I'm Asma, a third-year BS Computer Science student at NUST SEECS, Islamabad. My 
 
 ### Problems / Blockers
 System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv venv` instead.
-System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv venv` instead.
 
 ### Next week plan
 - Read the 5 papers identified this week
@@ -41,7 +40,7 @@ System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv 
 ## Week 2
 
 **Branch:** `asma-week-02`
-**PR link:** _[Add link after opening PR]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/2
 
 ### Completed this week
 - [x] Created `asma-week-02` branch from `dev`
@@ -50,8 +49,8 @@ System defaulted to Python 2.7 via pyenv — resolved by using `python3 -m venv 
 - [x] Built data loader + preprocessing pipeline (feature engineering, encoding)
 - [x] Built baseline Random Forest triage classifier (TP/BP/FP) with eval metrics
 - [x] Wired `src/main.py` to run the full pipeline end to end — confirmed working
-- [ ] Expand literature review to 10 papers/tools (in progress)
-- [ ] Real GUIDE dataset download/preprocessing pipeline (currently running on synthetic sample)
+- [ ] Expand literature review to 10 papers/tools (in progress — completed Week 3, see below)
+- [ ] Real GUIDE dataset download/preprocessing pipeline (currently running on synthetic sample — completed Week 4, see below)
 
 ### Problems / Blockers
 Hit a merge conflict in `docs/weekly-progress.md` after stashing local changes across a branch switch — resolved by manually merging the conflicting "Next week plan" section.
@@ -241,7 +240,7 @@ full in-memory load on every experiment.
 ## Week 7
 
 **Branch:** `asma-week-07`
-**PR link:** _[add link after opening PR — base `dev`, compare `asma-week-07`]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/8
 
 ### Completed this week
 - [x] Added a deterministic regex input guardrail that runs before either automated
@@ -329,7 +328,7 @@ RF and hybrid. Also: delete stale local branches (`asma-week-05`,
 ## Week 8 — Issue #10: model-based guardrail investigation
 
 **Branch:** asma-week-08
-**PR:** [Week 08] Two-stage guardrail investigation — domain mismatch confirmed, not gated
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/12
 
 ### Goal
 
@@ -435,3 +434,123 @@ than a strong-but-wrong signal) makes it clearer this is a training-data gap,
 not something threshold tuning or a bug fix can close. Worth flagging to
 Dr. Rana before the Aug 9 stress-test milestone, since it assumes a working
 second-stage classifier to stress-test.
+
+## Week 9 — Issue #10: root cause found, classifier retired, schema guardrail shipped
+
+**Branch:** `asma-week-09`
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/15
+
+### Reframing the Aug 9 milestone
+The roadmap's Aug 9 plan was to time-box a fine-tune/retrain of the Week 8
+classifier on SOC-domain-labeled text. Before spending that time-box, checked
+what AlertTitle actually contains in the real dataset — and it changes the
+whole picture.
+
+### Root cause: AlertTitle is a numeric ID field, not text
+`schema.py` lists AlertTitle as categorical, and the GUIDE paper's own
+description of the alert dataframe only names OrganizationId, DetectorId,
+ProductId, Category, and Severity as categorical columns — no free-text
+column exists in the schema at all. Confirmed directly against
+`GUIDE_train.csv`: AlertTitle has 86,149 unique values, all plain integers
+(sample: 45654, 99614, 111349, 56759, ...).
+
+This means the Week 8 "domain mismatch" framing was correct in effect but
+imprecise in cause. It wasn't that the classifier was trained on the wrong
+*style* of SOC text — there's no text there to begin with. A TF-IDF
+classifier can't find linguistic signal in a field that was never
+linguistic. No amount of domain-matched training data would have closed
+that gap, so retiring the fine-tune plan rather than time-boxing it — the
+outcome was predictable from the schema alone, and confirming that in
+advance saved the week rather than burning it on a doomed experiment.
+
+### What replaced it: deterministic schema/type validation
+Since AlertTitle (and DetectorId) are supposed to always be numeric IDs,
+the correct second-stage check isn't a classifier — it's verifying the
+field IS a valid integer. Any injection payload is, by definition, not a
+valid integer, so this separates the two classes by construction rather
+than by learned approximation.
+
+`src/agent/schema_guardrail.py` implements this. Tested two ways:
+- Synthetic: 20 realistic numeric IDs (benign) vs. the 20 injection strings
+  from the Week 8 eval set (attack) — 100% accuracy, 0 false positives,
+  0 false negatives.
+- Real data: ran `validate_field_types` against 5,000 real AlertTitle
+  values sampled from `GUIDE_train.csv` — **0 false positives**. The
+  check doesn't misfire on real production-shaped values, not just the
+  synthetic test case.
+
+### Decision: hard-gated, unlike the Week 8 classifier
+Wired into `graph.py` as an actual gate this time
+(`regex_guardrail` → `schema_guardrail` → `fetch_mitre_context`). Safe to
+hard-gate here in a way the ML classifier never was: this check has no
+threshold, no accuracy tradeoff, no probabilistic gray zone — a value
+either parses as an integer or it doesn't. `ml_guardrail.py` stays in the
+repo, untouched, as tested infrastructure for a future dataset that has
+an actual free-text field to defend.
+
+### Problems / Blockers
+None blocking. One open item: `DetectorId` is included in
+`EXPECTED_NUMERIC_FIELDS` based on the GUIDE paper's description rather
+than a direct check like AlertTitle got — confirmed — DetectorId values are small integers, not the large ID space the paper implied, but still integers, so no change needed to the check itself
+
+### Next step for issue #10
+Closed with a working fix. Reclaimed the Aug 9 time-box — putting the
+freed time toward Aug 16 writeup prep instead, per the roadmap.
+
+### Post-merge audit finding (Aug 2): graph wiring regression, fixed
+A repo-wide consistency audit against this log found a real bug introduced
+by this week's own schema-guardrail commit (`2975183`): wiring
+`schema_guardrail` into `graph.py` deleted the conditional edge that used
+to run `fetch_mitre_context → (classify_with_llm | rf_fallback)` via
+`route_by_context`, and never replaced it. `route_by_context` stayed
+defined and imported in `nodes.py` but nothing called it anymore.
+
+The graph still compiled without error — LangGraph doesn't validate
+dead-end nodes at compile time — and ran to completion, but silently
+stopped after `fetch_mitre_context`. No `predicted_label`, `verdict`,
+`confidence`, or `reasoning` was ever produced. This was invisible in
+practice because `evaluate.py` reads the missing key with
+`result.get("predicted_label", "FalsePositive")` — every alert would have
+silently scored as a hardcoded `FalsePositive` guess instead of raising.
+`src/app.py`, `benchmark.py`, and `run_agent.py` all invoke the same
+compiled `triage_graph` and were equally affected. No `agent_metrics_real*`
+file had been regenerated since the breaking commit landed (Jul 31 18:18),
+so nothing had surfaced this — there was no automated test to catch it
+either, since the repo had no `tests/` directory at all until now.
+
+**Fix:** restored the `fetch_mitre_context → (classify_with_llm |
+rf_fallback)` conditional edge in `graph.py`, so the schema guardrail now
+sits correctly in front of the pre-existing LLM/RF routing instead of
+replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
+(llm | rf_fallback) → verdict routing → (end | human_review)`.
+
+**Verification, not just claim:**
+- Added `tests/` (new — none existed before): `test_graph_wiring.py`
+  asserts every non-END node has an outgoing edge and that
+  `fetch_mitre_context` reaches both classification paths, plus an
+  end-to-end invoke on a sparse alert confirming a real `predicted_label`
+  comes out. `test_schema_guardrail.py` and `test_ml_guardrail.py` turn
+  this week's and last week's manual spot-checks (20v20 synthetic accuracy,
+  the `[0][1]` predict_proba index fix) into assertions instead of prose.
+  All 9 tests pass (`venv/bin/python3 -m pytest tests/ -v`).
+- Re-ran `evaluate.py` post-fix on a fresh 30-alert sample
+  (`experiments/results/agent_metrics_post_graph_fix_week9.json`):
+  accuracy 0.533, macro F1 0.534, predictions spread across all three
+  classes (12 BenignPositive / 10 TruePositive / 8 FalsePositive) with 9
+  alerts routed through the LLM and 21 through the RF fallback — proof the
+  graph is actually classifying again, not just returning a hardcoded
+  default.
+- Also found and fixed a related but separate issue while verifying:
+  `experiments/results/baseline_model.joblib` (the RF artifact the
+  fallback path loads) had been pickled under scikit-learn 1.7.2, one
+  patch version ahead of the `1.7.1` pinned in `requirements.txt` since
+  the Week 8 `ml_guardrail` fix — the same cross-version unpickling risk
+  that caused non-deterministic scores there. Retrained it
+  (`python -m src.models.baseline --force-retrain`) under the pinned
+  version; macro F1 held at 0.751 (matching the prior artifact), and the
+  `InconsistentVersionWarning` is gone.
+- Reconciled `README.md`'s "Expected Deliverables" table, which still said
+  the final report was due Week 8, against the "Roadmap to September 8"
+  section actually being followed (report drafting Aug 30, final
+  submission Sep 8). Also fixed a stale `STATUS = "Week 2..."` string in
+  `src/main.py`.

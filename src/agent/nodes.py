@@ -19,6 +19,7 @@ from src.agent.fallback_classifier import (
 from src.agent.guardrails import inspect_alert
 from src.agent.mitre_lookup import get_technique_info, load_technique_map
 from src.agent.ml_guardrail import inspect_alert_ml
+from src.agent.schema_guardrail import validate_field_types
 
 # load once at module level so it's not re-reading the cache file on every alert
 _MITRE_TECHNIQUE_MAP = None
@@ -139,6 +140,28 @@ def apply_ml_guardrail(state: AlertState) -> dict:
 
 def route_after_ml_guardrail(state: AlertState) -> str:
     return "human_review" if state.get("ml_guardrail_status") == "blocked" else "continue"
+
+# ---------------------------------------------------------------------------
+# input guardrail, stage 2 replacement: deterministic schema/type check
+# (issue #10, week 9 -- replaces the ml classifier, see schema_guardrail.py)
+# ---------------------------------------------------------------------------
+def apply_schema_guardrail(state: AlertState) -> dict:
+    """second-stage check: fields that must be numeric IDs actually are."""
+    reasons = validate_field_types(state["raw_alert"])
+    if not reasons:
+        return {"schema_guardrail_status": "passed"}
+
+    return {
+        "schema_guardrail_status": "blocked",
+        "schema_guardrail_reasons": reasons,
+        "confidence": "low",
+        "needs_human_review": True,
+        "reasoning": "Schema guardrail flagged non-numeric ID field: " + ", ".join(reasons),
+    }
+
+
+def route_after_schema_guardrail(state: AlertState) -> str:
+    return "human_review" if state.get("schema_guardrail_status") == "blocked" else "continue"
 
 
 # ---------------------------------------------------------------------------

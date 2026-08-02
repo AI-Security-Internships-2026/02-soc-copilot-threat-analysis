@@ -23,3 +23,5 @@ class AlertState(TypedDict):
     error: Optional[str]
     ml_guardrail_status: Optional[str]   # "passed" | "blocked"
     ml_guardrail_reasons: Optional[list[str]]
+    schema_guardrail_status: Optional[str]   # "passed" | "blocked"
+    schema_guardrail_reasons: Optional[list[str]]
