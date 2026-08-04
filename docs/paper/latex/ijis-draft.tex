@@ -1,0 +1,259 @@
+%% IJIS submission draft -- issue #16
+%% Ported from docs/paper/draft.md into the Springer Nature sn-jnl.cls
+%% template (docs/paper/latex/, fetched from
+%% https://github.com/godkingjay/springer-nature-latex-template,
+%% mirroring Springer Nature's official LaTeX author package).
+%%
+%% Status: mechanical port of the Markdown content draft. Content is
+%% otherwise UNCHANGED from draft.md except where LaTeX structure forces a
+%% choice (e.g. Introduction subheadings -> bold run-in paragraphs, per
+%% the template's "Introduction should not include subheadings" guidance).
+%% Remaining open items are tracked in ../PROGRESS.md (E2, E3, R1, R2, T2, T3).
+%%
+%% To build: pdflatex ijis-draft && bibtex ijis-draft && pdflatex ijis-draft && pdflatex ijis-draft
+
+%% Reference style: IJIS's own instructions-for-authors page requires login
+%% to view directly (see PROGRESS.md item T1), so this is inferred from
+%% third-party template aggregators (scispace, docx2latex) reporting
+%% "Springer Basic (numbered)" + two-column layout for this journal --
+%% NOT independently confirmed against the gated Springer page. Verify
+%% before submission.
+\documentclass[pdflatex,sn-basic,Numbered,iicol]{sn-jnl}% Basic Springer Nature Reference Style, numbered, two-column
+
+\usepackage{graphicx}%
+\usepackage{multirow}%
+\usepackage{amsmath,amssymb,amsfonts}%
+\usepackage{booktabs}%
+\usepackage{listings}%
+\usepackage{xcolor}%
+\usepackage{manyfoot}%
+\usepackage{textcomp}%
+
+\raggedbottom
+
+\begin{document}
+
+\title[A Deterministic Schema Guardrail for LLM-Assisted SOC Alert Triage]{A Deterministic Schema Guardrail for LLM-Assisted SOC Alert Triage: A Negative-Result Investigation of Cross-Domain Classifier Transfer}
+
+%% TODO before submission: confirm full author name/ordering and email.
+%% Affiliation pulled from README.md's project banner.
+\author*[1]{\fnm{Asma} \sur{Imran}}\email{asmaimran2003@gmail.com}
+
+\affil*[1]{\orgdiv{TECIP}, \orgname{Scuola Superiore Sant'Anna}, \orgaddress{\city{Pisa}, \country{Italy}}}
+
+\abstract{LLM-based Security Operations Center (SOC) copilots increasingly rely on machine-learned guardrails to filter adversarial input before it reaches a triage model. We report a negative result from building and deploying such a guardrail in a real LangGraph-based alert-triage pipeline evaluated on Microsoft's GUIDE dataset. Following a supervisor-suggested design (issue \#10: regex fast-path $\rightarrow$ ML classifier $\rightarrow$ LLM route), we selected a TF-IDF + Logistic Regression detector --- which outperformed Meta's Llama Prompt Guard and Protect AI's LLM Guard on a public jailbreak benchmark (F1 0.883 vs.\ 0.747 and 0.722, respectively, at three orders of magnitude lower latency) --- and integrated it as a second guardrail stage scoped to the \texttt{AlertTitle} field. When evaluated against real GUIDE alert data rather than the benchmark distribution it was selected on, the classifier collapsed to near-chance performance (52.5\% best-case accuracy across a threshold sweep; 1/20 true positives at the best-performing threshold). Root-cause analysis, rather than threshold tuning or retraining, revealed the actual cause: \texttt{AlertTitle} in the real dataset is a closed numeric-ID field (86{,}149 unique integer values), not free text --- the GUIDE schema itself has no free-text column, so no amount of domain-matched training data could have closed the gap. We retired the classifier and replaced it with a deterministic type-validation guardrail that separates classes by construction rather than learned approximation, achieving 100\% accuracy on a balanced synthetic set and zero false positives against 5{,}000 real \texttt{AlertTitle} values. We also report and fix a silent graph-wiring defect this change introduced --- a dead-end node that caused every verdict to default to \texttt{FalsePositive} without raising an error --- and the regression-test suite built to catch it. We argue that correctly diagnosing an unfalsifiable premise, and confirming a mismatch rather than deploying a broken classifier, is itself a reportable contribution for guardrail engineering.}
+
+\keywords{SOC triage, LLM guardrails, prompt injection, negative results, LangGraph, MITRE ATT\&CK}
+
+\maketitle
+
+\section{Introduction}\label{sec1}
+
+\noindent\textbf{Motivation and context.} Security Operations Centers face alert volumes that outpace human triage capacity, driving interest in LLM copilots that summarize, contextualize, and pre-classify alerts before an analyst sees them (Microsoft Security Copilot \cite{msft_copilot2024}; Ferrag et al.\ \cite{ferrag2024}; Srinivas et al.\ \cite{srinivas2025survey}). A recurring design pattern in this space layers a fast, cheap guardrail (regex/keyword filtering) in front of a slower, more capable classifier, which in turn gates access to the LLM itself --- mirroring the layered defense pattern used in general-purpose LLM guardrail frameworks such as Meta's LlamaFirewall \cite{llamafirewall2025} and Llama Prompt Guard \cite{promptguard2024}, and Protect AI's LLM Guard \cite{llmguard2023}.
+
+\noindent\textbf{Problem definition.} This layered pattern assumes the ML classifier stage has a text field to operate on, and that a classifier's benchmark performance is representative of its deployment domain. We show both assumptions can silently fail in a real SOC pipeline: the field a classifier is scoped to may not be free text at all, and a classifier's published F1 score may not transfer to the structured, terse text distribution of real alert data. Discovering this only after deployment --- rather than before, from the schema --- wastes the time-box allocated to a fix that cannot work.
+
+\noindent\textbf{Scope of this work.} We report on a full design-build-evaluate-diagnose cycle carried out inside a working, evaluated LangGraph triage agent over the GUIDE dataset \cite{guide2024}: (1) selecting and integrating a second-stage ML guardrail per a specific architectural suggestion (issue \#10), (2) evaluating it against real data rather than only the benchmark it was selected on, (3) finding it has no usable signal on that data, (4) root-causing \emph{why} rather than retraining, and (5) replacing it with a deterministic guardrail that is provably correct for its target field, hard-gated into the live pipeline. We also report a real reliability defect this change introduced --- a silently dead-ending graph edge --- and the regression-test suite added to prevent recurrence.
+
+\noindent\textbf{Contributions.}
+\begin{enumerate}
+\item \textbf{A negative-result methodology for guardrail transfer}: we show that a classifier chosen because it wins a public benchmark (F1 0.883 on a chat-style jailbreak eval set) can be statistically indistinguishable from chance on the actual deployment distribution, and we demonstrate that root-causing this from the data schema --- rather than from threshold sweeps or retraining --- is what actually resolves it, in one week instead of an open-ended tuning effort.
+\item \textbf{A deterministic schema guardrail} for closed-vocabulary/numeric alert fields, which separates benign input from injection payloads by construction (type validity) rather than by a learned, thresholded score, and is safe to hard-gate for exactly that reason.
+\item \textbf{A reliability-engineering finding and fix}: introducing the schema guardrail silently broke the downstream classification routing (a dead-end node LangGraph does not flag at compile time), which a hardcoded default masked as a plausible-looking result instead of a crash. We document the defect, the fix, and the structural regression test (\path{tests/test_graph_wiring.py}) now guarding against recurrence.
+\end{enumerate}
+
+\noindent\textbf{Structure of this report.} Section~\ref{sec2} surveys related work in LLM-based SOC copilots, guardrail frameworks, and MITRE ATT\&CK-grounded LLM systems. Section~\ref{sec3} describes the triage pipeline, the MITRE ATT\&CK retrieval stage, and the guardrail decision process in detail. Section~\ref{sec4} reports evaluation results exactly as committed in \path{experiments/results/}. Section~\ref{sec5} discusses the negative-result methodology and limitations. Section~\ref{sec6} concludes.
+
+\section{Related Work}\label{sec2}
+
+\noindent\textit{Base table from \path{docs/literature-review.md}, extended with guardrail-framework and MITRE-grounded-LLM citations found for this paper. Author lists for the newly added arXiv entries still need a pass against publisher metadata before submission; see \texttt{PROGRESS.md} item R2.}
+
+\noindent\textbf{LLM-based SOC copilots.} Microsoft Security Copilot \cite{msft_copilot2024} demonstrates GPT-4 integrated into commercial SOC workflows, reporting reduced analyst triage time in a closed, proprietary system. Ferrag et al.\ \cite{ferrag2024} fine-tune and prompt LLMs for SIEM alert classification on CICIDS2017 and synthetic logs, showing LLMs can outperform rule-based classifiers --- but on synthetic, not production-shaped, data. Wei et al.'s CORTEX \cite{cortex2025} is the closest published architecture to ours: a multi-agent, evidence-grounded triage design that reduces false positives relative to single-model baselines, validating our own evidence-grounded (MITRE-context-fetching) LLM node design. Srinivas et al.'s survey \cite{srinivas2025survey} situates human-in-the-loop copilots as the dominant successful pattern in the field, over full automation --- consistent with our pipeline's human-review checkpoint for non-high-confidence verdicts. The GUIDE dataset itself originates from Microsoft's own guided-response research \cite{guide2024}, which we use directly as our evaluation corpus rather than a synthetic or network-flow substitute like CICIDS2017.
+
+\noindent\textbf{Guardrail frameworks for LLM systems.} Meta's LlamaFirewall \cite{llamafirewall2025} and Llama Prompt Guard \cite{promptguard2024}, and Protect AI's LLM Guard \cite{llmguard2023}, are the current reference points for layered LLM input defense --- regex/heuristic fast paths backed by learned classifiers for jailbreak and injection detection. All three are benchmarked, in our own prior work (PR \#12), against a TF-IDF + Logistic Regression baseline on a chat-style jailbreak evaluation set, where the simpler classifier wins on both accuracy and latency. This paper extends that comparison past benchmark accuracy to deployment-distribution transfer, which none of \cite{llamafirewall2025,promptguard2024,llmguard2023} evaluate against structured, SOC-alert-shaped input as opposed to chat-style prompts.
+
+\noindent\textbf{MITRE ATT\&CK-grounded LLM systems.} Recent work grounds LLM threat-intelligence reasoning in MITRE ATT\&CK via retrieval-augmented generation --- e.g., structured retrieval over ATT\&CK technique descriptions to reduce hallucination in attack-technique attribution \cite{rag_cti2025}, knowledge-graph-augmented retrieval over cybersecurity knowledge bases \cite{kgagent2025}, and benchmarks for retrieval-augmented LLMs over heterogeneous cyber threat intelligence \cite{cticonnect2025}. Our \texttt{fetch\_mitre\_context} pipeline stage (Section~\ref{sec3}) follows the same retrieval-before-classification pattern established by Lewis et al.'s foundational RAG formulation \cite{lewis_rag2020}, applied to MITRE technique context rather than open-domain text.
+
+\noindent\textbf{Prompt injection against structured/agentic input.} Most published prompt-injection taxonomies and defenses target free-text chat or agent-tool input \cite{promptinjection_landscape2026,breaking_defenses2024,llm_privacy_survey2024}. Our contribution is a case study in the opposite direction: a field that looks like it should be defended as text (\texttt{AlertTitle}) is not text at all in the real schema, and the correct defense follows from the schema, not from the injection-detection literature.
+
+\section{Proposed Method}\label{sec3}
+
+\subsection{System architecture}\label{subsec3-1}
+The triage pipeline is a \texttt{LangGraph} \texttt{StateGraph} \cite{langgraph2024} (\path{src/agent/graph.py}) over a shared \texttt{AlertState}. Execution order:
+
+%% Placeholder for a real pipeline-architecture figure (PROGRESS.md item T2a).
+\begin{figure*}[h]
+\centering
+\begin{verbatim}
+START -> build_context -> regex_guardrail
+      -> [continue] -> schema_guardrail
+                     -> [continue] -> fetch_mitre_context
+                                   -> (classify_with_llm | rf_fallback)
+                                   -> parse_verdict -> (END | human_review)
+                     -> [blocked]  -> human_review
+      -> [blocked]  -> human_review
+\end{verbatim}
+\caption{Triage pipeline control flow (\texttt{src/agent/graph.py}). ASCII rendering ported as-is from the Markdown draft; a proper vector diagram is pending (\texttt{PROGRESS.md} item T2a).}\label{fig1}
+\end{figure*}
+
+Two guardrail stages run before any alert reaches the LLM or the MITRE-context retrieval step: a regex fast-path (\texttt{apply\_regex\_guardrail}, pre-existing from Week~7 / issue \#8) and, as of Week~9, a deterministic schema guardrail (\texttt{apply\_schema\_guardrail}) that replaced an ML classifier guardrail evaluated in Week~8. Routing after \texttt{fetch\_mitre\_context} (\texttt{route\_by\_context}) sends alerts with sufficient discriminative context fields to the LLM classifier and sparse alerts to a Random Forest fallback classifier (Week~6). Verdicts below high confidence are routed to a human-review checkpoint rather than ending directly --- the same human-in-the-loop pattern surveyed by \cite{srinivas2025survey}.
+
+\subsection{Data}\label{subsec3-2}
+GUIDE \cite{guide2024}: \path{datasets/GUIDE_train.csv} / \texttt{GUIDE\_Test.csv}, Microsoft's public real-world SOC alert/incident corpus, evaluated on real triage-labeled alerts throughout (not synthetic substitutes). \texttt{AlertTitle}, the field targeted by both guardrail designs in this paper, contains 86{,}149 unique values in the training split, all integers --- confirmed by direct inspection, not inferred from the schema documentation alone.
+
+\subsection{Guardrail decision process --- why the classifier was rejected, not deployed}\label{subsec3-3}
+
+\noindent\textbf{Step 1 --- issue-driven design.} Issue \#10 requested a second-stage ML classifier behind the regex fast-path, citing prior benchmark work comparing Meta Llama Prompt Guard and Protect AI LLM Guard \cite{llamafirewall2025,promptguard2024,llmguard2023}. We pulled that benchmark data and additionally evaluated a TF-IDF + Logistic Regression detector, which won on both axes that matter for a gate placed in front of every alert: F1 0.883 vs.\ 0.747 (Prompt Guard) and 0.722 (LLM Guard); median latency 0.79\,ms vs.\ 179\,ms and 183\,ms --- roughly three orders of magnitude faster (\path{experiments/results/} benchmark data referenced in PR \#12).
+
+\noindent\textbf{Step 2 --- integration and a real bug.} The classifier was wired in as \path{src/agent/ml_guardrail.py}, scoped to \texttt{AlertTitle}. Cross-version scikit-learn unpickling (model trained under 1.7.1, environment running 1.7.2) initially produced non-deterministic scores; pinning \texttt{scikit-learn==1.7.1} (later committed to \texttt{requirements.txt} in PR \#14, after an initial local-only fix was caught in review) resolved it.
+
+\noindent\textbf{Step 3 --- deployment-distribution evaluation, not just benchmark evaluation.} Run against real GUIDE alert titles, the detector flagged 100\% of a 9-alert and a 30-alert batch as injection. A single benign sentence (``please schedule a team meeting for next Tuesday'') scored 0.726 against a 0.5 flag threshold. This prompted a purpose-built 40-row SOC-domain evaluation set (\path{experiments/soc_domain_eval_v1.csv}: 20 benign SOC alert titles, 20 injection attempts phrased as alert-field text), scored via \path{experiments/soc_domain_eval.py}.
+
+\noindent\textbf{Step 4 --- a bug inside the negative result.} Initial scoring (PR \#12) had \texttt{score\_text()} reading \texttt{classifier.predict\_proba(X)[0][0]} --- index 0, the benign-class probability --- instead of \texttt{[0][1]}, the injection-class probability the guardrail was meant to threshold on. This inverted the \emph{direction} of every score: the clearest injection example in the eval set (an HTML-comment-style override payload) scored lowest of all 40 rows (0.289), and a mundane benign alert scored highest (0.979). A reviewer (PR \#14) caught the index bug; correcting it flipped both extremes as expected (the same injection example rose to 0.711, the same benign alert fell to 0.021) but did not change the conclusion --- see Section~\ref{sec4}.
+
+\noindent\textbf{Step 5 --- root cause, not retraining.} Before time-boxing a fine-tune of the classifier on SOC-domain-labeled text (the roadmap's original Aug~9 plan), we checked what \texttt{AlertTitle} actually contains. It is a closed numeric-ID field, confirmed against 86{,}149 unique integer values in \texttt{GUIDE\_train.csv}; the GUIDE paper's own alert-dataframe schema lists no free-text categorical column at all. A TF-IDF classifier cannot find linguistic signal in a field that was never linguistic --- no amount of domain-matched retraining data changes that. We retired the fine-tune plan on this basis rather than spending the time-box confirming a predictable failure.
+
+\noindent\textbf{Step 6 --- the correct guardrail, and why it can be hard-gated.} \path{src/agent/schema_guardrail.py} replaces the classifier with \texttt{validate\_field\_types()}: for each field in \texttt{EXPECTED\_NUMERIC\_FIELDS = \{"AlertTitle", "DetectorId"\}}, the value must be an int/float, or a string that parses cleanly as one; anything else --- including any injection payload, which is definitionally not a valid integer --- fails the check. This separates the two classes \emph{by construction}, not by a learned, thresholded approximation, which is precisely why it is safe to hard-gate (\texttt{regex\_guardrail} $\rightarrow$ \texttt{schema\_guardrail} $\rightarrow$ \texttt{fetch\_mitre\_context}, \path{src/agent/graph.py}) in a way the probabilistic ML classifier never was: there is no accuracy/threshold tradeoff to reason about at deployment time.
+
+\subsection{A reliability defect introduced by the fix, and the regression test built to catch it}\label{subsec3-4}
+Wiring \texttt{schema\_guardrail} into \texttt{graph.py} deleted the existing conditional edge from \texttt{fetch\_mitre\_context} to \texttt{(classify\_with\_llm | rf\_fallback)} without restoring it. \texttt{LangGraph} does not validate dead-end nodes at compile time, so the graph compiled and ran to completion --- but every alert silently stopped after the MITRE-context lookup, producing no \texttt{predicted\_label}. This was invisible in practice because \texttt{evaluate.py} read the missing key with a default (\texttt{result.get("predicted\_label", "FalsePositive")}) instead of raising, so every alert silently scored as a hardcoded guess rather than crashing or erroring visibly. \path{src/app.py}, \texttt{benchmark.py}, and \texttt{run\_agent.py} all invoke the same compiled graph and were equally affected. No repository test previously existed to catch a structurally dead-ended graph.
+
+The fix restores the deleted conditional edge. \path{tests/test_graph_wiring.py} now asserts, structurally, that every non-END node in the compiled graph has at least one outgoing edge, and separately asserts an end-to-end invocation on a sparse alert produces a real, non-default \texttt{predicted\_label} --- turning this specific bug class into a standing regression check rather than a one-time fix. \path{tests/test_schema_guardrail.py} and \path{tests/test_ml_guardrail.py} similarly convert the manual accuracy spot-checks from Sections~\ref{subsec3-3}--\ref{sec4} into assertions.
+
+\section{Evaluation}\label{sec4}
+
+\noindent\textit{All figures below are read directly from the named JSON file --- verify against the file before citing in the final version; do not hand-round.}
+
+\subsection{Guardrail classifier selection benchmark (pre-deployment)}\label{subsec4-1}
+Source: PR \#12 benchmark table (\texttt{guardrail\_comparison.json} / \texttt{eval\_dataset\_v2.csv}, 1000-row balanced chat-jailbreak eval set --- external to this repo, cited for classifier-selection justification only).
+
+\begin{table*}[h]
+\caption{Pre-deployment classifier selection benchmark.}\label{tab1}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Detector & F1 & Median latency & Throughput \\
+\midrule
+TF-IDF + Logistic Regression & 0.883 & 0.79\,ms & 1258 alerts/s \\
+Meta Llama Prompt Guard      & 0.747 & 179\,ms & 5.6 alerts/s \\
+Protect AI LLM Guard         & 0.722 & 183\,ms & 5.5 alerts/s \\
+\botrule
+\end{tabular}
+\end{table*}
+
+\subsection{Deployment-distribution evaluation: SOC-domain eval set (post index-bug fix)}\label{subsec4-2}
+Source: \path{experiments/results/soc_domain_eval_results.json}, 40-row balanced synthetic set (20 benign / 20 injection), corrected \texttt{[0][1]} scoring.
+
+\begin{table*}[h]
+\caption{SOC-domain threshold sweep, post index-bug fix.}\label{tab2}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+Threshold & TP & FP & TN & FN & Accuracy & Precision & Recall & F1 \\
+\midrule
+0.5  & 3 & 3 & 17 & 17 & 0.500 & 0.500 & 0.15 & 0.231 \\
+0.6  & 1 & 1 & 19 & 19 & 0.500 & 0.500 & 0.05 & 0.091 \\
+0.7  & 1 & 0 & 20 & 19 & 0.525 & 1.000 & 0.05 & 0.095 \\
+0.8  & 0 & 0 & 20 & 20 & 0.500 & 0.000 & 0.00 & 0.000 \\
+0.9  & 0 & 0 & 20 & 20 & 0.500 & 0.000 & 0.00 & 0.000 \\
+0.95 & 0 & 0 & 20 & 20 & 0.500 & 0.000 & 0.00 & 0.000 \\
+\botrule
+\end{tabular}
+\end{table*}
+
+Best achievable accuracy across the sweep is 52.5\% (threshold 0.7), with only 1 of 20 true injections recovered even at that point --- at chance for a balanced set. At threshold $\geq 0.8$ the detector predicts ``injection'' for essentially no input, regardless of true label. This is presented as evidence of \emph{no usable signal} on this domain, not a miscalibration recoverable by threshold tuning.
+
+\subsection{Schema guardrail evaluation (replacement)}\label{subsec4-3}
+Source: \path{experiments/results/schema_guardrail_eval.json}, generated by \path{experiments/schema_guardrail_eval.py} (added for this paper --- see \texttt{PROGRESS.md} item E1).
+
+\begin{itemize}
+\item Synthetic (20 benign numeric IDs vs.\ the 20 injection strings from the eval set above): \textbf{100\% accuracy}, 0 false positives, 0 false negatives --- reproduced independently of the PR \#15 description.
+\item Real data (5{,}000 \texttt{AlertTitle} values sampled from \texttt{GUIDE\_train.csv}, in row order --- not randomly sampled): \textbf{0 false positives out of 5{,}000}, reproduced independently of the PR \#15 description. \path{experiments/results/schema_guardrail_eval.json} now records \texttt{"status": "ran"}, \texttt{"n\_sampled": 5000}, \texttt{"n\_false\_positives": 0}. This closes item E1 --- both halves of the guardrail's headline claim now trace to a committed, reproducible artifact rather than PR prose.
+\end{itemize}
+
+\subsection{Random Forest baseline}\label{subsec4-4}
+Source: \path{experiments/results/baseline_metrics.json} (\texttt{n\_train=79580}, \texttt{n\_test=19895}, \texttt{random\_state=42}).
+
+\begin{table*}[h]
+\caption{Random Forest baseline metrics.}\label{tab3}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Metric & Value \\
+\midrule
+Accuracy            & 0.7718 \\
+Macro F1            & 0.7505 \\
+BenignPositive F1    & 0.8066 \\
+FalsePositive F1    & 0.6561 \\
+TruePositive F1      & 0.7889 \\
+\botrule
+\end{tabular}
+\end{table*}
+
+\subsection{End-to-end agent evaluation, post graph-wiring fix}\label{subsec4-5}
+Source: \path{experiments/results/agent_metrics_post_graph_fix_week9.json} (sample size 30).
+
+\begin{table*}[h]
+\caption{End-to-end agent evaluation, post graph-wiring fix ($n=30$).}\label{tab4}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Metric & Value \\
+\midrule
+Accuracy & 0.5333 \\
+Macro F1 & 0.5337 \\
+RF baseline (same file, for comparison) & acc 0.7718, F1 0.7505 \\
+\botrule
+\end{tabular}
+\end{table*}
+
+Predictions spread across all three classes post-fix (12 BenignPositive / 10 TruePositive / 8 FalsePositive; 9 alerts routed via LLM, 21 via RF fallback) --- the qualitative signal that the graph is classifying again rather than collapsing to a single default. \emph{Note for Section~\ref{sec5}: this 30-sample post-fix run is smaller than the larger \texttt{agent\_metrics\_real\_v3.json} 300-sample run reported elsewhere at accuracy 0.28 / macro F1 0.1836 against an RF baseline of 0.374/0.296 on that sample --- these two files are not directly comparable (different sample sizes/dates) and reconciling which is the authoritative end-to-end number for the paper is an open item; see \texttt{PROGRESS.md} item E2.}
+
+\subsection{Scalability benchmark}\label{subsec4-6}
+Source: \path{experiments/results/week7_scalability_benchmark.json}.
+
+\begin{itemize}
+\item Regex guardrail microbenchmark: mean check time 3.616\,\textmu s/alert over 10{,}000 iterations; 10{,}000/10{,}000 injection alerts blocked, 0/10{,}000 benign alerts blocked (at that stage's test set).
+\item LLM path (1 worker, 30 prompts): throughput 0.5672 alerts/s, mean latency 1.7629\,s --- dominated by remote Groq inference and network latency, not local compute.
+\end{itemize}
+
+\noindent\emph{Full table --- CPU/memory/worker-scaling rows --- to be transcribed in full for the final version; only the headline rows are drafted here. See \texttt{PROGRESS.md} item E3.}
+
+\section{Discussion}\label{sec5}
+
+\noindent\textbf{The negative-result methodology, and why it matters more than a working-but-wrong classifier.} A classifier that appears to work --- because it was evaluated only on the benchmark distribution it was selected against --- is a worse outcome for a production guardrail than one that is honestly shown not to work on the deployment distribution. Section~\ref{subsec4-1} shows the TF-IDF classifier winning decisively against two established guardrail frameworks; had that benchmark result alone been used to justify deployment, the guardrail would have shipped in a state indistinguishable from random on real input (Section~\ref{subsec4-2}), silently passing roughly half of actual injection attempts while also blocking legitimate alerts. The distinction argued in this paper is not ``domain mismatch exists'' --- a known risk in ML deployment generally --- but that \emph{diagnosing it correctly} (checking the schema before retraining) converts an open-ended, unbounded tuning problem into a one-week, closed investigation with a deterministic replacement. Section~\ref{subsec3-3}, Step 5 is the paper's central methodological claim.
+
+\noindent\textbf{The graph-wiring defect as a reliability-engineering contribution.} Section~\ref{subsec3-4}'s defect is notable less for its mechanism (a deleted graph edge) than for how it failed: silently, past a compiled graph, past a running pipeline, into a hardcoded default that looked like a real (if pessimistic) classification. No exception, log line, or crash surfaced it; it was only caught by an independent post-merge audit, not by the change's own review. We argue this is a generalizable risk for any LangGraph-style pipeline where a downstream consumer applies a lenient default to a missing key --- the failure mode is structurally identical to an ML guardrail that silently returns a plausible-but-wrong score, and the fix (a structural graph-completeness test, not just a functional one) generalizes past this specific bug.
+
+\subsection*{Limitations}
+\begin{itemize}
+\item The SOC-domain evaluation set (Section~\ref{subsec4-2}) is a 40-row synthetic set, not a labeled real-world injection corpus against structured alert fields --- no such public corpus was identified during this work (see Related Work, Prompt injection paragraph).
+\item The end-to-end agent evaluation samples (30 and 300 rows, Section~\ref{subsec4-5}) are small relative to the GUIDE test split, and the two available result files are not reconciled to a single authoritative number --- flagged as \texttt{PROGRESS.md} item E2, to resolve before submission.
+\item The real-data schema-guardrail sample (Section~\ref{subsec4-3}) is the first 5{,}000 rows of \texttt{GUIDE\_train.csv} in file order, not a random sample --- row order in the source file is not known to be free of systematic bias (e.g., chronological or org-clustered ordering), so this should be read as ``no false positives in the first 5{,}000 rows encountered'' rather than a claim about the full 86{,}149-value population.
+\item \texttt{EXPECTED\_NUMERIC\_FIELDS} includes \texttt{DetectorId} on the basis of the GUIDE paper's schema description rather than the same direct large-sample inspection applied to \texttt{AlertTitle}; the module docstring notes this as confirmed but the inspection methodology is less thorough than \texttt{AlertTitle}'s.
+\item The guardrail-selection benchmark (Section~\ref{subsec4-1}) is drawn from an eval set built for a companion project's chat-jailbreak use case, not this project's SOC-alert domain --- which is exactly the mismatch this paper reports, but it also means Section~\ref{subsec4-1}'s numbers cannot be used as evidence about SOC-domain performance, only as the justification for which classifier was worth testing further.
+\end{itemize}
+
+\section{Conclusion}\label{sec6}
+
+\noindent\textit{Draft --- expand once Sections~\ref{sec4}/\ref{sec5} are fully reconciled against committed result files (PROGRESS.md items E2, E3).}
+
+We built, evaluated, and rejected a second-stage ML guardrail for an LLM-assisted SOC triage pipeline after confirming --- through direct inspection of the deployment data rather than threshold tuning --- that its target field is not the kind of data the classifier can ever operate on. We replaced it with a deterministic schema guardrail that is correct by construction for that field and safe to hard-gate, unlike the probabilistic classifier it replaced. In fixing the schema guardrail's integration, we found and fixed a silent graph-wiring defect that had been masking every verdict as a default classification, and built a structural regression test suite to prevent recurrence. We argue the central contribution is methodological: correctly diagnosing why a plan cannot work, before spending the time-box that would have confirmed it empirically, is itself a reportable and reusable result for guardrail engineering in structured-data domains.
+
+\backmatter
+
+\section*{Declarations}
+
+\begin{itemize}
+\item Funding: Not applicable.
+\item Conflict of interest/Competing interests: Not applicable.
+\item Ethics approval: Not applicable.
+\item Consent to participate: Not applicable.
+\item Consent for publication: Not applicable.
+\item Availability of data and materials: GUIDE dataset \cite{guide2024}, publicly available from Microsoft. Evaluation result files committed under \path{experiments/results/} in the project repository.
+\item Code availability: \url{https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis}
+\item Authors' contributions: Not applicable (single author).
+\end{itemize}
+
+%% References 10-12, 14-16 have incomplete author metadata in the source
+%% draft -- see references.bib header and PROGRESS.md item R2. Do not
+%% submit until those are resolved to real author lists.
+\bibliography{references}
+
+\end{document}
