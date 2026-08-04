@@ -438,7 +438,8 @@ second-stage classifier to stress-test.
 ## Week 9 — Issue #10: root cause found, classifier retired, schema guardrail shipped
 
 **Branch:** `asma-week-09`
-**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/15
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/15 (schema guardrail, merged Aug 2)
+**Follow-up PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/17 (post-merge audit fix — graph-wiring regression, RF retrain, doc reconciliation; opened Aug 4, targets `dev`)
 
 ### Reframing the Aug 9 milestone
 The roadmap's Aug 9 plan was to time-box a fine-tune/retrain of the Week 8
