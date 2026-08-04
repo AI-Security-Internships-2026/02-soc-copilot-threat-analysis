@@ -1,7 +1,8 @@
 # Paper Progress Tracker — Issue #16 (Springer IJIS submission, due 2026-09-08)
 
 **Issue:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/issues/16
-**Working draft:** `docs/paper/draft.md` (Markdown content draft — not yet in journal template)
+**PR:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/18 (draft, opened 2026-08-04 — stacked on unmerged #17, see "Branch note" below; not ready for merge, R1/R2/E2/E3/T2/T3 still open)
+**Working draft:** `docs/paper/draft.md` (Markdown content draft) + `docs/paper/latex/ijis-draft.tex` (LaTeX port, started 2026-08-04, T1)
 **Branch:** `worktree-paper-draft-issue-16` (created from `origin/asma-week-09`, which is PR #17 / unmerged into `dev` as of 2026-08-04 — see "Branch note" below)
 **Last worked:** 2026-08-04
 
