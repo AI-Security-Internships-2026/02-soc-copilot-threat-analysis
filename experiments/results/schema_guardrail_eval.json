@@ -7,7 +7,10 @@
     "accuracy": 1.0
   },
   "real_data_sample": {
-    "status": "skipped",
-    "reason": "datasets/GUIDE_train.csv not present in this checkout (gitignored, per .gitignore's datasets/**/*.csv rule). Rerun this script on a machine with the dataset downloaded to populate this section -- see datasets/README.md for source."
+    "status": "ran",
+    "source_file": "datasets/GUIDE_train.csv",
+    "n_sampled": 5000,
+    "n_false_positives": 0,
+    "false_positive_examples": []
   }
 }

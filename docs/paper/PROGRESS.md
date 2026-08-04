@@ -17,22 +17,22 @@ Read this file first when picking this up again. It tells you what's done, what'
 | I. Introduction | Draft written | `draft.md` §I |
 | II. Related Work | Draft written, citations need author-list verification | `draft.md` §II |
 | III. Proposed Method | Draft written, fully grounded in code + PRs | `draft.md` §III |
-| IV. Evaluation | Draft written, **3 open reconciliation items (E1–E3 below)** | `draft.md` §IV |
+| IV. Evaluation | Draft written, **2 open reconciliation items (E2–E3 below); E1 resolved 2026-08-04** | `draft.md` §IV |
 | V. Discussion | Draft written | `draft.md` §V |
 | VI. Conclusion | Draft written (short — expand after IV/V settle) | `draft.md` §VI |
 | References (≥20, majority 2023–2026) | 17 sourced and real, not fabricated. **Need 3–4 more + author verification** (R1, R2 below) | `draft.md` §References |
 | Use journal's LaTeX/Word template | **Not started** (T1 below) | — |
 | All tables/figures referenced in text | Tables are inline in Markdown and referenced; figures **not started** — no plots generated yet (T2) | — |
-| Results match committed files exactly | Mostly true — E1's synthetic half now fixed (real committed JSON); E1's real-data half and E2 still open | — |
+| Results match committed files exactly | E1 fully resolved (both halves committed); E2 still open | — |
 | Commit draft to `docs/paper-draft.pdf` | **Not started** — draft is still `.md`, needs template + PDF export (T1) | — |
-| Open PR against `dev` | **Not started** | — |
+| Open PR against `dev` | **Not started** | — | 
 
 ---
 
 ## Open items to resolve before this is submission-ready
 
 ### Evaluation (E)
-- **E1 — PARTIALLY DONE.** `experiments/schema_guardrail_eval.py` now exists and writes `experiments/results/schema_guardrail_eval.json`. The synthetic 20v20 half is done and committed (100% accuracy, reproduced independently of PR #15's prose). The real-data half (5,000 sampled `AlertTitle` values) could **not** be run in this session — `datasets/GUIDE_train.csv` is gitignored and wasn't present in the worktree. The script handles this gracefully (`"status": "skipped"` in the JSON, with the reason recorded) rather than faking a result. **Next step: on a machine with the dataset present, run `python3 experiments/schema_guardrail_eval.py` again and commit the updated JSON** — then update `draft.md` §4.3's real-data bullet to cite the populated result instead of the PR #15 description.
+- **E1 — DONE (2026-08-04).** `experiments/schema_guardrail_eval.py` writes `experiments/results/schema_guardrail_eval.json`. Both halves are now committed: synthetic 20v20 (100% accuracy) and the real-data half (5,000 `AlertTitle` values from `datasets/GUIDE_train.csv`, 0 false positives) — the dataset was symlinked into this worktree from the main checkout to run it. `draft.md` §4.3 updated to cite the populated result instead of the PR #15 description, and the corresponding stale bullet removed from §V Limitations. **Caveat added to Limitations:** the script reads the first 5,000 rows in file order, not a random sample — flagged honestly rather than overclaiming "random sample."
 - **E2 — Two end-to-end agent-eval files disagree and aren't reconciled.** `agent_metrics_post_graph_fix_week9.json` (n=30, post graph-wiring fix, acc 0.5333/F1 0.5337) vs. `agent_metrics_real_v3.json` (n=300, acc 0.28/F1 0.1836, against a *different* RF baseline comparison number in the same file: 0.374/0.296 — note this doesn't match `baseline_metrics.json`'s 0.7718/0.7505 either, which needs explaining, not just citing). Action: figure out which of `agent_metrics_real*.json` (there are 5: `real`, `real_check`, `real_v2`, `real_v3`, plus `week6_fallback` and `week6_fallback_rerun`) is the authoritative current-pipeline number, why the RF baseline comparison differs by file (different sample/seed?), and either rerun a single fresh large-sample eval post-graph-fix or explain the discrepancy explicitly in the Evaluation section rather than picking whichever number is more flattering.
 - **E3 — Scalability benchmark table is only partially transcribed.** `week7_scalability_benchmark.json` has full CPU/memory/worker-scaling rows beyond what's in the draft (only regex microbenchmark + 1-worker LLM row are in `draft.md` §4.6 currently). Action: transcribe the full `results` array into a proper table, and decide whether it needs a figure (e.g., throughput vs. worker count) — see T2.
 
