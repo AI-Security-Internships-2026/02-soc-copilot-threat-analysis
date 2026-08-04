@@ -1,0 +1,13 @@
+{
+  "synthetic_20v20": {
+    "n_benign": 20,
+    "n_injection": 20,
+    "false_positives": [],
+    "false_negatives": [],
+    "accuracy": 1.0
+  },
+  "real_data_sample": {
+    "status": "skipped",
+    "reason": "datasets/GUIDE_train.csv not present in this checkout (gitignored, per .gitignore's datasets/**/*.csv rule). Rerun this script on a machine with the dataset downloaded to populate this section -- see datasets/README.md for source."
+  }
+}
