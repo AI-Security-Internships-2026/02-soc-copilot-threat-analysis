@@ -599,19 +599,34 @@ Random Forest artifact must exist at `experiments/results/baseline_model.joblib`
 before `--modes rf` (or `hybrid`) will produce real numbers instead of
 silent failures.
 
-**Hybrid mode still blocked — needs a `GROQ_API_KEY`.** Hybrid mode routes
-part of its traffic to the live LLM (the Week 6 hybrid split was 244/300
-alerts to the RF fallback, 56 to the LLM), and no Groq key is available in
-this environment — no `.env` file, nothing exported in the shell. Running
-`--modes hybrid` without one wouldn't just fail loudly; the LLM-routed
-subset would fast-fail on an auth/connection error in milliseconds instead
-of taking the real ~1.8–2.7s network round trip the LLM-only rows show, so
-the resulting throughput and latency numbers would look artificially great
-while being meaningless — exactly the "no rounded/fabricated metrics"
-failure mode issue #16's checklist warns against. Left this untouched
-rather than run it with fake numbers.
+**Hybrid mode gap closed.** A `GROQ_API_KEY` became available, so ran
+`src.agent.benchmark --modes hybrid --prompt-counts 30 60 120 --workers 1 4
+--append` against the live Groq endpoint, reusing the same cached sample as
+the RF rerun above. Verified connectivity with a 5-prompt smoke test first
+(real ~0.56s mean latency, 0 errors) before committing to the full sweep,
+so a bad key would fail fast rather than burn the whole run.
 
-**To finish E3:** run
-`venv/bin/python -m src.agent.benchmark --modes hybrid --prompt-counts 30 60 120 --workers 1 4 --append`
-with a valid `GROQ_API_KEY` in `.env`, then update the Week 7 results table
-above and in PR #18's transcription with the completed hybrid row.
+| Prompts | Workers | Alerts/s | Mean latency | Accuracy | Macro F1 | Routing (RF / LLM) | Errors |
+|---|---|---|---|---|---|---|---|
+| 30 | 1 | 10.38 | 0.096s | 0.633 | 0.259 | 25 / 5 | 0 |
+| 30 | 4 | 6.09 | 0.164s | 0.633 | 0.259 | 25 / 5 | 0 |
+| 60 | 1 | 1.76 | 0.567s | 0.667 | 0.466 | 47 / 13 | 0 |
+| 60 | 4 | 1.63 | 0.613s | 0.667 | 0.466 | 47 / 13 | 0 |
+| 120 | 1 | 1.86 | 0.537s | 0.617 | 0.614 | 97 / 23 | 0 |
+| 120 | 4 | 1.88 | 0.533s | 0.617 | 0.614 | 97 / 23 | 0 |
+
+Zero errors across all six runs, and the RF/LLM routing split (83%, 78%,
+81% to RF fallback) lines up with the Week 6 baseline of 81.3% — the
+context-richness routing logic behaves consistently at every prompt count.
+Latency scales with how many alerts land on the LLM path rather than with
+prompt count directly (30-prompt run has proportionally fewer LLM calls,
+so it's fastest despite being the smallest sample). As with the Week 7
+LLM-only results, `workers=4` gives no real speedup over `workers=1` — at
+30 prompts it's actually slower — since Groq's per-minute token budget is
+shared across threads regardless of worker count; concurrency just adds
+retry/backoff overhead without increasing real throughput.
+
+E3 (issue #16 / PR #18) is now fully resolved: all three modes (RF, LLM,
+hybrid) have complete data across all three prompt-count tiers and both
+worker counts in `experiments/results/week7_scalability_benchmark.json`.
+Next step is updating PR #18's paper-draft transcription to match.
