@@ -1,10 +1,9 @@
 % References for the IJIS submission (issue #16).
 % Ported from docs/paper/draft.md "## References" section.
-% Entries 10-12, 14-16 carry incomplete author lists in the source draft
-% (marked [AUTHORS TO VERIFY] / [TITLE/AUTHORS TO VERIFY]) -- see
-% PROGRESS.md item R2. DO NOT fill in guessed author names here; pull them
-% from arXiv/publisher metadata and replace the {AUTHORS TO VERIFY} author
-% field before submission.
+% Author-list verification pass (PROGRESS.md item R2) completed against
+% arXiv/Crossref/publisher metadata. All entries verified; ferrag2024 was
+% found to be fabricated in an earlier session and has been replaced with a
+% real, verified paper -- see the comment on that entry below.
 
 @misc{msft_copilot2024,
   author = {{Microsoft Security Team}},
@@ -22,33 +21,44 @@
   note   = {\url{https://github.com/capture0x/adstrike}}
 }
 
+% RESOLVED 2026-08-06: the original arXiv:2407.08628 / "Automated Cyber Threat
+% Intelligence: LLMs for SIEM Alert Triage" entry was fabricated in an earlier
+% session -- that ID resolves to an unrelated math.AP paper, and no real paper
+% under that title was found. Replaced with the closest genuine Ferrag et al.
+% LLM-security paper (confirmed via direct fetch of the arXiv abstract page):
+% a broad review of generative-AI/LLM applications across cybersecurity
+% domains, NOT a dedicated SIEM-alert-triage/CICIDS2017 evaluation. The two
+% inline citations of this key in draft.md/ijis-draft.tex were rewritten to
+% match what this paper actually covers -- see PROGRESS.md item R2.
 @article{ferrag2024,
-  author  = {Ferrag, Mohamed Amine and others},
-  title   = {Automated Cyber Threat Intelligence: {LLMs} for {SIEM} Alert Triage},
-  journal = {arXiv preprint arXiv:2407.08628},
+  author  = {Ferrag, Mohamed Amine and Alwahedi, Fatima and Battah, Ammar and Cherif, Bilel and Mechri, Abdechakour and Tihanyi, Norbert and Bisztray, Tamas and Debbah, Merouane},
+  title   = {Generative {AI} in Cybersecurity: A Comprehensive Review of {LLM} Applications and Vulnerabilities},
+  journal = {arXiv preprint arXiv:2405.12750},
   year    = {2024}
 }
 
 @article{cortex2025,
-  author  = {Wei, T. and Tay, Y. and Liu, X. and Pan, S. and Luo, J. and Zhu, Y. and Jordan, M.},
+  author  = {Wei, Bowen and Tay, Yuan Shen and Liu, Howard and Pan, Jinhao and Luo, Kun and Zhu, Ziwei and Jordan, Chris},
   title   = {{CORTEX}: Collaborative {LLM} Agents for High-Stakes Alert Triage},
   journal = {arXiv preprint arXiv:2510.00311},
   year    = {2025}
 }
 
 @article{srinivas2025survey,
-  author  = {Srinivas, S. and Kirk, R. and Zendejas, E. and Espino, A. and Boskovich, K. and Bari, A. and Dajani, K. and Alzahrani, N.},
+  author  = {Srinivas, Siddhant and Kirk, Brandon and Zendejas, Julissa and Espino, Michael and Boskovich, Matthew and Bari, Abdul and Dajani, Khalil and Alzahrani, Nabeel},
   title   = {{AI}-Augmented {SOC}: A Survey of {LLMs} and Agents for Security Automation},
-  journal = {Informatics},
+  journal = {Journal of Cybersecurity and Privacy},
   publisher = {MDPI},
   volume  = {5},
   number  = {4},
   pages   = {95},
-  year    = {2025}
+  year    = {2025},
+  doi     = {10.3390/jcp5040095},
+  note    = {Journal corrected from ``Informatics'' to ``Journal of Cybersecurity and Privacy'' (ISSN 2624-800X) per Crossref metadata for this DOI}
 }
 
 @article{llamafirewall2025,
-  author  = {{Meta AI}},
+  author  = {Chennabasappa, Sahana and Nikolaidis, Cyrus and Song, Daniel and Molnar, David and Ding, Stephanie and Wan, Shengye and Whitman, Spencer and Deason, Lauren and Doucette, Nicholas and Montilla, Abraham and Gampa, Alekhya and de Paola, Beto and Gabi, Dominik and Crnkovich, James and Testud, Jean-Christophe and He, Kat and Chaturvedi, Rashnil and Zhou, Wu and Saxe, Joshua},
   title   = {{LlamaFirewall}: An Open Source Guardrail System for Building Secure {AI} Agents},
   journal = {arXiv preprint arXiv:2505.03574},
   year    = {2025}
@@ -70,7 +80,7 @@
 }
 
 @article{guide2024,
-  author  = {{Microsoft}},
+  author  = {Freitas, Scott and Kalajdjieski, Jovan and Gharib, Amir and McCann, Robert},
   title   = {{AI}-Driven Guided Response for Security Operation Centers with Microsoft Copilot for Security},
   journal = {arXiv preprint arXiv:2407.09017},
   year    = {2024},
@@ -78,28 +88,34 @@
 }
 
 @article{rag_cti2025,
-  author  = {{AUTHORS TO VERIFY}},
+  author  = {Alhuzali, Abeer},
   title   = {{LLM}-powered threat intelligence: a retrieval-augmented generation approach for cyber attack investigation},
   journal = {PeerJ Computer Science},
+  volume  = {11},
+  pages   = {e3371},
   year    = {2025},
-  note    = {\url{https://peerj.com/articles/cs-3371/} -- title/authors pending verification, PROGRESS.md item R2}
+  doi     = {10.7717/peerj-cs.3371},
+  note    = {\url{https://peerj.com/articles/cs-3371/}; title confirmed, author list verified via Crossref (10.7717/peerj-cs.3371) since the publisher page returned HTTP 403 to automated fetch}
 }
 
 @article{kgagent2025,
-  author  = {{AUTHORS TO VERIFY}},
+  author  = {Yang, Lirong and Zhu, Hongliang and Mu, Jin and Li, Qi},
   title   = {{KGAgent4CTI}: unlocking the power of {LLM} in threat intelligence},
   journal = {Cybersecurity},
   publisher = {Springer Nature},
-  year    = {2025},
-  note    = {\url{https://link.springer.com/article/10.1186/s42400-025-00458-2} -- title/authors pending verification, PROGRESS.md item R2}
+  volume  = {9},
+  number  = {1},
+  articleno = {76},
+  year    = {2026},
+  doi     = {10.1186/s42400-025-00458-2},
+  note    = {\url{https://link.springer.com/article/10.1186/s42400-025-00458-2}; title/authors verified via Crossref (10.1186/s42400-025-00458-2) since the publisher page redirected to a login wall on automated fetch. Year corrected to 2026 (Crossref published-online date 2026-05-06) despite the ``-025-'' in the DOI string, which reflects manuscript intake, not publication year}
 }
 
 @article{cticonnect2025,
-  author  = {{AUTHORS TO VERIFY}},
+  author  = {Cheng, Yutong and Liu, Yang and Li, Changze and Song, Dawn and Gao, Peng},
   title   = {{CTIConnect}: A Benchmark for Retrieval-Augmented {LLMs} over Heterogeneous Cyber Threat Intelligence},
   journal = {arXiv preprint arXiv:2510.11974},
-  year    = {2025},
-  note    = {authors pending verification, PROGRESS.md item R2}
+  year    = {2025}
 }
 
 @inproceedings{lewis_rag2020,
@@ -110,27 +126,26 @@
 }
 
 @article{promptinjection_landscape2026,
-  author  = {{AUTHORS TO VERIFY}},
+  author  = {Wang, Peiran and Li, Xinfeng and Xiang, Chong and Zhang, Jinghuai and Li, Ying and Zhang, Lixia and Wang, Xiaofeng and Tian, Yuan},
   title   = {The Landscape of Prompt Injection Threats in {LLM} Agents: From Taxonomy to Analysis},
   journal = {arXiv preprint arXiv:2602.10453},
   year    = {2026},
-  note    = {authors pending verification, PROGRESS.md item R2}
+  note    = {Verified: arXiv ID resolves to this exact title, confirmed via direct fetch of the arXiv abstract page (posted 2026-02-11)}
 }
 
 @article{breaking_defenses2024,
-  author  = {{AUTHORS TO VERIFY}},
+  author  = {Chowdhury, Arijit Ghosh and Islam, Md Mofijul and Kumar, Vaibhav and Shezan, Faysal Hossain and Kumar, Vaibhav and Jain, Vinija and Chadha, Aman},
   title   = {Breaking Down the Defenses: A Comparative Survey of Attacks on Large Language Models},
   journal = {arXiv preprint arXiv:2403.04786},
   year    = {2024},
-  note    = {authors pending verification, PROGRESS.md item R2}
+  note    = {``Vaibhav Kumar'' is listed twice in the byline on the arXiv page itself (confirmed via the rendered author list, not a scraping artifact) -- left as-is rather than deduplicated}
 }
 
 @article{llm_privacy_survey2024,
-  author  = {{AUTHORS TO VERIFY}},
+  author  = {Das, Badhan Chandra and Amini, M. Hadi and Wu, Yanzhao},
   title   = {Security and Privacy Challenges of Large Language Models: A Survey},
   journal = {arXiv preprint arXiv:2402.00888},
-  year    = {2024},
-  note    = {authors pending verification, PROGRESS.md item R2}
+  year    = {2024}
 }
 
 @misc{langgraph2024,
@@ -139,4 +154,47 @@
   year   = {2024},
   howpublished = {Software, released January 2024},
   note   = {\url{https://www.langchain.com/langgraph}}
+}
+
+% Added for PROGRESS.md item R1 (reaching the >=20 reference minimum).
+% All entries below verified via direct fetch of the arXiv abstract page
+% before being added.
+
+@article{mitre_texttag2026,
+  author  = {Crossman, Andrew and Dodd, Jonah and Kumar, Viralam Ramamurthy Chaithanya and Mohammed, Riyaz and Plummer, Andrew R. and Sekharudu, Chandra and Warrier, Deepak and Yekrangian, Mohammad},
+  title   = {Constructing Multi-label Hierarchical Classification Models for {MITRE ATT\&CK} Text Tagging},
+  journal = {arXiv preprint arXiv:2601.14556},
+  year    = {2026}
+}
+
+@article{incident_prioritization2026,
+  author  = {Freitas, Scott and Gharib, Amir and Magenheim, Maayan},
+  title   = {Adaptive Incident Prioritization for Security Operations at Scale},
+  journal = {arXiv preprint arXiv:2607.16963},
+  year    = {2026}
+}
+
+@article{alert_fatigue_survey2026,
+  author  = {Ndichu, Samuel and Ban, Tao and Ozawa, Seiichi and Takahashi, Takeshi and Inoue, Daisuke},
+  title   = {{AI}-Driven Security Alert Screening and Alert Fatigue Mitigation in Security Operations Centers: A Survey},
+  journal = {arXiv preprint arXiv:2605.08316},
+  year    = {2026},
+  note    = {arXiv abstract-page title omits ``A Comprehensive'' present in the candidate title tracked in PROGRESS.md (page title reads ``...: A Survey''); used the verified on-page title}
+}
+
+@article{pedregosa2011sklearn,
+  author  = {Pedregosa, Fabian and Varoquaux, Ga{\"e}l and Gramfort, Alexandre and Michel, Vincent and Thirion, Bertrand and Grisel, Olivier and Blondel, Mathieu and Prettenhofer, Peter and Weiss, Ron and Dubourg, Vincent and Vanderplas, Jake and Passos, Alexandre and Cournapeau, David and Brucher, Matthieu and Perrot, Matthieu and Duchesnay, {\'E}douard},
+  title   = {Scikit-learn: Machine Learning in {Python}},
+  journal = {Journal of Machine Learning Research},
+  volume  = {12},
+  pages   = {2825--2830},
+  year    = {2011}
+}
+
+@misc{guide_kaggle2024,
+  author = {{Microsoft}},
+  title  = {Microsoft Security Incident Prediction ({GUIDE} dataset)},
+  year   = {2024},
+  howpublished = {Kaggle dataset},
+  note   = {\url{https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction}}
 }
