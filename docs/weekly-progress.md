@@ -555,3 +555,63 @@ replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
   section actually being followed (report drafting Aug 30, final
   submission Sep 8). Also fixed a stale `STATUS = "Week 2..."` string in
   `src/main.py`.
+
+## Scalability benchmark follow-up (2026-08-06): RF sweep completed, hybrid still blocked
+
+Issue #16 / PR #18 flagged **E3 — "scalability benchmark table only
+partially transcribed"** as a blocker for the paper's Evaluation section.
+Checked `experiments/results/week7_scalability_benchmark.json` against the
+Week 7 "next week plan" (rerun RF and hybrid across all three prompt-count
+tiers): RF mode only had `prompt_count=30` (both worker counts), and
+`hybrid` mode had zero entries at all, despite both being called for by the
+rerun command documented in the Week 7 section itself.
+
+**RF gap closed.** Re-ran `src.agent.benchmark --modes rf --prompt-counts
+60 120 --workers 1 4 --append`, reusing the exact same cached balanced
+sample (`guide_balanced_40_per_class_seed_42.csv`) the original Week 7 run
+used, so the new rows are directly comparable to the existing ones rather
+than drawn from a different sample. RF mode now has all six
+prompt-count/worker combinations:
+
+| Prompts | Workers | Alerts/s | Mean latency | Accuracy | Macro F1 | Core util % |
+|---|---|---|---|---|---|---|
+| 30 | 1 | 16.69 | 0.060s | 0.633 | 0.622 | 10.43 |
+| 30 | 4 | 41.85 | 0.024s | 0.633 | 0.622 | 14.23 |
+| 60 | 1 | 20.45 | 0.049s | 0.700 | 0.490 | 10.41 |
+| 60 | 4 | 37.70 | 0.027s | 0.700 | 0.490 | 14.04 |
+| 120 | 1 | 29.75 | 0.034s | 0.675 | 0.673 | 10.76 |
+| 120 | 4 | 39.01 | 0.026s | 0.675 | 0.673 | 14.16 |
+
+Throughput and per-core utilization stay in the same band as the original
+30-prompt rows at every tier, and errors are 0 across the board — the
+1-vs-4-worker speedup pattern from Week 7 holds at larger prompt counts
+too, it just hadn't been measured there before.
+
+One environment gap hit and fixed along the way: the first attempt at this
+rerun failed 100% of requests with `Fallback model not found at
+experiments/results/baseline_model.joblib` — that artifact and the GUIDE
+CSVs are gitignored, so a fresh checkout of the repo doesn't have them.
+Symlinked them in from an existing checkout that had already run
+`src.models.baseline` and downloaded the dataset, discarded the corrupted
+100%-error results, and reran cleanly. Documented here since anyone else
+rerunning this benchmark from a clean clone will hit the same wall: the
+Random Forest artifact must exist at `experiments/results/baseline_model.joblib`
+before `--modes rf` (or `hybrid`) will produce real numbers instead of
+silent failures.
+
+**Hybrid mode still blocked — needs a `GROQ_API_KEY`.** Hybrid mode routes
+part of its traffic to the live LLM (the Week 6 hybrid split was 244/300
+alerts to the RF fallback, 56 to the LLM), and no Groq key is available in
+this environment — no `.env` file, nothing exported in the shell. Running
+`--modes hybrid` without one wouldn't just fail loudly; the LLM-routed
+subset would fast-fail on an auth/connection error in milliseconds instead
+of taking the real ~1.8–2.7s network round trip the LLM-only rows show, so
+the resulting throughput and latency numbers would look artificially great
+while being meaningless — exactly the "no rounded/fabricated metrics"
+failure mode issue #16's checklist warns against. Left this untouched
+rather than run it with fake numbers.
+
+**To finish E3:** run
+`venv/bin/python -m src.agent.benchmark --modes hybrid --prompt-counts 30 60 120 --workers 1 4 --append`
+with a valid `GROQ_API_KEY` in `.env`, then update the Week 7 results table
+above and in PR #18's transcription with the completed hybrid row.
