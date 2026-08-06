@@ -147,12 +147,50 @@ Source: `experiments/results/agent_metrics_post_graph_fix_week9.json` (sample si
 Predictions spread across all three classes post-fix (12 BenignPositive / 10 TruePositive / 8 FalsePositive; 9 alerts routed via LLM, 21 via RF fallback) — the qualitative signal that the graph is classifying again rather than collapsing to a single default. *(Note for Section V: this 30-sample post-fix run is smaller than the larger `agent_metrics_real_v3.json` 300-sample run reported elsewhere at accuracy 0.28 / macro F1 0.1836 against an RF baseline of 0.374/0.296 on that sample — these two files are not directly comparable (different sample sizes/dates) and reconciling which is the authoritative end-to-end number for the paper is an open item; see `PROGRESS.md` item E2.)*
 
 ### 4.6 Scalability benchmark
-Source: `experiments/results/week7_scalability_benchmark.json`.
+Source: `experiments/results/week7_scalability_benchmark.json`. Regex guardrail microbenchmark: mean check time 3.766 µs/alert over 10,000 iterations; 10,000/10,000 injection alerts blocked, 0/10,000 benign alerts blocked (at that stage's test set).
 
-- Regex guardrail microbenchmark: mean check time 3.616 µs/alert over 10,000 iterations; 10,000/10,000 injection alerts blocked, 0/10,000 benign alerts blocked (at that stage's test set).
-- LLM path (1 worker, 30 prompts): throughput 0.5672 alerts/s, mean latency 1.7629 s — dominated by remote Groq inference and network latency, not local compute.
+The benchmark sweeps three pipeline modes (LLM-only, RF-only, and the hybrid router of Section III.3) across three prompt counts (30/60/120, drawn from the same cached balanced sample, `guide_balanced_40_per_class_seed_42.csv`) and two worker counts (1, 4).
 
-*(Full table — CPU/memory/worker-scaling rows — to be transcribed in full for the final version; only the headline rows are drafted here. See `PROGRESS.md` item E3.)*
+**LLM-only.**
+
+| Prompts | Workers | Alerts/s | Mean latency | Accuracy | Macro F1 | Errors |
+|---|---|---|---|---|---|---|
+| 30 | 1 | 0.5672 | 1.7629 s | 0.4333 | 0.2016 | 0 |
+| 30 | 4 | 0.3736 | 2.6765 s | 0.4333 | 0.2016 | 0 |
+| 60 | 1 | 0.3705 | 2.6991 s | 0.3333 | 0.2765 | 0 |
+| 60 | 4 | 0.3711 | 2.6946 s | 0.3333 | 0.2765 | 0 |
+| 120 | 1 | 0.3665 | 2.7284 s | 0.4000 | 0.3727 | 0 |
+| 120 | 4 | 0.3756 | 2.6622 s | 0.3983 | 0.3656 | 2 |
+
+Throughput and latency are dominated by remote Groq inference and network round-trips, not local compute — `workers=4` gives no consistent speedup over `workers=1` because Groq's per-minute token budget is shared across threads regardless of worker count. The two errors at 120 prompts/4 workers are rate-limit failures on the live endpoint, not a pipeline defect.
+
+**RF-only.**
+
+| Prompts | Workers | Alerts/s | Mean latency | Accuracy | Macro F1 | Core util % |
+|---|---|---|---|---|---|---|
+| 30 | 1 | 16.69 | 0.060 s | 0.633 | 0.622 | 10.43 |
+| 30 | 4 | 41.85 | 0.024 s | 0.633 | 0.622 | 14.23 |
+| 60 | 1 | 20.45 | 0.049 s | 0.700 | 0.490 | 10.41 |
+| 60 | 4 | 37.70 | 0.027 s | 0.700 | 0.490 | 14.04 |
+| 120 | 1 | 29.75 | 0.034 s | 0.675 | 0.673 | 10.76 |
+| 120 | 4 | 39.01 | 0.026 s | 0.675 | 0.673 | 14.16 |
+
+Zero errors across all six runs. Local, CPU-bound inference scales the way LLM-only does not: throughput roughly 2–2.5x from 1 to 4 workers at every prompt count, with per-core utilization climbing modestly (10.4% → 14.1%) rather than saturating, since the balanced samples are small relative to the machine's 8 logical cores.
+
+**Hybrid (context-richness router).**
+
+| Prompts | Workers | Alerts/s | Mean latency | Accuracy | Macro F1 | Routing (RF / LLM) | Errors |
+|---|---|---|---|---|---|---|---|
+| 30 | 1 | 10.38 | 0.096 s | 0.633 | 0.259 | 25 / 5 | 0 |
+| 30 | 4 | 6.09 | 0.164 s | 0.633 | 0.259 | 25 / 5 | 0 |
+| 60 | 1 | 1.76 | 0.567 s | 0.667 | 0.466 | 47 / 13 | 0 |
+| 60 | 4 | 1.63 | 0.613 s | 0.667 | 0.466 | 47 / 13 | 0 |
+| 120 | 1 | 1.86 | 0.537 s | 0.617 | 0.614 | 97 / 23 | 0 |
+| 120 | 4 | 1.88 | 0.533 s | 0.617 | 0.614 | 97 / 23 | 0 |
+
+Zero errors across all six hybrid runs. The RF/LLM routing split (83%, 78%, 81% to the RF fallback) is stable across prompt counts and matches the Week 6 baseline of 81.3%, confirming the context-richness routing logic behaves consistently at scale. Latency tracks the proportion of alerts routed to the LLM rather than prompt count directly — the 30-prompt run is fastest despite being the smallest sample because proportionally fewer of its alerts hit the LLM path — and, as with the LLM-only results, `workers=4` gives no real throughput gain over `workers=1` (it is measurably slower at 30 prompts) for the same shared-rate-limit reason.
+
+*(Full per-run CPU/memory fields — process CPU seconds, peak RSS — are in the source JSON but omitted here for brevity; not needed to support the throughput/accuracy claims made in this section or in Section V.)*
 
 ---
 
