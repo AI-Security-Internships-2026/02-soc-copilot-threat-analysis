@@ -555,3 +555,79 @@ replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
   section actually being followed (report drafting Aug 30, final
   submission Sep 8). Also fixed a stale `STATUS = "Week 2..."` string in
   `src/main.py`.
+
+---
+
+## Week 10 — Wazuh integration research, GeNIS dataset research, literature review finalized
+
+**Branch:** `asma-week-10`
+**PR link:** _[fill in when opened]_
+
+Direction for this week came out of a supervisor meeting: investigate Wazuh, look for a newer
+(2025+) SOC-related dataset — specifically one covering SME network traffic, since the project has
+only ever evaluated against one static 2024 GUIDE snapshot — and finalize the literature review.
+This replaces the roadmap's previous Aug 16 milestone ("write up domain-mismatch finding"); that
+writeup now follows this week's work instead of preceding it (see updated `README.md` roadmap).
+
+### Literature review: fixed a fabricated citation, added 3 new 2025+ sources
+Auditing `docs/literature-review.md` end-to-end (not just adding to it) surfaced a real problem:
+Paper 3 cited "Ferrag et al., arXiv 2407.08628" — that arXiv ID doesn't correspond to that paper at
+all. Verified the actual Ferrag et al. record and found the real paper is arXiv 2405.12750,
+"Generative AI in Cybersecurity: A Comprehensive Review of LLM Applications and Vulnerabilities" —
+corrected the entry (title, method, dataset, relevance fields all updated to match the real paper,
+which is a broader LLM-in-cybersecurity survey rather than a SIEM-triage-specific one).
+
+Added three new entries found while researching Wazuh and 2025+ datasets:
+- **Paper 6 — Wazuh RAG-Driven SOC Copilot** (MDPI *Sensors* 2025): the closest architectural match
+  found in the literature — same LLM+RAG-over-alerts pattern as this project's LangGraph+MITRE-RAG
+  pipeline, but grounded in live Wazuh alerts instead of a static dataset. Directly informed this
+  week's adapter design (below).
+- **Paper 7 — GeNIS Dataset** (Silva et al., *Data in Brief*, Mar 2025): a labeled dataset built
+  specifically to address the scarcity of SME-network-traffic datasets — the closest real match to
+  the "SME traffic" dataset gap flagged for this week.
+- **Paper 8 — AI-Driven Security Alert Screening Survey** (Ndichu et al., arXiv 2605.08316,
+  submitted to ACM Computing Surveys): reviews 22 benchmark/alert-level datasets by
+  representational gaps vs. real SOC environments — the reference point used to evaluate whether
+  GeNIS is actually worth adopting as a second dataset (see below).
+
+### Wazuh: research + prototype adapter
+Full write-up in `docs/wazuh-integration.md`. Summary: no live Wazuh server was deployed this week
+(a full indexer/server/dashboard Docker stack is real infrastructure work, scoped out — see "Next
+steps" below). Instead, documented Wazuh's alert JSON schema and built
+`src/integrations/wazuh_adapter.py`, a pure mapping function translating a Wazuh alert dict into
+this pipeline's existing `raw_alert` shape:
+- `rule.id` → both `AlertTitle` and `DetectorId` (Wazuh's numeric rule ID is the closest analogue
+  to both GUIDE fields, which issue #10's root-cause investigation found are numeric IDs, not
+  text — Wazuh doesn't separate the two concepts the way GUIDE's schema happens to)
+- `rule.mitre.id` → `MitreTechniques`, `rule.groups` → `Category`
+- `rule.level` (0–15) bucketed into `SuspicionLevel` (low/medium/high)
+- `LastVerdict` left unset — no live-alert equivalent of GUIDE's historical analyst verdict
+
+Smoke-tested a mapped alert directly through `apply_regex_guardrail` → `apply_schema_guardrail` →
+`build_context` (no changes made to `graph.py`, `nodes.py`, or either guardrail) — passed both
+guardrails cleanly and produced a normal context block, confirming the adapter is sufficient
+without touching the pipeline itself. `tests/test_wazuh_adapter.py` (4 tests) covers the field
+mapping, the missing-MITRE case, severity bucketing, and asserts mapped output passes
+`validate_field_types()` unchanged.
+
+### GeNIS dataset: documented as a candidate, not yet integrated
+Added a full entry to `datasets/README.md` following the existing GUIDE-entry template — source,
+license (to verify on download), size, format, and an explicit note that GeNIS's flow-level
+network schema doesn't map onto GUIDE's incident/alert schema, so integrating it would need its
+own loader (`src/data/genis_schema.py`-equivalent) rather than extending `load_data.py`. Not
+downloaded or wired into training/eval this week — flagged as a decision that needs sign-off
+(which pipeline stage would GeNIS feed?) before committing a week to building a second loader path.
+
+### Problems / Blockers
+None blocking. Two things intentionally left as open decisions rather than resolved unilaterally:
+1. GeNIS integration approach (second eval dataset vs. a separate flow-level pre-filter stage) —
+   needs a decision before implementation, not a default guess.
+2. Whether Wazuh integration continues toward a real Docker deployment next, or stays adapter-only
+   pending the paper writeup timeline.
+
+### Next steps
+- If Wazuh continues: stand up a single-node Docker Wazuh stack, enroll at least one agent, and
+  replace the hand-written sample alerts in `tests/test_wazuh_adapter.py` with real generated ones.
+- If GeNIS is approved: build `src/data/genis_schema.py` + a loader mirroring `load_data.py`'s
+  structure, download the real dataset per `datasets/README.md`'s policy (never commit raw data).
+- Aug 16 writeup milestone now follows this week's work — see updated `README.md` roadmap.
