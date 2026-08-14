@@ -631,3 +631,47 @@ None blocking. Two things intentionally left as open decisions rather than resol
 - If GeNIS is approved: build `src/data/genis_schema.py` + a loader mirroring `load_data.py`'s
   structure, download the real dataset per `datasets/README.md`'s policy (never commit raw data).
 - Aug 16 writeup milestone now follows this week's work — see updated `README.md` roadmap.
+
+### Post-work audit: verified this week's claims and re-checked older ones, unbiased pass
+Before writing the paper draft, went back through the repo's actual claims — not just re-reading
+docs, but reproducing numbers and independently re-verifying citations, including ones already on
+`dev` before this week. Results:
+
+**Held up under direct reproduction:**
+- `AlertTitle` really is 86,149 unique plain integers in the real 9.5M-row `GUIDE_train.csv`
+  (issue #10's root-cause claim) — re-checked directly against the file, exact match.
+- RF baseline macro F1 — forced a full retrain (`--force-retrain`) rather than trusting the saved
+  artifact; reproduced macro F1 0.751 exactly.
+- PR #14's predict_proba `[0][0]`→`[0][1]` fix and the 52.5% best-accuracy figure — confirmed
+  against the actual diff and `experiments/results/soc_domain_eval_results.json`'s sweep data.
+- PR #17's graph-wiring regression and fix — confirmed against `git show` on the breaking and
+  fixing commits directly; current `graph.py` wiring is correct.
+- `agent_metrics_post_graph_fix_week9.json`'s accuracy/macro-F1/routing numbers — every figure in
+  the doc matches the file exactly.
+
+**Corrected (not fabrications, but wrong as stated):**
+- Literature review Paper 2 (ADStrike): doc described it as generic "agentic pentesting" — it's
+  specifically an Active Directory red-team framework. Corrected.
+- Literature review Paper 5: doc listed the venue as MDPI *Informatics* — it's actually the
+  *Journal of Cybersecurity and Privacy*, a different MDPI journal sharing a similarly-numbered
+  ISSN pattern. Corrected. (Authors, volume/issue/DOI were all already right.)
+
+**New finding — RF fallback path is unvalidated for Wazuh-origin alerts** (own new code, this
+week): documented in `docs/wazuh-integration.md`'s new "Known limitation" section. Doesn't error,
+but a sparse Wazuh alert leaves ~62% of the RF model's expected features as NaN — a distribution
+the model was never validated against, distinct from GUIDE's own (smaller, in-distribution)
+sparsity pattern. Not fixed this week (would require alert-origin tracking through `graph.py`
+routing); documented as a scoped follow-up rather than patched quickly.
+
+**Residual gap, not this week's code:** `evaluate.py`'s `result.get("predicted_label",
+"FalsePositive")` default (the exact mechanism PR #17 found silently masking the graph-wiring
+regression) is still there — PR #17 fixed the root cause (the missing edge) but not this masking
+behavior itself. The only thing standing between a future routing regression and another silent
+FalsePositive-default incident is remembering to run `tests/test_graph_wiring.py`. Flagging as a
+defense-in-depth gap worth a follow-up, not fixed here to avoid touching shared evaluation code
+outside this week's scope without discussion first.
+
+**Separately flagged, not a code issue:** three already-merged commits on `main` (`7cbc58b`,
+`ad02c85`, `61ea961`, all part of PR #17) carry AI co-authorship trailers, which conflicts with
+the project's no-AI-attribution policy. Rewriting merged/shared history needs an explicit decision
+before doing anything about it — noted for Dr. Rana rather than acted on unilaterally.

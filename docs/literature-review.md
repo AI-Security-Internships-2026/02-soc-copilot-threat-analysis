@@ -29,15 +29,15 @@
 
 | Field | Content |
 |---|---|
-| **Full title** | ADStrike — Agentic AI Penetration Testing Tool via MCP |
+| **Full title** | ADStrike — AI-Powered Modular Active Directory Red-Team Framework via MCP |
 | **Authors** | capture0x |
 | **Year** | 2025 |
 | **Venue** | GitHub / Open Source Tool |
-| **URL / DOI** | https://github.com/capture0x/adstrike |
-| **Method** | Uses MCP (Model Context Protocol) to give LLM agents access to red team tooling |
+| **URL / DOI** | https://github.com/capture0x/AdStrike |
+| **Method** | MCP server (53 tools) giving LLM agents access to Active Directory red-team tooling — AD enumeration, Kerberos/ADCS attacks, DCSync, etc. |
 | **Dataset** | N/A (active exploitation tool) |
-| **Key result** | Demonstrates agentic AI can autonomously execute multi-step attack chains |
-| **Limitation** | Red team only — no blue team / defensive counterpart exists |
+| **Key result** | Demonstrates agentic AI can autonomously execute multi-step AD attack chains |
+| **Limitation** | Red team only, and scoped specifically to Active Directory — no blue team / defensive counterpart exists |
 | **Relevance to our project** | Recommended by supervisor — we are building the blue team equivalent with human-in-the-loop |
 
 **Notes / Quotes:**
@@ -92,7 +92,7 @@
 | **Full title** | AI-Augmented SOC: A Survey of LLMs and Agents for Security Automation |
 | **Authors** | Srinivas, Kirk, Zendejas, Espino, Boskovich, Bari, Dajani, Alzahrani |
 | **Year** | 2025 |
-| **Venue** | Informatics (MDPI), Vol. 5, No. 4, Article 95 |
+| **Venue** | Journal of Cybersecurity and Privacy (MDPI), Vol. 5, No. 4, Article 95 |
 | **URL / DOI** | https://www.mdpi.com/2624-800x/5/4/95 |
 | **Method** | Systematic literature survey of LLM/agent applications across SOC tasks (log summarization, alert triage, threat intel, incident response, report generation, asset discovery, vulnerability management) |
 | **Dataset** | N/A (survey paper) |

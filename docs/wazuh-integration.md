@@ -79,6 +79,34 @@ the LLM/RF routing stage. `tests/test_wazuh_adapter.py` covers the mapping (incl
 severity-bucketing and missing-MITRE cases) and asserts mapped output passes
 `validate_field_types()` unchanged.
 
+## Known limitation, found during audit: RF fallback path is unvalidated for Wazuh alerts
+
+The LLM/guardrail path is safe for Wazuh-origin alerts (verified above). The **RF fallback path is
+not** — worth being explicit about this rather than letting it look more validated than it is.
+
+`should_use_fallback()` routes any alert with fewer than 2 of `{MitreTechniques, SuspicionLevel,
+LastVerdict}` populated to the trained Random Forest baseline instead of the LLM. Many real Wazuh
+alerts will hit this (no MITRE mapping, no `LastVerdict` equivalent at all — see above). Checked
+what actually happens: a Wazuh-mapped alert with only `SuspicionLevel` populated leaves 25 of the
+RF model's 40 expected features as NaN (vs. GUIDE alerts, which are typically missing only a
+handful of entity-specific evidence columns per alert). The call does **not** error —
+scikit-learn 1.7's tree ensembles have built-in missing-value routing, so `predict_with_fallback()`
+returns a normal-looking `(label, probability)` pair (verified: `BenignPositive`, 0.6, bucketed as
+"medium confidence" by `classify_with_fallback`).
+
+That's the concerning part: it fails *silently by looking fine*, not by erroring. The RF model has
+never been trained or validated on this sparsity pattern — a Wazuh alert's ~62% feature-missing
+rate is a different distribution than anything in GUIDE, where the model's missing-value handling
+was learned. There's no evidence the resulting predictions are reliable, and no evidence they
+aren't; it's genuinely unvalidated, not verified-bad.
+
+**Recommendation, not yet implemented:** until there's labeled Wazuh data to check RF-fallback
+accuracy against, treat any `rf_fallback`-routed verdict on a Wazuh-origin alert as needing human
+review regardless of the probability score, rather than trusting the same confidence thresholds
+calibrated on GUIDE. Implementing that requires tagging alerts with their origin through the
+pipeline state, which touches `graph.py`/`nodes.py` routing — deliberately not done as a quick
+patch in this same session; flagging it here for a scoped follow-up instead.
+
 ## What full integration would require (future work, not done this week)
 
 This week's work is a schema adapter validated against realistic *sample* Wazuh alert JSON, not
