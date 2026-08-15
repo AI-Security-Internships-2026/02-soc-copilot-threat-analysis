@@ -555,3 +555,123 @@ replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
   section actually being followed (report drafting Aug 30, final
   submission Sep 8). Also fixed a stale `STATUS = "Week 2..."` string in
   `src/main.py`.
+
+---
+
+## Week 10 — Wazuh integration research, GeNIS dataset research, literature review finalized
+
+**Branch:** `asma-week-10`
+**PR link:** _[fill in when opened]_
+
+Direction for this week came out of a supervisor meeting: investigate Wazuh, look for a newer
+(2025+) SOC-related dataset — specifically one covering SME network traffic, since the project has
+only ever evaluated against one static 2024 GUIDE snapshot — and finalize the literature review.
+This replaces the roadmap's previous Aug 16 milestone ("write up domain-mismatch finding"); that
+writeup now follows this week's work instead of preceding it (see updated `README.md` roadmap).
+
+### Literature review: fixed a fabricated citation, added 3 new 2025+ sources
+Auditing `docs/literature-review.md` end-to-end (not just adding to it) surfaced a real problem:
+Paper 3 cited "Ferrag et al., arXiv 2407.08628" — that arXiv ID doesn't correspond to that paper at
+all. Verified the actual Ferrag et al. record and found the real paper is arXiv 2405.12750,
+"Generative AI in Cybersecurity: A Comprehensive Review of LLM Applications and Vulnerabilities" —
+corrected the entry (title, method, dataset, relevance fields all updated to match the real paper,
+which is a broader LLM-in-cybersecurity survey rather than a SIEM-triage-specific one).
+
+Added three new entries found while researching Wazuh and 2025+ datasets:
+- **Paper 6 — Wazuh RAG-Driven SOC Copilot** (MDPI *Sensors* 2025): the closest architectural match
+  found in the literature — same LLM+RAG-over-alerts pattern as this project's LangGraph+MITRE-RAG
+  pipeline, but grounded in live Wazuh alerts instead of a static dataset. Directly informed this
+  week's adapter design (below).
+- **Paper 7 — GeNIS Dataset** (Silva et al., *Data in Brief*, Mar 2025): a labeled dataset built
+  specifically to address the scarcity of SME-network-traffic datasets — the closest real match to
+  the "SME traffic" dataset gap flagged for this week.
+- **Paper 8 — AI-Driven Security Alert Screening Survey** (Ndichu et al., arXiv 2605.08316,
+  submitted to ACM Computing Surveys): reviews 22 benchmark/alert-level datasets by
+  representational gaps vs. real SOC environments — the reference point used to evaluate whether
+  GeNIS is actually worth adopting as a second dataset (see below).
+
+### Wazuh: research + prototype adapter
+Full write-up in `docs/wazuh-integration.md`. Summary: no live Wazuh server was deployed this week
+(a full indexer/server/dashboard Docker stack is real infrastructure work, scoped out — see "Next
+steps" below). Instead, documented Wazuh's alert JSON schema and built
+`src/integrations/wazuh_adapter.py`, a pure mapping function translating a Wazuh alert dict into
+this pipeline's existing `raw_alert` shape:
+- `rule.id` → both `AlertTitle` and `DetectorId` (Wazuh's numeric rule ID is the closest analogue
+  to both GUIDE fields, which issue #10's root-cause investigation found are numeric IDs, not
+  text — Wazuh doesn't separate the two concepts the way GUIDE's schema happens to)
+- `rule.mitre.id` → `MitreTechniques`, `rule.groups` → `Category`
+- `rule.level` (0–15) bucketed into `SuspicionLevel` (low/medium/high)
+- `LastVerdict` left unset — no live-alert equivalent of GUIDE's historical analyst verdict
+
+Smoke-tested a mapped alert directly through `apply_regex_guardrail` → `apply_schema_guardrail` →
+`build_context` (no changes made to `graph.py`, `nodes.py`, or either guardrail) — passed both
+guardrails cleanly and produced a normal context block, confirming the adapter is sufficient
+without touching the pipeline itself. `tests/test_wazuh_adapter.py` (4 tests) covers the field
+mapping, the missing-MITRE case, severity bucketing, and asserts mapped output passes
+`validate_field_types()` unchanged.
+
+### GeNIS dataset: documented as a candidate, not yet integrated
+Added a full entry to `datasets/README.md` following the existing GUIDE-entry template — source,
+license (to verify on download), size, format, and an explicit note that GeNIS's flow-level
+network schema doesn't map onto GUIDE's incident/alert schema, so integrating it would need its
+own loader (`src/data/genis_schema.py`-equivalent) rather than extending `load_data.py`. Not
+downloaded or wired into training/eval this week — flagged as a decision that needs sign-off
+(which pipeline stage would GeNIS feed?) before committing a week to building a second loader path.
+
+### Problems / Blockers
+None blocking. Two things intentionally left as open decisions rather than resolved unilaterally:
+1. GeNIS integration approach (second eval dataset vs. a separate flow-level pre-filter stage) —
+   needs a decision before implementation, not a default guess.
+2. Whether Wazuh integration continues toward a real Docker deployment next, or stays adapter-only
+   pending the paper writeup timeline.
+
+### Next steps
+- If Wazuh continues: stand up a single-node Docker Wazuh stack, enroll at least one agent, and
+  replace the hand-written sample alerts in `tests/test_wazuh_adapter.py` with real generated ones.
+- If GeNIS is approved: build `src/data/genis_schema.py` + a loader mirroring `load_data.py`'s
+  structure, download the real dataset per `datasets/README.md`'s policy (never commit raw data).
+- Aug 16 writeup milestone now follows this week's work — see updated `README.md` roadmap.
+
+### Post-work audit: verified this week's claims and re-checked older ones, unbiased pass
+Before writing the paper draft, went back through the repo's actual claims — not just re-reading
+docs, but reproducing numbers and independently re-verifying citations, including ones already on
+`dev` before this week. Results:
+
+**Held up under direct reproduction:**
+- `AlertTitle` really is 86,149 unique plain integers in the real 9.5M-row `GUIDE_train.csv`
+  (issue #10's root-cause claim) — re-checked directly against the file, exact match.
+- RF baseline macro F1 — forced a full retrain (`--force-retrain`) rather than trusting the saved
+  artifact; reproduced macro F1 0.751 exactly.
+- PR #14's predict_proba `[0][0]`→`[0][1]` fix and the 52.5% best-accuracy figure — confirmed
+  against the actual diff and `experiments/results/soc_domain_eval_results.json`'s sweep data.
+- PR #17's graph-wiring regression and fix — confirmed against `git show` on the breaking and
+  fixing commits directly; current `graph.py` wiring is correct.
+- `agent_metrics_post_graph_fix_week9.json`'s accuracy/macro-F1/routing numbers — every figure in
+  the doc matches the file exactly.
+
+**Corrected (not fabrications, but wrong as stated):**
+- Literature review Paper 2 (ADStrike): doc described it as generic "agentic pentesting" — it's
+  specifically an Active Directory red-team framework. Corrected.
+- Literature review Paper 5: doc listed the venue as MDPI *Informatics* — it's actually the
+  *Journal of Cybersecurity and Privacy*, a different MDPI journal sharing a similarly-numbered
+  ISSN pattern. Corrected. (Authors, volume/issue/DOI were all already right.)
+
+**New finding — RF fallback path is unvalidated for Wazuh-origin alerts** (own new code, this
+week): documented in `docs/wazuh-integration.md`'s new "Known limitation" section. Doesn't error,
+but a sparse Wazuh alert leaves ~62% of the RF model's expected features as NaN — a distribution
+the model was never validated against, distinct from GUIDE's own (smaller, in-distribution)
+sparsity pattern. Not fixed this week (would require alert-origin tracking through `graph.py`
+routing); documented as a scoped follow-up rather than patched quickly.
+
+**Residual gap, not this week's code:** `evaluate.py`'s `result.get("predicted_label",
+"FalsePositive")` default (the exact mechanism PR #17 found silently masking the graph-wiring
+regression) is still there — PR #17 fixed the root cause (the missing edge) but not this masking
+behavior itself. The only thing standing between a future routing regression and another silent
+FalsePositive-default incident is remembering to run `tests/test_graph_wiring.py`. Flagging as a
+defense-in-depth gap worth a follow-up, not fixed here to avoid touching shared evaluation code
+outside this week's scope without discussion first.
+
+**Separately flagged, not a code issue:** three already-merged commits on `main` (`7cbc58b`,
+`ad02c85`, `61ea961`, all part of PR #17) carry AI co-authorship trailers, which conflicts with
+the project's no-AI-attribution policy. Rewriting merged/shared history needs an explicit decision
+before doing anything about it — noted for Dr. Rana rather than acted on unilaterally.
