@@ -15,3 +15,5 @@ requests>=2.31.0
 streamlit>=1.35.0
 langgraph
 pytest
+deepteam==1.0.9
+sentry-sdk
