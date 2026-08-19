@@ -675,3 +675,79 @@ outside this week's scope without discussion first.
 `ad02c85`, `61ea961`, all part of PR #17) carry AI co-authorship trailers, which conflicts with
 the project's no-AI-attribution policy. Rewriting merged/shared history needs an explicit decision
 before doing anything about it — noted for Dr. Rana rather than acted on unilaterally.
+
+---
+
+## Week 11 — deepteam red-team evaluation of the LLM triage node
+
+**Branch:** `asma-week-11`
+**PR link:** _[fill in when opened]_
+
+Not on the original roadmap — new scope, prompted by wanting to close a real, previously-flagged
+gap: the project's only adversarial-input testing (`experiments/soc_domain_eval.py`) has only ever
+scored a static 40-row hand-written set against the now-retired ML guardrail, never against the
+actual LLM triage node (`classify_with_llm`). Given today falls inside the roadmap's Aug 23 buffer
+week, this was deliberately time-boxed rather than left open-ended, with the Aug 30 draft deadline
+in mind.
+
+### deepteam integration
+
+Full design rationale, exact scope, and results are in `docs/redteam-deepteam-eval.md` — not
+duplicated here. Summary: wired [deepteam](https://github.com/confident-ai/deepteam) to dynamically
+red-team `classify_with_llm` in isolation (guardrails bypassed on purpose — those are already
+tested elsewhere), using a custom `GroqDeepEvalModel` wrapper (`src/agent/deepteam_groq_model.py`)
+as both judge and attack-simulator model so no OpenAI key was needed, consistent with the Week 3
+move off OpenAI. Scope: 3 vulnerabilities (`Robustness/hijacking`, `GoalTheft/social_engineering`,
+`IndirectInstruction/cross_context_injection`) × 4 attacks (`PromptInjection`, `Base64`, `ROT13`,
+`Roleplay`), mapped onto `soc_domain_eval_v1.csv`'s existing five-category taxonomy.
+
+**Result: 12 test cases, 7 completed cleanly, all 7 resisted (0% attack success rate on conclusive
+cases).** The other 5 errored — all on `PromptInjection`/`Roleplay` specifically (the two attack
+methods whose "enhance" step needs the judge model to produce structured JSON), while `Base64` and
+`ROT13` (deterministic transforms, no judge call needed) completed 3/3 each with zero errors. Traced
+the errors to a real cause, not left as a mystery: `openai/gpt-oss-20b` (the Groq judge model)
+intermittently produces malformed JSON under deepteam's specific enhancement prompts, and deepteam's
+`attack_simulator.py` swallows the real exception behind a generic `"Error enhancing attack"` label
+(bare `except:`, confirmed by rereading its source and rerunning with `ignore_errors=False`). This
+is a judge-model reliability limitation, not evidence about the target's safety either way — an
+errored case is inconclusive, not a pass.
+
+### Production model deprecation found and fixed (blocking discovery, not planned)
+
+While validating the deepteam wrapper against a live Groq call, hit a 404: `llama-3.1-8b-instant` —
+the model hardcoded into the **production** `classify_with_llm` node since Week 3 — has been
+retired from Groq's catalog entirely (confirmed via `client.models.list()`, not just one failed
+call). This broke every live-LLM code path in the repo (`evaluate.py`, `run_agent.py`,
+`benchmark.py`, the Streamlit app), not just this week's new work. Replaced with
+`openai/gpt-oss-20b` (currently available on the same key), raising `max_tokens` from 512 to 1024
+since it's a reasoning model with real hidden-token overhead (measured: 198 completion tokens for a
+trivial triage call, ~126 of them reasoning). Verified end-to-end, not just via an isolated API
+call: `triage_graph.invoke()` on a real alert now returns a real verdict via the `llm` path with no
+error. Committed separately from the deepteam work (`fix: replace deprecated llama-3.1-8b-instant
+with openai/gpt-oss-20b on Groq`), since it's a standalone production fix, not a feature addition.
+
+### Problems / Blockers
+
+- The `llama-3.1-8b-instant` deprecation above was a hard blocker for over an hour of this week —
+  couldn't validate anything live until it was root-caused and fixed.
+- Branch sequencing note: Week 10's PR (#20) had already been merged to `dev` by the time this
+  week's uncommitted follow-up fixes (the `evaluate.py`/`nodes.py`/lit-review corrections mentioned
+  under Week 10's "residual gap") were committed — those were moved to their own branch
+  (`asma-week-10-followup`, not yet opened as a PR) rather than bundled into an already-closed PR.
+  `asma-week-11` is built on top of that branch, so its eventual PR will show those commits too
+  unless `asma-week-10-followup` merges to `dev` first — worth merging that one first to keep PRs
+  atomic.
+- deepteam's README documents an older/simplified `model_callback` API than the installed
+  `deepteam==1.0.9` actually exposes, and its `run_all_attacks` parameter defaults to `False`
+  (silently sampling one attack per vulnerability instead of the full cross product) — both cost
+  real time this week and are documented in `docs/redteam-deepteam-eval.md` so they don't repeat.
+
+### Next steps
+
+- If a more reliable judge model becomes available on this Groq account, rerun the 5 errored
+  `PromptInjection`/`Roleplay` cases to get conclusive results.
+- Run `--mode full-graph` (already built into `experiments/deepteam_redteam_eval.py`, not run this
+  week) to measure whether the regex/schema guardrails catch what reaches the LLM here.
+- Merge `asma-week-10-followup` before or alongside this week's PR to keep history clean.
+- GeNIS integration and Wazuh Docker deployment remain open decisions from Week 10, still pending
+  supervisor sign-off — not touched this week.

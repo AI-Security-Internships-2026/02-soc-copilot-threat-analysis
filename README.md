@@ -111,7 +111,7 @@ python src/main.py
 |---|---|
 | Aug 9 | Time-boxed: try fine-tuning/retraining the classifier on SOC-domain-labeled text (not the chat-style set) to see if the gap closes. If it doesn't pan out quickly, move straight to writeup — this is exploratory, not required |
 | Aug 16 | ~~Write up the domain-mismatch finding~~ — superseded: Week 10 research (Wazuh integration prototype, GeNIS dataset evaluation, literature review finalized) took this slot per supervisor direction. See `docs/weekly-progress.md` Week 10 |
-| Aug 23 | Buffer week — address review feedback, polish results and figures; write up the domain-mismatch finding here if not already covered |
+| Aug 23 | Buffer week — address review feedback, polish results and figures; write up the domain-mismatch finding here if not already covered. Partly reallocated: Week 11 used part of this slot for a new, unplanned item — deepteam red-team evaluation of the LLM triage node, prompted by a previously-flagged gap (no adversarial testing had ever reached `classify_with_llm` itself). See `docs/weekly-progress.md` Week 11 and `docs/redteam-deepteam-eval.md` |
 | Aug 30 | Paper/report draft |
 | Sep 6 | Revise draft based on feedback |
 | **Sep 8** | **Final submission** |
