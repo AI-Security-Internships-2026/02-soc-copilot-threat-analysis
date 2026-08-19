@@ -16,6 +16,11 @@
 # usage (run from repo root):
 #   venv/bin/python experiments/deepteam_redteam_eval.py
 #   venv/bin/python experiments/deepteam_redteam_eval.py --mode full-graph --attacks-per-vuln 2
+#   # focused re-run on attack methods that errored in the full pass, with
+#   # more attempts and more internal retries each:
+#   venv/bin/python experiments/deepteam_redteam_eval.py \
+#     --attacks PromptInjection,Roleplay --attacks-per-vuln 2 --attack-max-retries 5 \
+#     --output experiments/results/deepteam_redteam_promptinjection_retry.json
 
 import argparse
 import asyncio
@@ -40,7 +45,7 @@ VULNERABILITY_LABELS = [
     "GoalTheft:social_engineering",
     "IndirectInstruction:cross_context_injection",
 ]
-ATTACK_LABELS = ["PromptInjection", "Base64", "ROT13", "Roleplay"]
+ALL_ATTACK_LABELS = ["PromptInjection", "Base64", "ROT13", "Roleplay"]
 
 
 def build_vulnerabilities():
@@ -51,8 +56,21 @@ def build_vulnerabilities():
     ]
 
 
-def build_attacks():
-    return [PromptInjection(), Base64(), ROT13(), Roleplay()]
+def build_attacks(names=None, max_retries=3):
+    """names=None builds all four (the original starter scope). Pass a
+    subset (e.g. ["PromptInjection", "Roleplay"]) to focus a re-run on the
+    attack methods that errored in the first pass -- see docs/
+    redteam-deepteam-eval.md's Known limitations section. max_retries only
+    affects PromptInjection/Roleplay (Base64/ROT13 are deterministic
+    transforms with no retry-able LLM call in their enhance step)."""
+    all_attacks = {
+        "PromptInjection": PromptInjection(max_retries=max_retries),
+        "Base64": Base64(),
+        "ROT13": ROT13(),
+        "Roleplay": Roleplay(max_retries=max_retries),
+    }
+    names = names or ALL_ATTACK_LABELS
+    return [all_attacks[name] for name in names]
 
 
 def _llm_only_callback():
@@ -107,12 +125,15 @@ def run_redteam(
     attacks_per_vulnerability_type: int = 1,
     output_path: str = "experiments/results/deepteam_redteam_results.json",
     max_concurrent: int = 3,
+    attack_names=None,
+    attack_max_retries: int = 3,
 ) -> dict:
     model_callback = _llm_only_callback() if mode == "llm-only" else _full_graph_callback()
     judge = GroqDeepEvalModel()
 
     vulnerabilities = build_vulnerabilities()
-    attacks = build_attacks()
+    attacks = build_attacks(names=attack_names, max_retries=attack_max_retries)
+    attack_labels = attack_names or ALL_ATTACK_LABELS
     total_planned = len(vulnerabilities) * len(attacks) * attacks_per_vulnerability_type
 
     print(f"running deepteam red_team() in '{mode}' mode: {len(vulnerabilities)} vulnerabilities "
@@ -196,7 +217,8 @@ def run_redteam(
         else "openai/gpt-oss-20b (via triage_graph.invoke(), guardrails included)",
         "judge_model": judge.get_model_name(),
         "vulnerabilities_tested": VULNERABILITY_LABELS,
-        "attacks_tested": ATTACK_LABELS,
+        "attacks_tested": attack_labels,
+        "attack_max_retries": attack_max_retries,
         "attacks_per_vulnerability_type": attacks_per_vulnerability_type,
         "summary": {
             "total_attacks": total,
@@ -228,11 +250,23 @@ if __name__ == "__main__":
     parser.add_argument("--attacks-per-vuln", type=int, default=1, dest="attacks_per_vulnerability_type")
     parser.add_argument("--output", type=str, default="experiments/results/deepteam_redteam_results.json")
     parser.add_argument("--max-concurrent", type=int, default=3)
+    parser.add_argument(
+        "--attacks", type=str, default=None,
+        help="comma-separated subset of PromptInjection,Base64,ROT13,Roleplay (default: all four)",
+    )
+    parser.add_argument(
+        "--attack-max-retries", type=int, default=3,
+        help="retries for PromptInjection/Roleplay's own enhance step (Base64/ROT13 unaffected)",
+    )
     args = parser.parse_args()
+
+    attack_names = args.attacks.split(",") if args.attacks else None
 
     run_redteam(
         mode=args.mode,
         attacks_per_vulnerability_type=args.attacks_per_vulnerability_type,
         output_path=args.output,
         max_concurrent=args.max_concurrent,
+        attack_names=attack_names,
+        attack_max_retries=args.attack_max_retries,
     )

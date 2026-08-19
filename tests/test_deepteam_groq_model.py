@@ -104,3 +104,63 @@ def test_exhausting_retries_raises_runtime_error(monkeypatch):
         model.generate("triage this alert")
 
     assert fake.calls == deepteam_groq_model.MAX_RETRIES
+
+
+def test_valid_json_passes_through_with_no_repair_call(monkeypatch):
+    fake = _FakeChatModel(responses=['{"verdict": "TruePositive"}'])
+    model = _make_model(monkeypatch, fake)
+
+    result = model.generate("respond with json")
+
+    assert result == '{"verdict": "TruePositive"}'
+    assert fake.calls == 1
+
+
+def test_markdown_fenced_json_is_stripped_with_no_repair_call(monkeypatch):
+    fake = _FakeChatModel(responses=['```json\n{"verdict": "TruePositive"}\n```'])
+    model = _make_model(monkeypatch, fake)
+
+    result = model.generate("respond with json")
+
+    assert result == '{"verdict": "TruePositive"}'
+    assert fake.calls == 1
+
+
+def test_plain_text_response_is_left_untouched_with_no_repair_call(monkeypatch):
+    fake = _FakeChatModel(responses=["I'm sorry, but I can't help with that."])
+    model = _make_model(monkeypatch, fake)
+
+    result = model.generate("respond with json")
+
+    assert result == "I'm sorry, but I can't help with that."
+    assert fake.calls == 1
+
+
+def test_malformed_json_triggers_one_repair_call_that_succeeds(monkeypatch):
+    fake = _FakeChatModel(
+        responses=[
+            '{"verdict": TruePositive}',  # malformed: unquoted value, not just a trailing comma
+            '{"verdict": "TruePositive", "note": "fixed"}',  # repair call's response
+        ]
+    )
+    model = _make_model(monkeypatch, fake)
+
+    result = model.generate("respond with json")
+
+    assert result == '{"verdict": "TruePositive", "note": "fixed"}'
+    assert fake.calls == 2
+
+
+def test_malformed_json_falls_back_to_original_if_repair_also_fails(monkeypatch):
+    fake = _FakeChatModel(
+        responses=[
+            "{not json at all",
+            "{still not json",
+        ]
+    )
+    model = _make_model(monkeypatch, fake)
+
+    result = model.generate("respond with json")
+
+    assert result == "{not json at all"
+    assert fake.calls == 2
