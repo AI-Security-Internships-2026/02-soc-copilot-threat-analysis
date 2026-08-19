@@ -101,20 +101,57 @@ Base64 and ROT13 are deterministic transforms with no LLM call in their own "enh
 Injection and Roleplay both ask the simulator/judge model for a creatively-disguised variant in a
 specific JSON structure. All 5 errors were `"Error enhancing attack"` — a bare `except:` inside
 deepteam's `attack_simulator.py` that swallows the real exception. Reproduced with
-`ignore_errors=False` in a throwaway diagnostic run: the underlying cause was
-`DeepEvalError("Evaluation LLM outputted an invalid JSON...")`, traced (not assumed) to
-`openai/gpt-oss-20b` producing a truncated/malformed JSON response under the tighter token budget
-the wrapper started with. Raising `GroqDeepEvalModel`'s `max_tokens` from unset to 2048 fixed the
-very first plumbing-validation case, but Prompt Injection's and Roleplay's specific enhancement
-prompts still hit the same failure mode intermittently at the full scope — an open-weight reasoning
-model on a free-tier API is evidently less reliable at this specific structured-output task than
-the commercial judge (`gpt-4o`/`gpt-4o-mini`) deepteam is tuned against by default.
+`ignore_errors=False` in a throwaway diagnostic run: the underlying cause of at least one of these
+was `DeepEvalError("Evaluation LLM outputted an invalid JSON...")`, traced (not assumed) to
+`openai/gpt-oss-20b` producing a truncated/malformed JSON response. Raising `GroqDeepEvalModel`'s
+`max_tokens` from unset to 2048 fixed the very first plumbing-validation case. **Update (see
+"Follow-up" below): a later investigation found Groq's daily token quota for this model was
+independently exhausted during the same session, so not all 5 errors here can be confidently
+attributed to JSON-formatting failures specifically — some may have been early symptoms of the same
+quota pressure. Treat the "judge-model JSON reliability" explanation as the leading hypothesis for
+this run, not a fully confirmed root cause.**
 
-**This is a judge-model reliability limitation, not evidence about target-model safety either
-way** — an errored case means "inconclusive," not "passed" or "failed." Framed conservatively: 7/12
-attacks were conclusively tested and resisted; 5/12 tell us nothing about the target's robustness
-to Prompt-Injection/Roleplay-style attacks specifically, because the attack itself never got
-successfully generated.
+**This is a judge-model/infrastructure reliability limitation, not evidence about target-model
+safety either way** — an errored case means "inconclusive," not "passed" or "failed." Framed
+conservatively: 7/12 attacks were conclusively tested and resisted; 5/12 tell us nothing about the
+target's robustness to Prompt-Injection/Roleplay-style attacks specifically, because the attack
+itself never got successfully generated.
+
+## Follow-up: focused retry attempts and a daily quota wall
+
+After the initial run, attempted to close the Prompt-Injection/Roleplay coverage gap directly —
+two follow-up steps, both documented honestly since neither fully succeeded:
+
+**Attempt 1 — more attempts, more internal retries, same code.** Re-ran with only
+`PromptInjection`/`Roleplay` (`--attacks-per-vuln 2 --attack-max-retries 5`, `experiments/results/
+deepteam_redteam_promptinjection_retry.json`). Result: **0/12 conclusive** — worse than the original
+run, not better. The three distinct generic error labels seen (`"Error simulating adversarial
+attacks"`, `"Error enhancing attack"`, `"Error evaluating target LLM output..."`) only revealed
+their underlying exception for the first one — the other two are bare string literals in deepteam's
+source with no embedded detail, so it wasn't possible to confirm they were the same JSON-formatting
+issue rather than something else entirely.
+
+**Attempt 2 — defensive JSON handling in `GroqDeepEvalModel` itself.** Added `_ensure_valid_json()`
+(`src/agent/deepteam_groq_model.py`): strips markdown code fences for free, and if the result still
+doesn't parse and looks like an attempted JSON response, makes exactly one self-repair call asking
+the model to fix its own output, falling back to the original text if the repair also fails.
+Genuinely non-JSON responses (e.g. plain-text refusals) are left untouched. Added 5 new pytest cases
+(`tests/test_deepteam_groq_model.py`, all mocked, no live calls) covering: valid JSON passthrough,
+fence-stripping, plain-text passthrough, a successful repair, and a failed repair falling back
+gracefully — 11/11 passing.
+
+**Re-running to verify this live surfaced the actual root cause of Attempt 1's failure:** Groq's
+daily token quota for `openai/gpt-oss-20b` — `Limit 200000, Used 198919` — was essentially
+exhausted, confirmed via the literal 429 response body, not inferred. Every call in the retry failed
+immediately with the same rate-limit error regardless of the new JSON-repair logic, which never got
+a chance to run. **The JSON-repair fix is therefore code-complete and unit-tested, but not yet
+live-verified** — it's unknown whether it actually resolves the original errors until the quota
+resets and the retry can be run again.
+
+**What this means for the headline numbers:** nothing changes. The original 12-test-case run
+(7 conclusive, 0% attack success on conclusive cases) happened before the quota was exhausted and is
+unaffected. This follow-up is reported so the investigation trail is honest and reproducible, not
+because it changes the reported result.
 
 ## Known limitations
 
@@ -129,6 +166,14 @@ successfully generated.
   error rates respectively mean this run says effectively nothing about the target's resistance to
   those two attack methods specifically — only Base64, ROT13, and (for one case) Roleplay produced
   conclusive results.
+- **Groq's daily token quota (200,000 TPD for `openai/gpt-oss-20b`) is a real, hit-in-practice
+  constraint** for this setup, since the judge/simulator/evaluator model and the target model share
+  the same account and model. A single day of eval iteration (the initial run plus two follow-up
+  attempts) was enough to exhaust it. Anyone rerunning this should budget for that, not assume the
+  free tier is effectively unlimited.
+- **The JSON-repair fix in `GroqDeepEvalModel` (`_ensure_valid_json`) is unit-tested but not
+  live-verified** — the quota wall above hit before a live re-run could confirm whether it actually
+  reduces the error rate. Treat it as a plausible-but-unconfirmed improvement until re-tested.
 - **deepteam's README doesn't match the installed API.** The public quickstart shows
   `async def model_callback(input: str) -> str`; the installed `deepteam==1.0.9`'s actual signature
   is `Callable[[str, Optional[List[RTTurn]]], RTTurn]` (single-string callbacks are still accepted
@@ -141,13 +186,17 @@ successfully generated.
 
 ## Future work (not done this week)
 
-- Retry the errored 5 cases with a different judge model if one becomes available (a stronger
-  reasoning-capable or larger Groq-hosted model, if one is added to this account's catalog) to get
-  conclusive Prompt-Injection/Roleplay results.
+- **First priority:** once Groq's daily quota for `openai/gpt-oss-20b` resets, rerun the focused
+  `PromptInjection`/`Roleplay` retry (`--attacks PromptInjection,Roleplay --attacks-per-vuln 2
+  --attack-max-retries 5`) to get the live-verification the quota wall prevented this week — this is
+  the actual next step, not a nice-to-have.
+- Retry the errored cases with a different judge model if one becomes available (a stronger
+  reasoning-capable or larger Groq-hosted model, if one is added to this account's catalog).
 - Run `--mode full-graph` to measure whether the regex/schema guardrails would have caught the
   attacks that reached `classify_with_llm` here, closing the "guardrails bypassed" limitation above.
 - If deepteam's error swallowing continues to obscure real failures, consider a minimal local patch
   or upstream issue report — `attack_simulator.py`'s bare `except:` (lines ~640, ~694) discards the
   real exception before it ever reaches calling code, which cost real debugging time this week:
   the generic `"Error enhancing attack"` label had to be chased down with `ignore_errors=False` in
-  a throwaway script before the actual `DeepEvalError` was visible.
+  a throwaway script before the actual `DeepEvalError` was visible, and two of the three generic
+  error labels never reveal their underlying exception at all even with that flag set.

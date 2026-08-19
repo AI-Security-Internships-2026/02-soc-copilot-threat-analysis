@@ -704,13 +704,29 @@ move off OpenAI. Scope: 3 vulnerabilities (`Robustness/hijacking`, `GoalTheft/so
 **Result: 12 test cases, 7 completed cleanly, all 7 resisted (0% attack success rate on conclusive
 cases).** The other 5 errored — all on `PromptInjection`/`Roleplay` specifically (the two attack
 methods whose "enhance" step needs the judge model to produce structured JSON), while `Base64` and
-`ROT13` (deterministic transforms, no judge call needed) completed 3/3 each with zero errors. Traced
-the errors to a real cause, not left as a mystery: `openai/gpt-oss-20b` (the Groq judge model)
-intermittently produces malformed JSON under deepteam's specific enhancement prompts, and deepteam's
-`attack_simulator.py` swallows the real exception behind a generic `"Error enhancing attack"` label
-(bare `except:`, confirmed by rereading its source and rerunning with `ignore_errors=False`). This
-is a judge-model reliability limitation, not evidence about the target's safety either way — an
-errored case is inconclusive, not a pass.
+`ROT13` (deterministic transforms, no judge call needed) completed 3/3 each with zero errors.
+Reproduced one instance with `ignore_errors=False`: `openai/gpt-oss-20b` (the Groq judge model)
+produced a malformed JSON response, and deepteam's `attack_simulator.py` swallows the real exception
+behind a generic `"Error enhancing attack"` label (bare `except:`). This is a judge-model
+reliability limitation, not evidence about the target's safety either way — an errored case is
+inconclusive, not a pass. (See "Follow-up" below: later work found this diagnosis, while plausible,
+wasn't fully confirmed for all 5 cases.)
+
+### Follow-up: retry attempts and a Groq daily-quota wall
+
+Tried to close the `PromptInjection`/`Roleplay` gap same-day. First, reran with more attempts and
+more internal retries, no code change — result was **worse** (0/12 conclusive), and the generic
+error labels didn't reveal enough detail to confirm it was the same JSON-formatting cause rather
+than something else. Then built real defensive handling: `GroqDeepEvalModel._ensure_valid_json()`
+strips markdown fences and, if needed, makes one self-repair call asking the model to fix its own
+malformed JSON, with 5 new mocked pytest cases (11/11 passing, no live calls). Re-running to verify
+this live surfaced the actual cause of the retry's failure: Groq's daily token quota for
+`openai/gpt-oss-20b` was exhausted (`Limit 200000, Used 198919`, confirmed via the literal 429
+response) from cumulative testing that same day — every retry call failed immediately on rate limit,
+before the new JSON-repair logic ever got to run. **So the fix is code-complete and unit-tested, but
+not yet live-verified**, and the original diagnosis above should be read as "leading hypothesis,"
+not confirmed root cause, for all 5 original errors. The original 7/12 result is unaffected by any
+of this — it ran before the quota was exhausted.
 
 ### Production model deprecation found and fixed (blocking discovery, not planned)
 
@@ -744,8 +760,11 @@ with openai/gpt-oss-20b on Groq`), since it's a standalone production fix, not a
 
 ### Next steps
 
-- If a more reliable judge model becomes available on this Groq account, rerun the 5 errored
-  `PromptInjection`/`Roleplay` cases to get conclusive results.
+- **First:** once Groq's daily quota for `openai/gpt-oss-20b` resets, rerun the focused
+  `PromptInjection`/`Roleplay` retry to get the live-verification the quota wall prevented this week
+  — this is the actual next step, not a nice-to-have.
+- If a more reliable judge model becomes available on this Groq account, retry with it for
+  conclusive `PromptInjection`/`Roleplay` results.
 - Run `--mode full-graph` (already built into `experiments/deepteam_redteam_eval.py`, not run this
   week) to measure whether the regex/schema guardrails catch what reaches the LLM here.
 - Merge `asma-week-10-followup` before or alongside this week's PR to keep history clean.
