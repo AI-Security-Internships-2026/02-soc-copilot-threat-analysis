@@ -121,7 +121,17 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             # run the full agent pipeline on this alert
             result = triage_graph.invoke({"raw_alert": raw_alert})
 
-            predicted = result.get("predicted_label", "FalsePositive")
+            if "predicted_label" not in result:
+                # A missing verdict means a graph-wiring problem (a node dead-ended
+                # without reaching classification), not a benign default case -- see
+                # the Week 9 regression where this exact gap silently produced an
+                # all-FalsePositive collapse instead of an error. Fail loudly instead.
+                raise RuntimeError(
+                    f"triage_graph.invoke() returned no predicted_label for row {i} "
+                    f"(keys present: {sorted(result.keys())}) -- likely a graph-wiring regression"
+                )
+
+            predicted = result["predicted_label"]
             reasoning = result.get("reasoning", "")
             confidence = result.get("confidence", "low")
             error = result.get("error", None)
