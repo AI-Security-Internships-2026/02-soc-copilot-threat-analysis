@@ -24,18 +24,12 @@ from src.agent.schema_guardrail import validate_field_types
 # load once at module level so it's not re-reading the cache file on every alert
 _MITRE_TECHNIQUE_MAP = None
 
-load_dotenv()  # loads OPENAI_API_KEY from .env file
+load_dotenv()  # loads GROQ_API_KEY from .env file
 
 # initialise the LLM once at module level so it's reused across calls
-# gpt-4o-mini is cheap and fast — good for triage tasks
+# llama-3.1-8b-instant is free and fast — good for triage tasks
 llm = ChatGroq(
     model="llama-3.1-8b-instant",   # free, fast, good at structured output
-    temperature=0,
-    max_tokens=512,
-)
-
-llm = ChatGroq(
-    model="llama-3.1-8b-instant",
     temperature=0,
     max_tokens=512,
 )
