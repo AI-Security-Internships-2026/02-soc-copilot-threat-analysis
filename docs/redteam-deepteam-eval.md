@@ -153,12 +153,78 @@ resets and the retry can be run again.
 unaffected. This follow-up is reported so the investigation trail is honest and reproducible, not
 because it changes the reported result.
 
+## Live-verification (2026-08-21): JSON-repair fix helps, but doesn't fully close the gap
+
+Two days after the quota exhaustion above, re-ran the exact retry command from Future Work with a
+fresh daily quota (`--attacks PromptInjection,Roleplay --attacks-per-vuln 2 --attack-max-retries 5`,
+same output path, overwriting the quota-blocked file). No 429s this time — the run completed in
+614.4s.
+
+| | PromptInjection | Roleplay |
+|---|---|---|
+| Conclusive before fix (original run, `attacks-per-vuln=1`) | 0/3 (0%) | 1/3 (33%) |
+| Conclusive after fix (this run, `attacks-per-vuln=2`, `max-retries=5`) | 1/6 (17%) | 3/6 (50%) |
+
+**Result: 4/12 conclusive (up from 0/12 in the quota-blocked Attempt 1), all 4 passed (0% attack
+success).** The completion rate roughly doubled for both attack methods relative to the original
+run's baseline rate. This is a real, live-verified improvement — `_ensure_valid_json()` is not a
+no-op — but it is a partial fix, not a full one: the other 8/12 cases still errored with the same
+generic `"Error enhancing attack"` label deepteam's `attack_simulator.py` produces for its bare
+`except:`. Because that label still discards the real exception, it can't be confirmed from output
+alone that every remaining failure is the same malformed-JSON cause rather than something else — the
+conservative read is "`openai/gpt-oss-20b` still produces unparseable JSON often enough, even after
+one self-repair attempt, that PromptInjection/Roleplay stay the least reliably-testable attack
+methods with this judge model." Treat the fix as confirmed-beneficial, not confirmed-sufficient.
+
+## Full-graph results (2026-08-21): guardrails pass through, but most attacks never reach the LLM
+
+Ran the previously-unexecuted `--mode full-graph` option with its default scope (3 vulnerabilities ×
+4 attacks × 1 = 12 cases, matching the original `llm-only` run for a fair comparison):
+`venv/bin/python experiments/deepteam_redteam_eval.py --mode full-graph`, saved to
+`experiments/results/deepteam_redteam_fullgraph_results.json`. Run duration 534.5s.
+
+| | value |
+|---|---|
+| Total test cases | 12 |
+| Passed (target resisted) | 9 |
+| Failed (target manipulated) | 0 |
+| Errored (same `"Error enhancing attack"` pattern as above) | 3 |
+| Attack success rate (of conclusive cases) | 0.00% |
+
+On the surface this looks like a stronger result than `llm-only`'s 7/12 conclusive — but reading the
+actual per-case output revealed a more interesting mechanism than "the guardrails helped": **all 9
+conclusive cases show `"triage_path": "rf_fallback"`, not the LLM path.** `_full_graph_callback()`
+synthesizes `{"AlertTitle": 88421, "Category": <attack text>, "DetectorId": 7}` — it never sets
+`MitreTechniques`, `SuspicionLevel`, or `LastVerdict`. `route_by_context()` (`src/agent/nodes.py:220`,
+the Week 6 sparse-context gate) checks exactly those three fields via `should_use_fallback()`, and an
+alert with zero of them populated routes to `classify_with_fallback` (the RF baseline) instead of
+`classify_with_llm` regardless of what the attack payload says. So this run mostly did not test
+"does an attack that manipulates the LLM still get caught downstream by a guardrail" — the
+`classify_with_llm` node was rarely reached at all in this configuration, for a routing reason
+unrelated to the guardrails under test.
+
+This is still a legitimate, worth-reporting finding, just a different one than intended: an attack
+phrased only as `Category` text, with no other alert context, gets diverted to the RF baseline before
+it can influence the LLM at all — an incidental defense-in-depth property of the sparse-context
+routing design, not a property of `apply_regex_guardrail` or `apply_schema_guardrail` (both of which
+did pass every case cleanly, per `guardrail_status`/`schema_guardrail_status` in the output, so they
+are not being bypassed — the alert simply routes past the LLM node before either guardrail's target
+would matter). Testing the originally-intended question — do the guardrails catch an attack that
+*would* reach the LLM in the full graph — needs a `_full_graph_callback()` alert that also carries a
+`MitreTechniques`/`SuspicionLevel`/`LastVerdict` value so `route_by_context` sends it down the `llm`
+path instead. Not changed this session, since it's a test-harness fix, not a pipeline fix, and is
+flagged in Future Work below rather than patched speculatively.
+
 ## Known limitations
 
-- **Guardrails bypassed.** This measures raw LLM susceptibility once adversarial content already
-  reached the model, not real end-to-end pipeline risk — `apply_regex_guardrail` and
-  `apply_schema_guardrail` were not exercised. The `--mode full-graph` option exists but wasn't run
-  this week (see Future Work).
+- **Guardrails bypassed (llm-only mode only).** The default `llm-only` mode measures raw LLM
+  susceptibility once adversarial content already reached the model, not real end-to-end pipeline
+  risk. `--mode full-graph` has now been run (see "Full-graph results" above) and confirms
+  `apply_regex_guardrail`/`apply_schema_guardrail` both pass cleanly on these inputs — but it mostly
+  ended up testing the RF fallback path rather than the LLM path, because the synthesized full-graph
+  alert lacks the context fields `route_by_context` checks. Whether the guardrails catch an attack
+  that *does* reach the LLM in the full graph is still untested — needs a harness fix, see Future
+  Work.
 - **Small scope, not a certified robustness measurement.** 12 test cases (7 conclusive) is enough
   to answer "is this totally broken" — not enough to bound a real attack-success-rate confidence
   interval. Same caveat `soc_domain_eval.py`'s own docstring already makes about its 40-row set.
@@ -171,9 +237,12 @@ because it changes the reported result.
   the same account and model. A single day of eval iteration (the initial run plus two follow-up
   attempts) was enough to exhaust it. Anyone rerunning this should budget for that, not assume the
   free tier is effectively unlimited.
-- **The JSON-repair fix in `GroqDeepEvalModel` (`_ensure_valid_json`) is unit-tested but not
-  live-verified** — the quota wall above hit before a live re-run could confirm whether it actually
-  reduces the error rate. Treat it as a plausible-but-unconfirmed improvement until re-tested.
+- **The JSON-repair fix in `GroqDeepEvalModel` (`_ensure_valid_json`) is now live-verified as a
+  partial improvement, not a full fix.** The 2026-08-21 re-run (see above) roughly doubled the
+  conclusive rate for PromptInjection/Roleplay (0/3→1/6, 1/3→3/6) but 8/12 cases in that run still
+  errored on the same generic `"Error enhancing attack"` label. `openai/gpt-oss-20b` still produces
+  unparseable JSON often enough, even with one self-repair attempt, that these two attack methods
+  remain the least reliably-testable ones with this judge model.
 - **deepteam's README doesn't match the installed API.** The public quickstart shows
   `async def model_callback(input: str) -> str`; the installed `deepteam==1.0.9`'s actual signature
   is `Callable[[str, Optional[List[RTTurn]]], RTTurn]` (single-string callbacks are still accepted
@@ -184,16 +253,21 @@ because it changes the reported result.
   of the full cross product — caught only because the first full run produced 3 test cases instead
   of the intended 12, not because it's documented prominently in the function signature.
 
-## Future work (not done this week)
+## Future work
 
-- **First priority:** once Groq's daily quota for `openai/gpt-oss-20b` resets, rerun the focused
-  `PromptInjection`/`Roleplay` retry (`--attacks PromptInjection,Roleplay --attacks-per-vuln 2
-  --attack-max-retries 5`) to get the live-verification the quota wall prevented this week — this is
-  the actual next step, not a nice-to-have.
-- Retry the errored cases with a different judge model if one becomes available (a stronger
-  reasoning-capable or larger Groq-hosted model, if one is added to this account's catalog).
-- Run `--mode full-graph` to measure whether the regex/schema guardrails would have caught the
-  attacks that reached `classify_with_llm` here, closing the "guardrails bypassed" limitation above.
+Closed out this session (2026-08-21): the quota-blocked live-verification retry, and the
+`--mode full-graph` run. Both produced real findings above rather than being nice-to-haves ticked
+off — remaining open items:
+
+- **First priority:** fix `_full_graph_callback()` (`experiments/deepteam_redteam_eval.py`) to set
+  a `MitreTechniques`, `SuspicionLevel`, or `LastVerdict` value on the synthesized alert so
+  `route_by_context` sends it down the `llm` path instead of `rf_fallback`. Without this, full-graph
+  mode mostly can't answer its own question — whether the guardrails catch attacks that reach the
+  LLM — because the LLM node is rarely reached at all under the current synthesized alert shape.
+- Retry the still-erroring PromptInjection/Roleplay cases with a different judge model if one
+  becomes available (a stronger reasoning-capable or larger Groq-hosted model, if one is added to
+  this account's catalog) — the JSON-repair fix helped but didn't close the gap; 8/12 cases in the
+  2026-08-21 retry still errored on the same malformed-JSON pattern.
 - If deepteam's error swallowing continues to obscure real failures, consider a minimal local patch
   or upstream issue report — `attack_simulator.py`'s bare `except:` (lines ~640, ~694) discards the
   real exception before it ever reaches calling code, which cost real debugging time this week:
