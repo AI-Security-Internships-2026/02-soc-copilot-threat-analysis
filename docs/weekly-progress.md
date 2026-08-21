@@ -749,10 +749,12 @@ with openai/gpt-oss-20b on Groq`), since it's a standalone production fix, not a
 - Branch sequencing note: Week 10's PR (#20) had already been merged to `dev` by the time this
   week's uncommitted follow-up fixes (the `evaluate.py`/`nodes.py`/lit-review corrections mentioned
   under Week 10's "residual gap") were committed — those were moved to their own branch
-  (`asma-week-10-followup`, not yet opened as a PR) rather than bundled into an already-closed PR.
-  `asma-week-11` is built on top of that branch, so its eventual PR will show those commits too
-  unless `asma-week-10-followup` merges to `dev` first — worth merging that one first to keep PRs
-  atomic.
+  (`asma-week-10-followup`) rather than bundled into an already-closed PR. `asma-week-11` is built
+  on top of that branch, so its eventual PR shows those commits too unless `asma-week-10-followup`
+  merges to `dev` first. **Correction (2026-08-21):** both are already open — PR #21
+  (`asma-week-10-followup`) and PR #22 (`asma-week-11`) — not "not yet opened" as originally
+  written here; merging #21 first still keeps history atomic, it just isn't blocking anything else
+  this week.
 - deepteam's README documents an older/simplified `model_callback` API than the installed
   `deepteam==1.0.9` actually exposes, and its `run_all_attacks` parameter defaults to `False`
   (silently sampling one attack per vulnerability instead of the full cross product) — both cost
@@ -770,3 +772,34 @@ with openai/gpt-oss-20b on Groq`), since it's a standalone production fix, not a
 - Merge `asma-week-10-followup` before or alongside this week's PR to keep history clean.
 - GeNIS integration and Wazuh Docker deployment remain open decisions from Week 10, still pending
   supervisor sign-off — not touched this week.
+
+### Continued (2026-08-21): live-verification and full-graph run, both closed out
+
+Two days after the quota exhaustion above, picked up both items flagged as the actual next steps.
+Full detail in `docs/redteam-deepteam-eval.md`'s new sections; summary here.
+
+**JSON-repair fix, live-verified — helps, doesn't fully close the gap.** Reran the exact
+`PromptInjection`/`Roleplay` retry command with a fresh daily quota (no 429s this time). Result:
+4/12 conclusive (up from 0/12 when the quota blocked it), all 4 passed, 0% attack success. Per
+attack method, conclusive rate roughly doubled versus the original run (PromptInjection 0/3→1/6,
+Roleplay 1/3→3/6). The remaining 8/12 still hit the same generic `"Error enhancing attack"` label —
+confirmed real improvement, not a full fix.
+
+**`--mode full-graph`, run for the first time — found a test-harness gap, not the intended
+result.** 9/12 conclusive, 0% attack success, which looks like a strong pipeline-level result until
+reading the actual per-case output: all 9 conclusive cases routed through `rf_fallback`, not the
+LLM. The synthesized full-graph alert (`AlertTitle`, `Category`, `DetectorId` only) never sets
+`MitreTechniques`/`SuspicionLevel`/`LastVerdict`, so the Week 6 sparse-context gate
+(`route_by_context`, `src/agent/nodes.py:220`) diverts it to the RF baseline before the LLM node is
+ever reached — for a routing reason unrelated to the guardrails the run was meant to test. Both
+`apply_regex_guardrail` and `apply_schema_guardrail` did pass cleanly on every case, so they aren't
+bypassed, they just rarely mattered in this configuration. Real finding, just a different one than
+intended: an attack phrased only as `Category` text with no other context gets diverted away from
+the LLM by the routing design itself. Fixing `_full_graph_callback()` to set one of the three gating
+fields (so the case actually reaches the LLM) is now the first-priority follow-up in
+`docs/redteam-deepteam-eval.md`, not attempted this session since it's a test-harness change, not a
+pipeline change.
+
+Both new result files committed: `experiments/results/deepteam_redteam_promptinjection_retry.json`
+(overwritten with the live-verified version) and
+`experiments/results/deepteam_redteam_fullgraph_results.json` (new).
