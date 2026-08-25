@@ -110,7 +110,7 @@
 | Field | Content |
 |---|---|
 | **Full title** | Enhancing Security Operations Center: Wazuh Security Event Response with Retrieval-Augmented-Generation-Driven Copilot |
-| **Authors** | (see MDPI Sensors listing) |
+| **Authors** | Ismail, Kurnia, Widyatama, Wibawa, Brata, Ukasyah, Nelistiani, Kim |
 | **Year** | 2025 |
 | **Venue** | Sensors (MDPI), Vol. 25, No. 3, Article 870 |
 | **URL / DOI** | https://www.mdpi.com/1424-8220/25/3/870 |
@@ -149,7 +149,7 @@
 
 | Field | Content |
 |---|---|
-| **Full title** | AI-Driven Security Alert Screening and Alert Fatigue Mitigation in Security Operations Centers: A Comprehensive Survey |
+| **Full title** | AI-Driven Security Alert Screening and Alert Fatigue Mitigation in Security Operations Centers: A Survey |
 | **Authors** | Ndichu, Ban, Ozawa, Takahashi, Inoue |
 | **Year** | 2026 (submitted to ACM Computing Surveys) |
 | **Venue** | arXiv |
@@ -162,6 +162,8 @@
 
 **Notes / Quotes:**
 > Confirms dataset representativeness (not just model choice) is a recognized open gap in this literature — directly supports evaluating a second, SME-focused dataset (GeNIS) alongside GUIDE.
+>
+> Corrected 2026-08-15: title updated from "...A Comprehensive Survey" to "...A Survey" — the paper's current arXiv version (v2) dropped "Comprehensive" from the title; the original entry cited the v1 title. Re-verified independently against the live arXiv abstract page rather than propagating the earlier entry.
 
 ---
 
@@ -176,7 +178,7 @@
 | 5 | AI-Augmented SOC Survey | Srinivas et al. | 2025 | Literature survey | N/A | Positions project in field |
 | 6 | Wazuh RAG-Driven SOC Copilot | MDPI Sensors | 2025 | LLM+RAG on live Wazuh alerts | Live Wazuh stream | Closest architecture match (live SIEM) |
 | 7 | GeNIS Dataset | Silva et al. | 2025 | Emulated SME network capture | GeNIS (2.8M+ flows) | Fills SME-traffic dataset gap |
-| 8 | Alert Screening Survey | Ndichu et al. | 2026 | Literature survey, 22-dataset review | N/A | Dataset-representativeness reference point |
+| 8 | Alert Screening Survey (arXiv v2 title: "...A Survey") | Ndichu et al. | 2026 | Literature survey, 22-dataset review | N/A | Dataset-representativeness reference point |
 
 ---
 
