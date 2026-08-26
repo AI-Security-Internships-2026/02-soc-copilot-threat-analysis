@@ -111,6 +111,7 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
     y_true = []
     y_pred = []
     results_log = []
+    error_count = 0
 
     for i, row in sample_df.iterrows():
         # build the raw_alert dict from the dataframe row
@@ -140,16 +141,26 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             fallback_probability = result.get("fallback_probability", None)
 
         except Exception as e:
-            predicted = "FalsePositive"
+            # Do NOT default predicted_label to a real class here -- a fabricated
+            # "FalsePositive" would silently feed into y_pred/metrics and produce a
+            # plausible-looking accuracy number even if the whole graph is broken,
+            # exactly the Week 9 masking failure this function exists to prevent.
+            # Excluded from y_true/y_pred; counted in routing_summary.error_count
+            # instead so a routing regression shows up in the numbers, not just in
+            # a per-row log nobody's diffing under pressure.
+            predicted = None
             reasoning = f"agent crash: {str(e)}"
             confidence = "low"
             error = str(e)
             triage_path = "error"
             context_signal_count = None
             fallback_probability = None
+            error_count += 1
+            print(f"  [ERROR] row {i} crashed and was excluded from metrics: {e}")
 
-        y_true.append(ground_truth)
-        y_pred.append(predicted)
+        if predicted is not None:
+            y_true.append(ground_truth)
+            y_pred.append(predicted)
 
         # log each prediction for inspection
         results_log.append({
@@ -164,13 +175,29 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
         })
 
         # print progress every 10 rows
-        if (len(y_true)) % 10 == 0:
-            print(f"  processed {len(y_true)}/{len(sample_df)} alerts...")
+        if len(results_log) % 10 == 0:
+            print(f"  processed {len(results_log)}/{len(sample_df)} alerts...")
 
         # small sleep to avoid rate limits — adjust if needed
         time.sleep(0.3)
 
-    # compute metrics
+    if error_count and error_count == len(sample_df):
+        # Every single row crashed -- this is a broken pipeline, not normal flakiness.
+        # Refuse to report metrics computed from zero successful predictions instead
+        # of letting accuracy_score/f1_score raise an opaque error further down.
+        raise RuntimeError(
+            f"all {error_count} rows crashed during evaluation -- the agent pipeline "
+            "is broken, not just flaky. See per-row 'error' fields for details."
+        )
+
+    if error_count:
+        print(
+            f"\nWARNING: {error_count}/{len(sample_df)} rows crashed and were excluded "
+            "from accuracy/macro-F1 -- see routing_summary.error_count and the "
+            "per_alert_results entries with triage_path == 'error'\n"
+        )
+
+    # compute metrics (only over rows that produced a real prediction)
     accuracy = accuracy_score(y_true, y_pred)
     macro_f1 = f1_score(y_true, y_pred, average="macro", zero_division=0)
     report = classification_report(y_true, y_pred, zero_division=0)
@@ -206,7 +233,10 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
     output["routing_summary"] = {
         "rf_fallback_count": fallback_count,
         "llm_count": sum(item["triage_path"] == "llm" for item in results_log),
+        "error_count": error_count,
+        "error_rate": round(error_count / len(results_log), 4) if results_log else 0.0,
         "fallback_rate": round(fallback_count / len(results_log), 4) if results_log else 0.0,
+        "scored_count": len(y_true),
     }
 
     out_path = Path(output_path)
