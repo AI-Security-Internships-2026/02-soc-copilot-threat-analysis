@@ -1,0 +1,430 @@
+{
+  "prompt_variant": "baseline",
+  "n_sampled": 60,
+  "n_scored": 60,
+  "accuracy": 0.2833,
+  "macro_f1": 0.1511,
+  "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive       0.00      0.00      0.00        20\n FalsePositive       0.31      0.85      0.45        20\n  TruePositive       0.00      0.00      0.00        20\n\n      accuracy                           0.28        60\n     macro avg       0.10      0.28      0.15        60\n  weighted avg       0.10      0.28      0.15        60\n",
+  "per_alert_results": [
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no evidence of malicious activity and the previous verdict was 'NoThreatsFound', indicating it was likely triggered by a benign or false event.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no evidence of malicious activity and the previous verdict was 'NoThreatsFound', indicating it was likely triggered by a benign or false event.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains no actionable details or evidence of a real spearphishing link; the generic title and lack of context suggest it is likely a false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains no actionable details or evidence of a real spearphishing link; the generic title and lack of context suggest it is likely a false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no specific indicators or context; without evidence of malicious activity, it is likely a generic or mis\u2011triggered alert.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no specific indicators or context; without evidence of malicious activity, it is likely a generic or mis\u2011triggered alert.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert is marked only as suspicious with no additional evidence or confirmation of malicious activity, suggesting it may be a benign or false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert is marked only as suspicious with no additional evidence or confirmation of malicious activity, suggesting it may be a benign or false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no actionable details beyond a generic suspicious label, making it impossible to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no actionable details beyond a generic suspicious label, making it impossible to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks supporting evidence or context, and its only indication is a generic suspicious flag, so it is likely a false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert lacks supporting evidence or context, and its only indication is a generic suspicious flag, so it is likely a false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks supporting evidence of credential dumping activity; without logs or indicators, it is likely a benign or misidentified event.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert lacks supporting evidence of credential dumping activity; without logs or indicators, it is likely a benign or misidentified event.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "The alert was flagged as malicious by the detector and the last verdict indicates malicious activity, suggesting a real threat rather than a benign event.",
+      "raw": "{\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert was flagged as malicious by the detector and the last verdict indicates malicious activity, suggesting a real threat rather than a benign event.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks any supporting indicators of compromise and the previous verdict was NoThreatsFound, suggesting it was likely a benign or misidentified event.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert lacks any supporting indicators of compromise and the previous verdict was NoThreatsFound, suggesting it was likely a benign or misidentified event.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains no actionable details or evidence of malicious activity, making it likely a false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains no actionable details or evidence of malicious activity, making it likely a false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert lacks any supporting evidence of malicious activity and the previous verdict was \"NoThreatsFound\", indicating no real threat was detected.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert lacks any supporting evidence of malicious activity and the previous verdict was \\\"NoThreatsFound\\\", indicating no real threat was detected.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as malware and the last verdict is malicious, indicating the detection engine identified a real threat.",
+      "raw": "{\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\",\n  \"reasoning\": \"The alert is categorized as malware and the last verdict is malicious, indicating the detection engine identified a real threat.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks any supporting indicators of compromise and the previous verdict was NoThreatsFound, suggesting it was likely a benign or misidentified event.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert lacks any supporting indicators of compromise and the previous verdict was NoThreatsFound, suggesting it was likely a benign or misidentified event.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert was flagged for a spearphishing link but the last verdict indicates no threats were found, suggesting the detection was likely a false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert was flagged for a spearphishing link but the last verdict indicates no threats were found, suggesting the detection was likely a false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is categorized as Malware, flagged as suspicious, and the last verdict is Malicious, indicating a real malicious activity was detected.",
+      "raw": "{\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\",\n  \"reasoning\": \"The alert is categorized as Malware, flagged as suspicious, and the last verdict is Malicious, indicating a real malicious activity was detected.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert was flagged for a spearphishing link but the last verdict indicates no threats were found, suggesting the detection was likely a false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert was flagged for a spearphishing link but the last verdict indicates no threats were found, suggesting the detection was likely a false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no actionable details or evidence of malicious activity, making it likely a false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no actionable details or evidence of malicious activity, making it likely a false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert lacks supporting evidence or context, and its suspicious status alone is insufficient to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert lacks supporting evidence or context, and its suspicious status alone is insufficient to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert lacks supporting evidence of credential theft or malicious activity; it appears to be a generic suspicious detection that could be a benign or false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert lacks supporting evidence of credential theft or malicious activity; it appears to be a generic suspicious detection that could be a benign or false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no actionable details beyond a generic suspicious label, making it impossible to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no actionable details beyond a generic suspicious label, making it impossible to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert is flagged under CredentialAccess with a suspicious level and a prior malicious verdict, indicating likely malicious credential activity.",
+      "raw": "{\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\",\n  \"reasoning\": \"The alert is flagged under CredentialAccess with a suspicious level and a prior malicious verdict, indicating likely malicious credential activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides only a generic suspicious label with no supporting indicators of actual malicious activity, making it likely a false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides only a generic suspicious label with no supporting indicators of actual malicious activity, making it likely a false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert indicates a registry modification (T1222.002) but lacks any context or indicators of compromise; such changes are common in legitimate admin tasks, so the event is likely a benign false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert indicates a registry modification (T1222.002) but lacks any context or indicators of compromise; such changes are common in legitimate admin tasks, so the event is likely a benign false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or evidence of malicious activity, making it likely a false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or evidence of malicious activity, making it likely a false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert is marked as suspicious but provides no concrete evidence of credential dumping or certificate theft; it likely represents a benign process or a misidentified activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert is marked as suspicious but provides no concrete evidence of credential dumping or certificate theft; it likely represents a benign process or a misidentified activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no specific indicators or context, only a generic title and category, so there is insufficient evidence to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no specific indicators or context, only a generic title and category, so there is insufficient evidence to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no actionable details beyond a generic suspicious label, making it impossible to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no actionable details beyond a generic suspicious label, making it impossible to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no evidence of malicious activity and the previous verdict was 'NoThreatsFound', indicating it was likely triggered by a benign or false event.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no evidence of malicious activity and the previous verdict was 'NoThreatsFound', indicating it was likely triggered by a benign or false event.\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert shows a 401 Unauthorized response, which typically indicates a failed login attempt; without evidence of successful access or malicious activity, it is likely a benign or false alarm.",
+      "raw": "{\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert shows a 401 Unauthorized response, which typically indicates a failed login attempt; without evidence of successful access or malicious activity, it is likely a benign or false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides only generic metadata (category, detector, suspicion level) with no specific indicators or context, making it impossible to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides only generic metadata (category, detector, suspicion level) with no specific indicators or context, making it impossible to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert is marked as suspicious with no additional evidence of confirmed malicious activity, suggesting it may be a false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert is marked as suspicious with no additional evidence of confirmed malicious activity, suggesting it may be a false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "No contextual evidence or indicators are provided to confirm a real spearphishing link; the alert appears generic and likely a false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"No contextual evidence or indicators are provided to confirm a real spearphishing link; the alert appears generic and likely a false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert only indicates a generic drive\u2011by compromise detection with no supporting indicators or context, making it likely a false alarm rather than a confirmed malicious event.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert only indicates a generic drive\u2011by compromise detection with no supporting indicators or context, making it likely a false alarm rather than a confirmed malicious event.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no concrete indicators or context beyond a generic title and a detector ID, making it impossible to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no concrete indicators or context beyond a generic title and a detector ID, making it impossible to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no specific indicators or context beyond a generic title and detector ID, making it impossible to confirm malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no specific indicators or context beyond a generic title and detector ID, making it impossible to confirm malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains no actionable details or evidence of a real spearphishing link; the generic title and lack of context suggest it is likely a false trigger.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains no actionable details or evidence of a real spearphishing link; the generic title and lack of context suggest it is likely a false trigger.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "high",
+      "reasoning": "The alert was investigated and the last verdict indicates no threats were found, so it was a false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"high\",\n  \"reasoning\": \"The alert was investigated and the last verdict indicates no threats were found, so it was a false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert is marked only as suspicious with no supporting details or evidence of malicious activity, suggesting it may be a false alarm.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert is marked only as suspicious with no supporting details or evidence of malicious activity, suggesting it may be a false alarm.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains no actionable details or evidence of malicious activity, making it impossible to confirm a real attack.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains no actionable details or evidence of malicious activity, making it impossible to confirm a real attack.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert contains no actionable details or indicators of compromise, suggesting it was triggered by a generic or misconfigured rule rather than real malicious activity.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "medium",
+      "reasoning": "The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"medium\",\n  \"reasoning\": \"The alert provides no actionable details or indicators of compromise, suggesting it may be a generic or misfired detection.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert provides no evidence of malicious activity and the previous verdict was 'NoThreatsFound', indicating it was likely triggered by a benign or false event.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert provides no evidence of malicious activity and the previous verdict was 'NoThreatsFound', indicating it was likely triggered by a benign or false event.\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "FalsePositive",
+      "confidence": "low",
+      "reasoning": "The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.",
+      "raw": "{\n  \"verdict\": \"FalsePositive\",\n  \"confidence\": \"low\",\n  \"reasoning\": \"The alert contains only generic identifiers and a suspicious label with no supporting evidence of malicious activity.\"\n}"
+    }
+  ]
+}
