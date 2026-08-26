@@ -112,6 +112,7 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
     y_pred = []
     results_log = []
     error_count = 0
+    no_verdict_count = 0
 
     for i, row in sample_df.iterrows():
         # build the raw_alert dict from the dataframe row
@@ -121,33 +122,14 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
         try:
             # run the full agent pipeline on this alert
             result = triage_graph.invoke({"raw_alert": raw_alert})
-
-            if "predicted_label" not in result:
-                # A missing verdict means a graph-wiring problem (a node dead-ended
-                # without reaching classification), not a benign default case -- see
-                # the Week 9 regression where this exact gap silently produced an
-                # all-FalsePositive collapse instead of an error. Fail loudly instead.
-                raise RuntimeError(
-                    f"triage_graph.invoke() returned no predicted_label for row {i} "
-                    f"(keys present: {sorted(result.keys())}) -- likely a graph-wiring regression"
-                )
-
-            predicted = result["predicted_label"]
-            reasoning = result.get("reasoning", "")
-            confidence = result.get("confidence", "low")
-            error = result.get("error", None)
-            triage_path = result.get("triage_path", "llm")
-            context_signal_count = result.get("context_signal_count", None)
-            fallback_probability = result.get("fallback_probability", None)
-
         except Exception as e:
-            # Do NOT default predicted_label to a real class here -- a fabricated
-            # "FalsePositive" would silently feed into y_pred/metrics and produce a
-            # plausible-looking accuracy number even if the whole graph is broken,
-            # exactly the Week 9 masking failure this function exists to prevent.
-            # Excluded from y_true/y_pred; counted in routing_summary.error_count
-            # instead so a routing regression shows up in the numbers, not just in
-            # a per-row log nobody's diffing under pressure.
+            # A genuine crash inside triage_graph.invoke() itself (e.g. an
+            # unhandled exception in a node) -- not a normal graph outcome, so
+            # there's no state dict to inspect. Do NOT default predicted_label
+            # to a real class here -- a fabricated "FalsePositive" would
+            # silently feed into y_pred/metrics and produce a plausible-looking
+            # accuracy number even if the pipeline is broken. Excluded from
+            # y_true/y_pred; counted in routing_summary.error_count instead.
             predicted = None
             reasoning = f"agent crash: {str(e)}"
             confidence = "low"
@@ -157,6 +139,39 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             fallback_probability = None
             error_count += 1
             print(f"  [ERROR] row {i} crashed and was excluded from metrics: {e}")
+        else:
+            if not result.get("predicted_label"):
+                if not result.get("needs_human_review"):
+                    # The graph completed without raising AND without reaching
+                    # any of the pipeline's legitimate no-verdict end states
+                    # (guardrail block, handled RF/LLM failure -- both route
+                    # through human_review_node, which always sets
+                    # needs_human_review). No predicted_label and no
+                    # needs_human_review means a node dead-ended silently --
+                    # the exact Week 9 regression. This raise sits in the
+                    # try/except's `else` clause, not the `try` body, so it is
+                    # NOT caught by the `except Exception` above and actually
+                    # propagates out of run_evaluation instead of being turned
+                    # into a scored FalsePositive prediction.
+                    raise RuntimeError(
+                        f"triage_graph.invoke() returned no predicted_label and no "
+                        f"needs_human_review flag for row {i} (keys present: "
+                        f"{sorted(result.keys())}) -- likely a graph-wiring regression"
+                    )
+                # Legitimate no-automated-verdict outcome (guardrail-blocked,
+                # or a handled RF/LLM failure routed to human review) -- not a
+                # bug, but there's no real prediction to score either.
+                predicted = None
+                no_verdict_count += 1
+            else:
+                predicted = result["predicted_label"]
+
+            reasoning = result.get("reasoning", "")
+            confidence = result.get("confidence", "low")
+            error = result.get("error", None)
+            triage_path = result.get("triage_path", "llm")
+            context_signal_count = result.get("context_signal_count", None)
+            fallback_probability = result.get("fallback_probability", None)
 
         if predicted is not None:
             y_true.append(ground_truth)
@@ -181,13 +196,15 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
         # small sleep to avoid rate limits — adjust if needed
         time.sleep(0.3)
 
-    if error_count and error_count == len(sample_df):
-        # Every single row crashed -- this is a broken pipeline, not normal flakiness.
-        # Refuse to report metrics computed from zero successful predictions instead
+    if len(sample_df) and not y_true:
+        # Nothing produced a scorable prediction -- either every row crashed
+        # or every row hit a legitimate no-verdict outcome. Either way, refuse
+        # to report metrics computed from zero successful predictions instead
         # of letting accuracy_score/f1_score raise an opaque error further down.
         raise RuntimeError(
-            f"all {error_count} rows crashed during evaluation -- the agent pipeline "
-            "is broken, not just flaky. See per-row 'error' fields for details."
+            f"none of {len(sample_df)} rows produced a scorable prediction "
+            f"(error_count={error_count}, no_verdict_count={no_verdict_count}) -- "
+            "see per-row 'error'/'reasoning' fields for details."
         )
 
     if error_count:
@@ -195,6 +212,13 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             f"\nWARNING: {error_count}/{len(sample_df)} rows crashed and were excluded "
             "from accuracy/macro-F1 -- see routing_summary.error_count and the "
             "per_alert_results entries with triage_path == 'error'\n"
+        )
+
+    if no_verdict_count:
+        print(
+            f"\n{no_verdict_count}/{len(sample_df)} rows had no automated verdict "
+            "(guardrail-blocked or a handled RF/LLM failure routed to human review) "
+            "and were excluded from accuracy/macro-F1 -- see routing_summary.no_verdict_count\n"
         )
 
     # compute metrics (only over rows that produced a real prediction)
@@ -235,6 +259,7 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
         "llm_count": sum(item["triage_path"] == "llm" for item in results_log),
         "error_count": error_count,
         "error_rate": round(error_count / len(results_log), 4) if results_log else 0.0,
+        "no_verdict_count": no_verdict_count,
         "fallback_rate": round(fallback_count / len(results_log), 4) if results_log else 0.0,
         "scored_count": len(y_true),
     }
