@@ -256,6 +256,52 @@ analyst-facing output the system exists to produce. We do not have an analyst-ra
 that reasoning quality, and flag its absence as a limitation (Section~\ref{sec:discussion}) rather
 than assert the trade-off is worth it without evidence.
 
+\subsection{Where the hybrid gap comes from, and whether it closes}
+\label{sec:llmgap}
+
+Splitting the 999-alert run by routing path isolates the source of the gap above: the RF-routed
+subset (790 alerts, 79.1\%) alone scores macro F1 0.752, matching the standalone RF baseline almost
+exactly, while the LLM-routed subset (209 alerts, 20.9\%) scores macro F1 0.308 -- barely above
+chance for a three-class problem. This is the entire gap; RF's own accuracy is not the problem. It
+is also a counterintuitive result on its face, since \texttt{route\_by\_context} sends the LLM
+specifically the alerts with the \emph{most} analyst-readable context (MITRE technique, suspicion
+level, prior verdict; Section~\ref{sec:architecture}) -- the alerts an LLM should be best suited
+for, not worst.
+
+We investigated two candidate explanations with live re-evaluation on this same 209-alert subset,
+both during this audit. First, that 999-alert run used \texttt{llama-3.1-8b-instant}, since retired
+from Groq's catalog (Section~\ref{sec:redteam} discusses its unrelated discovery); a stronger
+current model might close the gap on its own. Second, inspecting \texttt{build\_context()} found a
+real formatting bug: a bare truthiness check (\texttt{if alert.get(field):}) does not treat a
+missing-data \texttt{NaN} float as absent, so a missing MITRE technique or suspicion level was not
+omitted from the prompt but rendered as the literal text ``MITRE Technique: nan'' -- present in 55\%
+and 31\% of this subset's prompts respectively. We fixed the formatting bug unconditionally (it has
+no plausible upside) and then re-ran the LLM-routed subset (60 of the 209 alerts, stratified) with
+the current model under the original prompt: accuracy 0.283, macro F1 0.151 -- neither issue was
+the cause, and the corrected baseline is, if anything, worse than the deprecated-model number on the
+same alerts. Reading the model's own reasoning text confirms why: it is not misreading a garbled
+field, it is explicitly concluding ``insufficient evidence $\rightarrow$ FalsePositive'' on alerts
+whose only evidence is a generic category label and a bare suspicion flag -- a defensible
+inference in isolation that happens to collapse onto one class 55 of 60 times, matching the exact
+failure mode Section~\ref{sec:architecture}'s low-context RF fallback already exists to route around
+for sparser alerts.
+
+We then time-boxed one prompt-engineering attempt on the same 60 alerts: explicit guidance on which
+fields carry the strongest signal, three grounded few-shot examples using GUIDE's own field
+conventions, and reordering the response schema so reasoning is written before the verdict rather
+than after. This raised accuracy to 0.333 and macro F1 to 0.268 -- a real improvement over the
+corrected baseline, and it eliminated the single-class collapse (precision/recall are no longer
+near-zero on two of three classes) -- but it remains well below RF's 0.752 on the same kind of
+alert, and slightly below even the deprecated-model number this investigation set out to explain.
+We read this as a genuine, if partial, negative result rather than a tuning failure: a
+few-hundred-token prompt cannot reliably supply what GUIDE's schema does not encode for these
+alerts, and further prompt iteration is unlikely to be the more productive investment relative to
+richer context retrieval (Section~\ref{sec:futurework}). We report the 0.751-vs-0.152-vs-0.268
+progression in full rather than presenting only the improved number, since the honest conclusion --
+that neither a newer model nor a stronger prompt closes this specific gap -- is itself evidence
+relevant to Section~\ref{sec:discussion}'s discussion of when a hybrid LLM/RF design is and is not
+justified on classification accuracy alone.
+
 \subsection{Guardrail cost and accuracy}
 
 The regex input guardrail runs in a mean 3.6~\textmu s per check (10{,}000-iteration
@@ -347,6 +393,23 @@ limitation already discussed, not a new failure mode introduced by the fix.
 
 \section{Discussion and Limitations}
 \label{sec:discussion}
+
+\textbf{Is the LLM path worth it?} On classification accuracy alone, our evidence says no: the
+RF-routed subset of every hybrid run we have matches the standalone RF baseline, while the
+LLM-routed subset never does, and neither a newer model nor a time-boxed prompt-engineering pass
+closed that gap (Section~\ref{sec:llmgap}). If macro F1 on GUIDE's three-way label were the only
+criterion, the honest recommendation from this evidence is the RF baseline alone, not a hybrid. What
+a hybrid design adds instead is qualitative and mostly untested by us directly: MITRE-grounded,
+per-alert natural-language reasoning that a Random Forest cannot produce at all, and -- based on the
+full-graph red-team finding (Section~\ref{sec:redteam}) -- distinct behavior on alerts with little
+structured evidence, where the RF path is not exercised and the LLM path must reason from sparse
+text rather than fail closed. We did not run an analyst-rated evaluation of that reasoning's
+usefulness, so we do not assert the trade-off is worth it; we report the accuracy cost precisely so
+that judgment can be made on real numbers rather than an assumed LLM advantage. A defensible
+narrower claim survives this evidence: routing by evidence density, as this pipeline already does,
+is the correct design regardless of the LLM subset's weak accuracy, since it already sends the
+LLM only the alerts RF is not confidently exercised on, and confines the accuracy cost to exactly
+that subset rather than the whole pipeline.
 
 The schema guardrail's guarantee is narrower than it may appear: it verifies a field is
 \emph{an} integer, not that it is a \emph{plausible} one. A crafted negative or out-of-range
