@@ -1,0 +1,430 @@
+{
+  "prompt_variant": "improved",
+  "n_sampled": 60,
+  "n_scored": 60,
+  "accuracy": 0.3333,
+  "macro_f1": 0.2679,
+  "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive       0.42      0.40      0.41        20\n FalsePositive       0.00      0.00      0.00        20\n  TruePositive       0.29      0.60      0.39        20\n\n      accuracy                           0.33        60\n     macro avg       0.24      0.33      0.27        60\n  weighted avg       0.24      0.33      0.27        60\n",
+  "per_alert_results": [
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The system\u2019s own Last Verdict states \"NoThreatsFound\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.",
+      "raw": "{\n  \"reasoning\": \"The system\u2019s own Last Verdict states \\\"NoThreatsFound\\\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a MITRE Technique of T1566 (phishing), indicating confirmed malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a MITRE Technique of T1566 (phishing), indicating confirmed malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system and analyst both identified real malicious activity. The Category 'Malware' further supports this.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system and analyst both identified real malicious activity. The Category 'Malware' further supports this.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert includes multiple MITRE techniques (T1003, T1003.002, T1003.004, T1012) indicating credential dumping activity, and both the system\u2019s Suspicion Level and Last Verdict are marked as Suspicious, strongly suggesting a real malicious event.",
+      "raw": "{\n  \"reasoning\": \"The alert includes multiple MITRE techniques (T1003, T1003.002, T1003.004, T1012) indicating credential dumping activity, and both the system\u2019s Suspicion Level and Last Verdict are marked as Suspicious, strongly suggesting a real malicious event.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity, despite the numeric title.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity, despite the numeric title.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event that the system flagged as potentially malicious but did not confirm.  With no MITRE technique or additional evidence, this points to a benign but noteworthy activity rather than a confirmed attack.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event that the system flagged as potentially malicious but did not confirm.  With no MITRE technique or additional evidence, this points to a benign but noteworthy activity rather than a confirmed attack.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\", a Suspicion Level of \"Suspicious\", and a Category of \"Malware\", all of which strongly indicate a real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\", a Suspicion Level of \\\"Suspicious\\\", and a Category of \\\"Malware\\\", all of which strongly indicate a real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The system\u2019s own Last Verdict states \"NoThreatsFound\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.",
+      "raw": "{\n  \"reasoning\": \"The system\u2019s own Last Verdict states \\\"NoThreatsFound\\\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a specific MITRE technique (T1566.002) indicating a real phishing-based Initial Access activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a specific MITRE technique (T1566.002) indicating a real phishing-based Initial Access activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, but lacks any MITRE technique or other strong malicious indicators, suggesting a real but non\u2011malicious event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, but lacks any MITRE technique or other strong malicious indicators, suggesting a real but non\u2011malicious event.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Last Verdict of \"NoThreatsFound\", indicating the system determined no real threat was present despite the detector firing. This overrides the presence of a MITRE technique and points to a benign event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"NoThreatsFound\\\", indicating the system determined no real threat was present despite the detector firing. This overrides the presence of a MITRE technique and points to a benign event.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\", a Suspicion Level of \"Suspicious\", and a Category of \"Malware\", all of which strongly indicate a real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\", a Suspicion Level of \\\"Suspicious\\\", and a Category of \\\"Malware\\\", all of which strongly indicate a real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event that the system flagged as potentially malicious but did not confirm.  With no MITRE technique or additional evidence, this points to a benign but noteworthy activity rather than a confirmed attack.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event that the system flagged as potentially malicious but did not confirm.  With no MITRE technique or additional evidence, this points to a benign but noteworthy activity rather than a confirmed attack.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Last Verdict of \"NoThreatsFound\", indicating the system determined no real threat was present despite the presence of a MITRE technique and InitialAccess category.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"NoThreatsFound\\\", indicating the system determined no real threat was present despite the presence of a MITRE technique and InitialAccess category.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The system\u2019s own Last Verdict states \"NoThreatsFound\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.",
+      "raw": "{\n  \"reasoning\": \"The system\u2019s own Last Verdict states \\\"NoThreatsFound\\\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "BenignPositive",
+      "predicted_label": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a numeric title and category of SuspiciousActivity, a Suspicion Level of Suspicious, and a Last Verdict of Suspicious, all of which indicate that the system/analyst identified a real, potentially malicious event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a numeric title and category of SuspiciousActivity, a Suspicion Level of Suspicious, and a Last Verdict of Suspicious, all of which indicate that the system/analyst identified a real, potentially malicious event.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event was detected but not confirmed as malicious. No MITRE technique or other decisive evidence is present, so it is best classified as a benign but real event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event was detected but not confirmed as malicious. No MITRE technique or other decisive evidence is present, so it is best classified as a benign but real event.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\", a Suspicion Level of \"Suspicious\", and a Category of \"Malware\", all of which strongly indicate a real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\", a Suspicion Level of \\\"Suspicious\\\", and a Category of \\\"Malware\\\", all of which strongly indicate a real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "high",
+      "reasoning": "The system\u2019s own Last Verdict states \"NoThreatsFound\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.",
+      "raw": "{\n  \"reasoning\": \"The system\u2019s own Last Verdict states \\\"NoThreatsFound\\\", indicating that the event was investigated and found to be non-malicious, despite the presence of an InitialAccess category and a MITRE technique.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicious category, a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, matching the pattern of a real malicious event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicious category, a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, matching the pattern of a real malicious event.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The category DefenseEvasion further supports that an attacker is attempting to hide their presence.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The category DefenseEvasion further supports that an attacker is attempting to hide their presence.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert lists multiple MITRE techniques (T1003, T1012, T1552.002) associated with credential access, has a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, all pointing to a real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert lists multiple MITRE techniques (T1003, T1012, T1552.002) associated with credential access, has a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, all pointing to a real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that both the system and analyst have identified potential malicious activity. The Category CommandAndControl further supports the likelihood of a real attack.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that both the system and analyst have identified potential malicious activity. The Category CommandAndControl further supports the likelihood of a real attack.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a Suspicion Level of \"Suspicious\", both indicating real malicious activity, and the Category \"CredentialAccess\" aligns with a known attacker technique.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a Suspicion Level of \\\"Suspicious\\\", both indicating real malicious activity, and the Category \\\"CredentialAccess\\\" aligns with a known attacker technique.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Malware category, a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, all pointing to a real malicious event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Malware category, a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, all pointing to a real malicious event.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert includes MITRE Technique T1222/T1222.002, a clear indicator of malicious defense\u2011evasion activity, and both the system\u2019s Suspicion Level and Last Verdict are marked as Suspicious, strongly suggesting a real attack.",
+      "raw": "{\n  \"reasoning\": \"The alert includes MITRE Technique T1222/T1222.002, a clear indicator of malicious defense\u2011evasion activity, and both the system\u2019s Suspicion Level and Last Verdict are marked as Suspicious, strongly suggesting a real attack.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system has identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system has identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The Category CommandAndControl further supports that this is a genuine attack.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The Category CommandAndControl further supports that this is a genuine attack.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert includes specific MITRE techniques (T1003.001, T1550.002), a Suspicion Level of Suspicious, and a Last Verdict of Suspicious, all pointing to real malicious credential\u2011access activity.",
+      "raw": "{\n  \"reasoning\": \"The alert includes specific MITRE techniques (T1003.001, T1550.002), a Suspicion Level of Suspicious, and a Last Verdict of Suspicious, all pointing to real malicious credential\u2011access activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity, despite the numeric title.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity, despite the numeric title.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Last Verdict of \"NoThreatsFound\", indicating the system determined no real threat was present despite the presence of a MITRE technique and InitialAccess category.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"NoThreatsFound\\\", indicating the system determined no real threat was present despite the presence of a MITRE technique and InitialAccess category.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "FalsePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and the Last Verdict is also Suspicious, indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The Category 'Collection' and numeric title alone are weak, but the combined evidence points to a true attack.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The Category 'Collection' and numeric title alone are weak, but the combined evidence points to a true attack.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert includes a specific MITRE technique (T1204.001), a Suspicious suspicion level, and a Last Verdict of Suspicious, all indicating a real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert includes a specific MITRE technique (T1204.001), a Suspicious suspicion level, and a Last Verdict of Suspicious, all indicating a real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, but lacks any MITRE technique or other strong malicious indicators, suggesting a real but non\u2011malicious event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, but lacks any MITRE technique or other strong malicious indicators, suggesting a real but non\u2011malicious event.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a real event flagged as suspicious (Suspicion Level: Suspicious, Last Verdict: Suspicious) but lacks any MITRE technique or other evidence of malicious intent, suggesting a real but non\u2011malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a real event flagged as suspicious (Suspicion Level: Suspicious, Last Verdict: Suspicious) but lacks any MITRE technique or other evidence of malicious intent, suggesting a real but non\u2011malicious activity.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a numeric title and a SuspiciousActivity category with a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, indicating a real event that was flagged as suspicious but not confirmed as malicious.",
+      "raw": "{\n  \"reasoning\": \"The alert has a numeric title and a SuspiciousActivity category with a Suspicion Level of Suspicious, and the Last Verdict is also Suspicious, indicating a real event that was flagged as suspicious but not confirmed as malicious.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert includes MITRE Technique T1189 (Drive\u2011by Compromise), a Suspicion Level of Suspicious, and a Last Verdict of Suspicious, all pointing to real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert includes MITRE Technique T1189 (Drive\u2011by Compromise), a Suspicion Level of Suspicious, and a Last Verdict of Suspicious, all pointing to real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious, a Category of SuspiciousActivity, and the Last Verdict is also Suspicious, indicating a real event was detected but not confirmed as malicious.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious, a Category of SuspiciousActivity, and the Last Verdict is also Suspicious, indicating a real event was detected but not confirmed as malicious.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a specific MITRE technique (T1566.001) indicating a real phishing-based Initial Access activity, which strongly supports a true attack.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a specific MITRE technique (T1566.001) indicating a real phishing-based Initial Access activity, which strongly supports a true attack.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating the system detected something real but did not confirm malicious intent; no MITRE technique or other evidence of an attack is present.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating the system detected something real but did not confirm malicious intent; no MITRE technique or other evidence of an attack is present.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a specific MITRE technique (T1566) indicating a real phishing-based Initial Access attack, which strongly supports a true malicious event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a specific MITRE technique (T1566) indicating a real phishing-based Initial Access attack, which strongly supports a true malicious event.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The detector flagged an InitialAccess event with MITRE T1566, but the system\u2019s Last Verdict states \"NoThreatsFound\", indicating the alert was a real event that was determined not to be malicious.",
+      "raw": "{\n  \"reasoning\": \"The detector flagged an InitialAccess event with MITRE T1566, but the system\u2019s Last Verdict states \\\"NoThreatsFound\\\", indicating the alert was a real event that was determined not to be malicious.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Last Verdict of \"Malicious\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Last Verdict of \\\"Malicious\\\" and a specific MITRE technique (T1566.002) indicating a real phishing-based initial access attempt.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating the system identified a real event that is potentially malicious.  No MITRE technique is listed, but the presence of these two strong signals outweighs the lack of a technique ID.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating the system identified a real event that is potentially malicious.  No MITRE technique is listed, but the presence of these two strong signals outweighs the lack of a technique ID.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event that was flagged as suspicious but not confirmed malicious. No MITRE technique or other corroborating evidence is present, so the safest classification is a benign but real event.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, indicating a real event that was flagged as suspicious but not confirmed malicious. No MITRE technique or other corroborating evidence is present, so the safest classification is a benign but real event.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "BenignPositive",
+      "confidence": "medium",
+      "reasoning": "The detector flagged an InitialAccess event with MITRE T1566.002, but the system\u2019s Last Verdict states \"NoThreatsFound\", indicating the alert was a real event that was determined not to be malicious.",
+      "raw": "{\n  \"reasoning\": \"The detector flagged an InitialAccess event with MITRE T1566.002, but the system\u2019s Last Verdict states \\\"NoThreatsFound\\\", indicating the alert was a real event that was determined not to be malicious.\",\n  \"verdict\": \"BenignPositive\",\n  \"confidence\": \"medium\"\n}"
+    },
+    {
+      "ground_truth": "TruePositive",
+      "predicted_label": "TruePositive",
+      "confidence": "high",
+      "reasoning": "The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The Category CommandAndControl further supports that this is a genuine attack.",
+      "raw": "{\n  \"reasoning\": \"The alert has a Suspicion Level of Suspicious and a Last Verdict of Suspicious, both indicating that the system and analyst have identified real malicious activity. The Category CommandAndControl further supports that this is a genuine attack.\",\n  \"verdict\": \"TruePositive\",\n  \"confidence\": \"high\"\n}"
+    }
+  ]
+}
