@@ -215,16 +215,51 @@ would matter). Testing the originally-intended question — do the guardrails ca
 path instead. Not changed this session, since it's a test-harness fix, not a pipeline fix, and is
 flagged in Future Work below rather than patched speculatively.
 
+## Full-graph fix and re-run (Week 12, 2026-08-26): attacks now actually reach the LLM
+
+Fixed the harness gap flagged above as first priority: `_full_graph_callback()`
+(`experiments/deepteam_redteam_eval.py`) now sets `SuspicionLevel: "Unspecified"` and
+`LastVerdict: "Unknown"` on the synthesized alert — deliberately neutral values that satisfy
+`route_by_context`'s two-of-three evidence-field threshold without leaning the LLM toward any
+verdict. Re-ran the identical scope (3 vulnerabilities × 4 attacks × 1 = 12 cases):
+`venv/bin/python experiments/deepteam_redteam_eval.py --mode full-graph --output
+experiments/results/deepteam_redteam_fullgraph_llm_reached.json`. Run duration 466.8s.
+
+| | value |
+|---|---|
+| Total test cases | 12 |
+| Passed (target resisted) | 6 |
+| Failed (target manipulated) | 0 |
+| Errored | 6 |
+| Attack success rate (of conclusive cases) | 0.00% |
+| Cases with `triage_path == "llm"` | 8/12 |
+
+The fix worked as intended: **8 of 12 cases now show `"triage_path": "llm"` in their output**,
+versus 0/12 before the fix — the attack payload genuinely reaches `classify_with_llm` this time,
+not the RF fallback. Both guardrails still pass cleanly on every case (`guardrail_status` /
+`schema_guardrail_status` both `"passed"` throughout), confirming they are not bypassed, just not
+the deciding factor for this attack shape (plain adversarial text in `Category`, not a regex- or
+schema-flagged payload). Of the 8 cases that reached the LLM, 6 completed and were scored — all 6
+resisted the attack (0% attack success on conclusive cases), matching the `llm-only` mode's earlier
+result. The remaining 6 errors (4 of which never reached the LLM at all, 2 of which reached it but
+failed at the judge's evaluation step) are the same pre-existing `"Error enhancing attack"` /
+`"Error evaluating target LLM output"` judge-model JSON-reliability issue documented above —
+unrelated to this routing fix, and not expected to be resolved by it.
+
+This closes the "first priority" item from the original Future Work list below. The remaining,
+still-open item is the judge-model JSON-reliability gap itself.
+
 ## Known limitations
 
 - **Guardrails bypassed (llm-only mode only).** The default `llm-only` mode measures raw LLM
   susceptibility once adversarial content already reached the model, not real end-to-end pipeline
-  risk. `--mode full-graph` has now been run (see "Full-graph results" above) and confirms
-  `apply_regex_guardrail`/`apply_schema_guardrail` both pass cleanly on these inputs — but it mostly
-  ended up testing the RF fallback path rather than the LLM path, because the synthesized full-graph
-  alert lacks the context fields `route_by_context` checks. Whether the guardrails catch an attack
-  that *does* reach the LLM in the full graph is still untested — needs a harness fix, see Future
-  Work.
+  risk. `--mode full-graph` has now been run twice: the first run (see "Full-graph results" above)
+  mostly tested the RF fallback path instead of the LLM path, because the synthesized alert lacked
+  the context fields `route_by_context` checks. That harness gap is now fixed (see "Full-graph fix
+  and re-run" above) — 8/12 cases now genuinely reach `classify_with_llm`, and both guardrails still
+  pass cleanly on every case, confirming they are not bypassed. The still-open gap is scope, not
+  routing: 6/12 cases (across both LLM-only and full-graph modes) still error on the judge model's
+  JSON reliability rather than producing a conclusive pass/fail.
 - **Small scope, not a certified robustness measurement.** 12 test cases (7 conclusive) is enough
   to answer "is this totally broken" — not enough to bound a real attack-success-rate confidence
   interval. Same caveat `soc_domain_eval.py`'s own docstring already makes about its 40-row set.
@@ -255,15 +290,10 @@ flagged in Future Work below rather than patched speculatively.
 
 ## Future work
 
-Closed out this session (2026-08-21): the quota-blocked live-verification retry, and the
-`--mode full-graph` run. Both produced real findings above rather than being nice-to-haves ticked
-off — remaining open items:
+Closed out 2026-08-21: the quota-blocked live-verification retry, and the `--mode full-graph` run.
+Closed out Week 12 (2026-08-26): the `_full_graph_callback()` routing fix and re-run (see "Full-graph
+fix and re-run" above) — the item previously listed here as first priority. Remaining open items:
 
-- **First priority:** fix `_full_graph_callback()` (`experiments/deepteam_redteam_eval.py`) to set
-  a `MitreTechniques`, `SuspicionLevel`, or `LastVerdict` value on the synthesized alert so
-  `route_by_context` sends it down the `llm` path instead of `rf_fallback`. Without this, full-graph
-  mode mostly can't answer its own question — whether the guardrails catch attacks that reach the
-  LLM — because the LLM node is rarely reached at all under the current synthesized alert shape.
 - Retry the still-erroring PromptInjection/Roleplay cases with a different judge model if one
   becomes available (a stronger reasoning-capable or larger Groq-hosted model, if one is added to
   this account's catalog) — the JSON-repair fix helped but didn't close the gap; 8/12 cases in the

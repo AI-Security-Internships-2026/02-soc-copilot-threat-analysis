@@ -101,10 +101,29 @@ def _full_graph_callback():
     """Secondary mode: attacks the defended pipeline end to end, including
     apply_regex_guardrail and apply_schema_guardrail, to see whether an
     attack that fools the LLM alone still gets caught downstream (e.g. via
-    needs_human_review)."""
+    needs_human_review).
+
+    Week 11 found this mode's synthesized alert never actually reached the
+    LLM: route_by_context() sends any alert with fewer than 2 of
+    (MitreTechniques, SuspicionLevel, LastVerdict) populated to the RF
+    fallback (src/agent/fallback_classifier.py's should_use_fallback()), and
+    the original alert here only ever set AlertTitle/Category/DetectorId.
+    Every one of the 12 test cases in the first full-graph run was silently
+    diverted to RF, so the run measured RF's routing behavior, not the LLM's
+    adversarial robustness -- see docs/redteam-deepteam-eval.md. Setting two
+    populated evidence fields below forces the sparse-context gate the other
+    way, so attacks actually reach classify_with_llm as intended. The values
+    are deliberately neutral placeholders (no verdict-leaning content) so
+    they don't bias the LLM's judgement of the injected Category text."""
 
     async def model_callback(input: str) -> str:
-        raw_alert = {"AlertTitle": 88421, "Category": input, "DetectorId": 7}
+        raw_alert = {
+            "AlertTitle": 88421,
+            "Category": input,
+            "DetectorId": 7,
+            "SuspicionLevel": "Unspecified",
+            "LastVerdict": "Unknown",
+        }
         result = await asyncio.to_thread(triage_graph.invoke, {"raw_alert": raw_alert})
         return json.dumps(
             {

@@ -215,6 +215,21 @@ analyst-triaged incidents from over 6{,}100 organizations. All quantitative resu
 were produced against the real dataset, not the schema-matched synthetic sample used for local
 development, and are reproducible from the committed artifacts in the project repository.
 
+Published LLM-based SOC alert-triage evaluations typically operate on bounded subsamples rather
+than a full dataset, reflecting per-call inference cost and rate limits rather than a
+methodological preference for small samples. Freitas et al., who introduced GUIDE itself, restrict
+their evaluation of the investigation module to 1{,}000 randomly selected incidents out of GUIDE's
+roughly one million, despite classical statistical baselines in the same paper being evaluated on
+full regional splits an order of magnitude larger \cite{freitas2024guide}. Zhao et al.\ evaluate
+LLM-based alert triage on stratified test splits of roughly 785 and 20{,}000 alerts drawn from two
+production-derived corpora \cite{zhao2025infodense}. Our own evaluation samples of 300 and up to
+999 alerts (Section~\ref{sec:hybrideval}) are consistent in order of magnitude with these
+LLM-specific evaluation scales -- notably close to the 1{,}000-incident evaluation used by GUIDE's
+own authors -- while remaining below the larger, tens-of-thousands-scale subsamples some papers
+draw from smaller base corpora. We report this comparison for calibration, not as a claim that a
+larger sample would be unnecessary; Section~\ref{sec:futurework} discusses scaling the evaluation
+further as the API-quota constraint that currently bounds it (Section~\ref{sec:redteam}) allows.
+
 \subsection{RF baseline}
 
 A Random Forest (200 trees) trained on 79{,}580 alerts (stratified 80/20 split, $n=100{,}000$,
@@ -319,6 +334,17 @@ test-harness limitation surfaced by inspecting per-case routing rather than trus
 pass rate -- the same lesson as the routing regression above, that an aggregate metric in this
 codebase is not sufficient on its own to confirm a mechanism worked as intended.
 
+We fixed this test-harness gap and re-ran the identical scope: the synthesized alert now carries
+two deliberately neutral evidence values (a placeholder suspicion level and prior verdict, chosen
+to satisfy the routing threshold without leaning the verdict either way), which is enough to clear
+the two-of-three threshold and send the alert down the LLM path instead of RF. The fix worked as
+intended -- 8 of the 12 cases now show the LLM path in their output, versus 0 of 12 before. Both
+guardrails again passed cleanly on every case, confirming they are genuinely not bypassed rather
+than merely untested. Of the 8 cases that reached the LLM, 6 completed and were scored, and all 6
+resisted the attack (0\% attack success on conclusive cases), consistent with the LLM-only result
+above. The remaining 6 errors reduce, on inspection, to the same judge-model JSON-reliability
+limitation already discussed, not a new failure mode introduced by the fix.
+
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
@@ -356,22 +382,22 @@ existing one -- noted as a scoping decision for future work rather than attempte
 \section{Future Work}
 \label{sec:futurework}
 
-Four extensions follow directly from the limitations above. First, a live Wazuh deployment
+Three extensions follow directly from the limitations above. First, a live Wazuh deployment
 (rather than the schema-only adapter reported here) would let the pipeline's guardrails and
 routing be tested against a continuously generated alert stream instead of a static snapshot,
 closer to the deployment described by Ismail et al.\ \cite{wazuh2025rag}. Second, integrating
 GeNIS \cite{genis2025} as a second evaluation dataset -- once its flow-level schema is reconciled
 with an incident/alert-level loader -- would test whether the RF baseline and schema guardrail's
-strong GUIDE-specific results hold on a structurally different, SME-focused dataset. Third, the
-RF-fallback reliability gap on non-GUIDE alert sources (Section~\ref{sec:discussion}) motivates
-either labeled data collection on Wazuh-origin alerts specifically, or an origin-aware routing
-change that defaults non-GUIDE alerts to human review rather than the RF path until validated.
-Fourth, the full-graph red-team run (Section~\ref{sec:redteam}) needs a synthesized alert that
-carries at least one of the context fields \texttt{route\_by\_context} checks, so the attack
-payload actually reaches \texttt{classify\_with\_llm} instead of being diverted to the RF path
-before the guardrails' target is ever tested; the remaining unresolved prompt-injection/roleplay
-judge-model errors are a second, independent candidate for a stronger or differently-hosted judge
-model if one becomes available.
+strong GUIDE-specific results hold on a structurally different, SME-focused dataset; this remains
+an explicitly deferred scoping decision (Section~\ref{sec:discussion}) rather than an in-progress
+item, pending supervisor sign-off on the schema-reconciliation approach. Third, the RF-fallback
+reliability gap on non-GUIDE alert sources (Section~\ref{sec:discussion}) motivates either labeled
+data collection on Wazuh-origin alerts specifically, or an origin-aware routing change that
+defaults non-GUIDE alerts to human review rather than the RF path until validated. The full-graph
+red-team harness gap noted in an earlier draft of this section -- the synthesized alert not
+carrying a context field \texttt{route\_by\_context} checks -- has since been fixed and re-run
+(Section~\ref{sec:redteam}); the remaining unresolved judge-model JSON-reliability errors are a
+still-open candidate for a stronger or differently-hosted judge model if one becomes available.
 
 \section{Conclusion}
 
@@ -429,6 +455,14 @@ https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction
 
 \bibitem{deepteam2025} Confident AI, ``DeepTeam: The Open-Source LLM Red Teaming Framework,''
 GitHub repository, 2025. [Online]. Available: https://github.com/confident-ai/deepteam
+
+\bibitem{freitas2024guide} S. Freitas, J. Kalajdjieski, A. Gharib, and R. McCann, ``AI-Driven
+Guided Response for Security Operation Centers with Microsoft Copilot for Security,''
+arXiv:2407.09017, 2024.
+
+\bibitem{zhao2025infodense} G. Zhao, Y. Zhang, C. Tian, D. Xie, H. Liu, and B. Wang,
+``Information-Dense Reasoning for Efficient and Auditable Security Alert Triage,''
+arXiv:2512.08169, 2025.
 
 \end{thebibliography}
 

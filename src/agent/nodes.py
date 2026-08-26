@@ -5,6 +5,7 @@
 
 import os
 import json
+import pandas as pd
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -49,6 +50,27 @@ def _extract_retry_seconds(error_message: str, default: float = 2.0) -> float:
         return float(match.group(1)) + 0.25  # small safety buffer
     return default
 
+def _has_value(value) -> bool:
+    """True if `value` is a real, present value -- unlike a bare truthiness
+    check, this correctly treats a missing-data NaN float as absent instead
+    of truthy. Week 12 finding: GUIDE alerts loaded via pandas represent
+    missing MitreTechniques/SuspicionLevel/etc. as float('nan'), and
+    bool(float('nan')) is True in Python -- so the old `if alert.get(field):`
+    checks below were literally sending the LLM a "MITRE Technique: nan" /
+    "Suspicion Level: nan" line on every alert where that field was actually
+    missing (55% and 31% of LLM-routed alerts respectively, see
+    experiments/llm_subset_eval.py). Mirrors
+    src/agent/fallback_classifier.py's _present()."""
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    try:
+        return not pd.isna(value)
+    except (TypeError, ValueError):
+        return True
+
+
 # ---------------------------------------------------------------------------
 # node 1: context_builder
 # ---------------------------------------------------------------------------
@@ -63,16 +85,16 @@ def build_context(state: AlertState) -> dict:
     # we skip raw IDs (OrgId, AlertId, etc.) — they don't help reasoning.
     context_parts = []
 
-    if alert.get("AlertTitle"):
+    if _has_value(alert.get("AlertTitle")):
         context_parts.append(f"Alert Title: {alert['AlertTitle']}")
 
-    if alert.get("Category"):
+    if _has_value(alert.get("Category")):
         context_parts.append(f"Category: {alert['Category']}")
 
-    if alert.get("MitreTechniques"):
+    if _has_value(alert.get("MitreTechniques")):
         context_parts.append(f"MITRE Technique: {alert['MitreTechniques']}")
 
-    if alert.get("DetectorId"):
+    if _has_value(alert.get("DetectorId")):
         context_parts.append(f"Detector: {alert['DetectorId']}")
 
     if alert.get("Hour") is not None:
@@ -81,10 +103,10 @@ def build_context(state: AlertState) -> dict:
     if alert.get("DayOfWeek") is not None:
         context_parts.append(f"Day of Week (0=Mon): {alert['DayOfWeek']}")
 
-    if alert.get("SuspicionLevel"):
+    if _has_value(alert.get("SuspicionLevel")):
         context_parts.append(f"Suspicion Level: {alert['SuspicionLevel']}")
 
-    if alert.get("LastVerdict"):
+    if _has_value(alert.get("LastVerdict")):
         context_parts.append(f"Last Verdict: {alert['LastVerdict']}")
 
     # join into a clean block
