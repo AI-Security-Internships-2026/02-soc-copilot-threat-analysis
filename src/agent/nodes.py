@@ -27,11 +27,15 @@ _MITRE_TECHNIQUE_MAP = None
 load_dotenv()  # loads GROQ_API_KEY from .env file
 
 # initialise the LLM once at module level so it's reused across calls
-# llama-3.1-8b-instant is free and fast — good for triage tasks
+# llama-3.1-8b-instant was retired from Groq's catalog (confirmed via a live
+# 404 + client.models.list() while wiring up Week 11's deepteam eval, which
+# calls this same node) -- replaced with openai/gpt-oss-20b, a reasoning
+# model, hence the higher max_tokens to leave room for its hidden reasoning
+# tokens ahead of the actual JSON answer.
 llm = ChatGroq(
-    model="llama-3.1-8b-instant",   # free, fast, good at structured output
+    model="openai/gpt-oss-20b",
     temperature=0,
-    max_tokens=512,
+    max_tokens=1024,
 )
 
 MAX_LLM_RETRIES = 5
