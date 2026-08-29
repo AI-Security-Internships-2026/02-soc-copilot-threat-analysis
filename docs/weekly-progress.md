@@ -561,7 +561,7 @@ replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
 ## Week 10 — Wazuh integration research, GeNIS dataset research, literature review finalized
 
 **Branch:** `asma-week-10`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/20 (merged)
 
 Direction for this week came out of a supervisor meeting: investigate Wazuh, look for a newer
 (2025+) SOC-related dataset — specifically one covering SME network traffic, since the project has
@@ -681,7 +681,7 @@ before doing anything about it — noted for Dr. Rana rather than acted on unila
 ## Week 11 — deepteam red-team evaluation of the LLM triage node
 
 **Branch:** `asma-week-11`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/22 (merged)
 
 Not on the original roadmap — new scope, prompted by wanting to close a real, previously-flagged
 gap: the project's only adversarial-input testing (`experiments/soc_domain_eval.py`) has only ever
@@ -809,7 +809,7 @@ Both new result files committed: `experiments/results/deepteam_redteam_promptinj
 ## Week 12 — reliability/accuracy audit of the LLM path, full-graph routing fix, lit review
 
 **Branch:** `asma-week-12`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/23 (open)
 
 Scope driven by supervisor meeting notes rather than the original roadmap slot: (1) fallback/
 reliability testing with and without the LLM path; (2) justify or challenge the hybrid design's
@@ -969,3 +969,96 @@ reflects this week's actual scope.
   historically-labeled alerts, not just MITRE technique text) is a more promising direction than
   further prompt iteration, per this week's finding that prompt engineering alone plateaus well
   below RF's accuracy on this subset.
+
+---
+
+## Week 13 — pre-submission audit of the paper draft, doc hygiene
+
+**Branch:** `asma-week-13` (built on `asma-week-12` — PR #23 is still open, so, as with Week 11's
+sequencing, branching from `dev` directly would have missed a week of unmerged work)
+**PR link:** _[fill in when opened]_
+
+No new supervisor meeting fell in this slot, so rather than invent new experimental scope (GeNIS
+and Wazuh Docker remain explicitly gated on supervisor sign-off, unchanged from Week 10/11/12),
+this week did the thing the roadmap's Aug 30 "paper/report draft" and Sep 6 "revise draft" entries
+actually need next: an unbiased, re-derive-don't-trust audit of `docs/paper/ieee-conference/draft.tex`
+against its underlying source data, in the same style as Week 10's citation/claims audit. The
+draft has grown across three weeks of incremental edits (Week 11, Week 12) without ever getting a
+single end-to-end pass checking that every number and citation still traces back correctly — this
+is exactly the situation Week 10's audit found real errors in.
+
+### Paper audit: one real ~4x error found, plus three smaller issues
+
+Checked every quantitative claim in the paper against its source JSON in `experiments/results/`,
+every citation against `docs/literature-review.md`, and internal consistency between the abstract,
+body, and `docs/weekly-progress.md`'s own record of what actually happened. Most of the paper held
+up exactly — the 999-alert hybrid numbers (0.646/0.648), the RF baseline (0.751 macro F1), the
+300-alert run, the red-team pass/fail counts, the scalability-benchmark figures, and all cited
+arXiv IDs/authors/venues all reproduced exactly against source. Four things didn't:
+
+1. **Real error, not a rounding issue:** Section on the retired ML guardrail claimed the real-data
+   benign/injection classifier scores were "mean 0.791 vs. 0.776." The actual measured values,
+   confirmed two independent ways (recomputing directly from
+   `experiments/results/soc_domain_eval_results.json`'s 40-row scores, and cross-checking Week 8's
+   own "Corrected results" table earlier in this file) are **0.209 vs. 0.224** — roughly 4x off.
+   The wrong number had also propagated into `README.md`'s "Novel contribution, landed" paragraph.
+   Root cause looks like a copy from an earlier, wrong draft of that section that was never
+   re-derived from the actual result file. The qualitative conclusion (statistically
+   indistinguishable, chance-level 52.5% best accuracy) was never wrong — only the two example
+   numbers illustrating it. Fixed in both files.
+2. **A citation used to justify this paper's own sample size mischaracterized the cited paper.**
+   The Dataset section's sample-size justification described Freitas et al. (GUIDE's own authors)
+   as an example of an "LLM-based" evaluation bounded by "per-call inference cost and rate limits."
+   Their actual investigation module is Random Forest + PCA + cosine similarity — not an LLM at
+   all — and their 1,000-incident cap (confirmed by reading the actual paper, Sec. 7.4) exists
+   because their evaluation required manual analyst relevance judgments per incident, not API
+   cost. The 1,000-incident number itself, and the comparison as a calibration point, were both
+   still legitimate; only the causal reasoning was wrong. Rewrote the paragraph to attribute the
+   cost/rate-limit constraint correctly to Zhao et al. and to this paper's own evaluation, and the
+   manual-judgment constraint to Freitas et al.
+3. **Two bibliography entries were defined but never cited:** `guide2024` (the GUIDE dataset itself
+   — cited nowhere despite the entire Evaluation section depending on it) and `socaugsurvey2025`
+   (Srinivas et al.'s AI-augmented-SOC survey, lit-review Paper 5). Added `\cite{guide2024}` at the
+   dataset's first mention and a new sentence citing Srinivas et al. in Related Work, next to the
+   other survey-paper citations it belongs with.
+4. **The current production model was never named in the body text**, only "the current model" (4
+   occurrences) versus the explicitly-named, retired `llama-3.1-8b-instant`. Not incorrect, but
+   incomplete for reproducibility. Named it (`openai/gpt-oss-20b` via Groq) at its first mention.
+
+**Deliberately not touched:** the empty `\section*{Acknowledgment}` — its TODO comment already
+states this is intentionally deferred pending issue #16's institutional funding/acknowledgment
+decision, not an oversight, so filling it in would be guessing at something that isn't mine to
+decide.
+
+Recompiled with `tectonic` after every fix (clean build, same pre-existing underfull-hbox warnings
+as before, no new ones) and re-ran the full test suite (27/27 passing — doc-only changes, so this
+is a no-regression check, not new coverage).
+
+### Doc hygiene: stale PR links and an out-of-date PR description
+
+`docs/weekly-progress.md` had carried `PR link: _[fill in when opened]_` placeholders for Weeks 10,
+11, and 12 since each was written, even after PR #20 and #22 merged and #23 opened — never
+backfilled. Filled in all three. Separately, PR #23's own description hadn't been updated after its
+final two commits (author/contact info, the full-scale 999-alert rerun) landed — the description
+still only covered the branch's state from three commits earlier. Updated the PR body directly to
+cover the full, current diff.
+
+### Problems / Blockers
+
+None. This week's scope was self-directed in the absence of new supervisor meeting notes, which is
+a real constraint worth naming: GeNIS integration, Wazuh Docker deployment, and any further
+LLM-accuracy work (the richer-context-retrieval direction flagged last week) all remain reasonable
+next moves but are exactly the kind of scope-setting decision the last several weeks have
+deliberately left to a supervisor meeting rather than picked unilaterally. Auditing already-written
+material rather than starting new experimental work was the judgment call made to stay useful
+without pre-empting that decision.
+
+### Next steps
+
+- Merge PR #23 (`asma-week-12`) into `dev`; rebase this branch once that lands, same sequencing
+  note as Week 11/12.
+- Get supervisor sign-off on GeNIS integration and Wazuh Docker deployment (Week 10 decision,
+  still open) and on which post-audit direction to prioritize for LLM-accuracy work, if any.
+- Paper draft is now audit-clean against source data as of this week; next real checkpoint is
+  supervisor/reviewer feedback ahead of Sep 6's "revise draft" milestone — nothing further to
+  self-audit until that feedback exists.
