@@ -930,6 +930,24 @@ not an outlier either. Added as a new paragraph in the paper's Dataset subsectio
 citations (`freitas2024guide`, `zhao2025infodense`), not as a standalone lit-review document, since
 it's directly load-bearing for the Evaluation section's methodology.
 
+### Full-scale current-model hybrid rerun (999 alerts)
+
+Closed out the "consider re-running" item below same-day rather than leaving it for next week: ran
+`python -m src.agent.evaluate --sample-size 999` end to end against the full triage graph (current
+model, `build_context()` bug fix applied, original prompt — i.e. exactly what's committed, not the
+standalone `llm_subset_eval.py` prompt-engineering variant), output
+`experiments/results/agent_metrics_week12_999_current.json`. Same 79.1%/20.9% RF/LLM routing split
+as the historical run (790/209 — routing depends only on context-field presence, not the model).
+Result: accuracy 0.646, macro F1 0.648 — this replaces the paper's previous 999-alert headline
+number (0.669), which was on the now-retired `llama-3.1-8b-instant` model with the formatting bug
+present. Splitting this new run by path: RF-routed subset macro F1 0.752 (unaffected by either
+fix, as expected), full 209-alert LLM-routed subset macro F1 0.174 / accuracy 0.230 — consistent
+with, and slightly worse than, this week's 60-alert diagnostic (0.151), confirming that result
+wasn't a small-sample artifact. Groq's daily quota held up fine across all 209 live calls plus
+everything else run this week. Paper updated (abstract, `sec:hybrideval`, `sec:llmgap`) to report
+this as the primary headline number, with the superseded figure kept as context for why the
+model/bug-fix investigation happened in the first place.
+
 ### Documentation reconciliation
 
 README's "Current state" summary was still describing end-of-Week-8 status (last touched around PR
@@ -941,7 +959,7 @@ reflects this week's actual scope.
 
 - None this week that blocked the plan — Groq quota held up across roughly 90 live LLM calls
   (full-graph re-run + two 60-alert diagnostic runs) without hitting the daily wall that blocked
-  Week 11's work, though this should not be assumed to hold for a much larger future run.
+  Week 11's work, and held up again across the 209 live calls in the full-scale rerun above.
 
 ### Next steps
 
@@ -951,6 +969,3 @@ reflects this week's actual scope.
   historically-labeled alerts, not just MITRE technique text) is a more promising direction than
   further prompt iteration, per this week's finding that prompt engineering alone plateaus well
   below RF's accuracy on this subset.
-- Consider re-running the hybrid evaluation at full current-model correctness (999+ alerts, current
-  model, bug fixed) if quota allows, to get a fully current-model headline number for the paper
-  rather than mixing the historical 999-run with this week's 60-alert diagnostic subset.

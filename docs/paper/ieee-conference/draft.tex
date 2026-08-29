@@ -60,7 +60,8 @@ verdict for every alert with no runtime error, caught only by a post-hoc audit -
 structural regression tests now guarding against a recurrence. We evaluate the full triage agent
 against a Random Forest baseline on real GUIDE data and report the result honestly: the
 LLM/RF-fallback hybrid does not outperform the RF baseline's raw classification metrics on the
-largest sample we ran (macro F1 0.669 vs. 0.751, $n=999$), a result we discuss rather than omit.
+largest sample we ran, current model and formatting-bug fix applied (macro F1 0.648 vs.\ 0.751,
+$n=999$), a result we discuss rather than omit.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -244,11 +245,16 @@ On real GUIDE alerts, the full LLM/RF-hybrid pipeline was evaluated at two sampl
 300-alert sample, accuracy was 0.753 and macro F1 0.750 (81.3\% of alerts routed to the RF
 fallback path, 18.7\% to the LLM), closely matching the RF baseline. On a larger, later 999-alert
 sample -- the largest real-data evaluation in the project, and the one we treat as primary here --
-accuracy was 0.674 and macro F1 0.669 (79.1\% RF-routed, 20.9\% LLM-routed), a roughly 8-point
-macro F1 gap below the RF baseline alone. We report both rather than the more favorable of the
-two: the smaller sample was the one originally written up, and the larger, more statistically
-robust sample was sitting in the repository's committed results without ever having been
-discussed. We do not read this as a failure of the hybrid design so much as a reminder that raw
+accuracy was 0.646 and macro F1 0.648 (79.1\% RF-routed, 20.9\% LLM-routed), a roughly 10-point
+macro F1 gap below the RF baseline alone. This number reflects the current model and the
+\texttt{build\_context()} formatting-bug fix (Section~\ref{sec:llmgap}); an earlier version of this
+same 999-alert run, on the since-retired \texttt{llama-3.1-8b-instant} model and with the
+formatting bug present, scored macro F1 0.669 -- Section~\ref{sec:llmgap} discusses why neither
+fix closed the gap, and if anything made it marginally wider. We report both sample sizes rather
+than the more favorable of the two: the smaller sample was the one originally written up, and the
+larger, more statistically robust sample was sitting in the repository's committed results without
+ever having been discussed. We do not read this as a failure of the hybrid design so much as a
+reminder that raw
 classification metrics are not the only axis this system is designed against -- the LLM path adds
 per-alert natural-language reasoning and MITRE-grounded context that the RF baseline does not
 produce at all, which the macro F1 number does not capture, but which is exactly the
@@ -259,10 +265,11 @@ than assert the trade-off is worth it without evidence.
 \subsection{Where the hybrid gap comes from, and whether it closes}
 \label{sec:llmgap}
 
-Splitting the 999-alert run by routing path isolates the source of the gap above: the RF-routed
-subset (790 alerts, 79.1\%) alone scores macro F1 0.752, matching the standalone RF baseline almost
-exactly, while the LLM-routed subset (209 alerts, 20.9\%) scores macro F1 0.308 -- barely above
-chance for a three-class problem. This is the entire gap; RF's own accuracy is not the problem. It
+Splitting an earlier version of the 999-alert run (deprecated model, formatting bug present) by
+routing path isolates the source of the gap above: the RF-routed subset (790 alerts, 79.1\%) alone
+scores macro F1 0.752, matching the standalone RF baseline almost exactly, while the LLM-routed
+subset (209 alerts, 20.9\%) scores macro F1 0.308 -- barely above chance for a three-class problem.
+This is the entire gap; RF's own accuracy is not the problem. It
 is also a counterintuitive result on its face, since \texttt{route\_by\_context} sends the LLM
 specifically the alerts with the \emph{most} analyst-readable context (MITRE technique, suspicion
 level, prior verdict; Section~\ref{sec:architecture}) -- the alerts an LLM should be best suited
@@ -285,6 +292,15 @@ whose only evidence is a generic category label and a bare suspicion flag -- a d
 inference in isolation that happens to collapse onto one class 55 of 60 times, matching the exact
 failure mode Section~\ref{sec:architecture}'s low-context RF fallback already exists to route around
 for sparser alerts.
+
+We then confirmed this was not a small-sample artifact by re-running the entire 999-alert
+evaluation with the current model and the formatting-bug fix applied under the original prompt --
+the same run reported as this paper's primary hybrid headline in
+Section~\ref{sec:hybrideval} (macro F1 0.648 overall, $n{=}999$). Its LLM-routed subset now
+covers the full 209 alerts rather than the 60-alert stratified sample above: accuracy 0.230,
+macro F1 0.174 -- consistent with, and slightly worse than, the 60-alert diagnostic's 0.151, and
+still well below the deprecated-model number it was meant to explain. The RF-routed subset is
+unaffected by either fix and reproduces 0.752, as expected.
 
 We then time-boxed one prompt-engineering attempt on the same 60 alerts: explicit guidance on which
 fields carry the strongest signal, three grounded few-shot examples using GUIDE's own field
