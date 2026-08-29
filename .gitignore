@@ -69,3 +69,6 @@ experiments/results/*.pdf
 datasets/mitre_technique_cache.json
 experiments/results/baseline_model.joblib
 experiments/results/evaluation_samples/
+
+# paper draft kept out of the public repo per supervisor guidance
+docs/paper/
