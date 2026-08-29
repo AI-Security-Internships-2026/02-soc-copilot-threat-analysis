@@ -113,7 +113,9 @@ LLMs integrated into SOC workflows reduce analyst triage time, but as a closed c
 it offers no visibility into guardrail design or failure modes. Ferrag et al.\
 \cite{ferrag2024genai} survey LLM applications across the cybersecurity lifecycle and separately
 catalog LLM-specific vulnerabilities including prompt injection, which motivates the guardrail
-design examined in this paper. CORTEX \cite{cortex2025} argues for multi-agent, evidence-grounded
+design examined in this paper. Srinivas et al.\ \cite{socaugsurvey2025} similarly survey LLMs and
+agentic systems for SOC security automation, situating this paper's single-pipeline design within
+that broader landscape. CORTEX \cite{cortex2025} argues for multi-agent, evidence-grounded
 triage over a single do-everything model, closely matching our own MITRE ATT\&CK-grounded
 retrieval design (Section~\ref{sec:architecture}); we adopt a hybrid LLM/classical-ML routing
 strategy rather than multi-agent decomposition, and this paper's focus is the guardrail layer
@@ -171,7 +173,7 @@ an index bug in how the classifier's output probability was read (\texttt{predic
 the benign-class probability, was being used where \texttt{[0][1]}, the injection-class
 probability, was needed) -- caught in code review before the initial finding was accepted at face
 value. After the fix, benign and injection scores on real alert text were statistically
-indistinguishable (mean 0.791 vs.\ 0.776); the best achievable accuracy across a threshold sweep
+indistinguishable (mean 0.209 vs.\ 0.224); the best achievable accuracy across a threshold sweep
 was 52.5\%, at chance level for a binary decision.
 
 \subsection{Root cause}
@@ -211,23 +213,28 @@ cautious about.
 \subsection{Dataset}
 \label{sec:dataset}
 
-We use the Microsoft GUIDE dataset (CDLA-2.0), a public release of 1.6M real SOC alerts and 1M
+We use the Microsoft GUIDE dataset (CDLA-2.0) \cite{guide2024}, a public release of 1.6M real SOC alerts and 1M
 analyst-triaged incidents from over 6{,}100 organizations. All quantitative results in this paper
 were produced against the real dataset, not the schema-matched synthetic sample used for local
 development, and are reproducible from the committed artifacts in the project repository.
 
-Published LLM-based SOC alert-triage evaluations typically operate on bounded subsamples rather
-than a full dataset, reflecting per-call inference cost and rate limits rather than a
-methodological preference for small samples. Freitas et al., who introduced GUIDE itself, restrict
-their evaluation of the investigation module to 1{,}000 randomly selected incidents out of GUIDE's
-roughly one million, despite classical statistical baselines in the same paper being evaluated on
-full regional splits an order of magnitude larger \cite{freitas2024guide}. Zhao et al.\ evaluate
-LLM-based alert triage on stratified test splits of roughly 785 and 20{,}000 alerts drawn from two
+Published alert-triage evaluations on large real-world datasets commonly bound their evaluation to
+a subsample well below full dataset scale, though the reason for bounding differs by evaluation
+type. Freitas et al., who introduced GUIDE itself, restrict their evaluation of the investigation
+module to 1{,}000 randomly selected incidents out of GUIDE's roughly one million -- not an
+LLM-based system, but a classical (Random Forest, PCA, and cosine-similarity) approach whose
+evaluation required manual analyst relevance judgments per incident, which bounds feasible scale
+independent of inference cost -- despite classical statistical baselines in the same paper being
+evaluated on full regional splits an order of magnitude larger \cite{freitas2024guide}. Zhao et
+al.\ evaluate LLM-based alert triage, where per-call inference cost and rate limits are the binding
+constraint, on stratified test splits of roughly 785 and 20{,}000 alerts drawn from two
 production-derived corpora \cite{zhao2025infodense}. Our own evaluation samples of 300 and up to
-999 alerts (Section~\ref{sec:hybrideval}) are consistent in order of magnitude with these
-LLM-specific evaluation scales -- notably close to the 1{,}000-incident evaluation used by GUIDE's
-own authors -- while remaining below the larger, tens-of-thousands-scale subsamples some papers
-draw from smaller base corpora. We report this comparison for calibration, not as a claim that a
+999 alerts (Section~\ref{sec:hybrideval}), likewise bounded primarily by LLM inference cost and
+rate limits, are consistent in order of magnitude with Zhao et al.'s LLM-specific evaluation scale,
+and, on the same source dataset, close to the 1{,}000-incident scale GUIDE's own authors used for
+their (non-LLM) investigation-module evaluation -- while remaining below the larger,
+tens-of-thousands-scale subsamples some papers draw from smaller base corpora. We report this
+comparison for calibration, not as a claim that a
 larger sample would be unnecessary; Section~\ref{sec:futurework} discusses scaling the evaluation
 further as the API-quota constraint that currently bounds it (Section~\ref{sec:redteam}) allows.
 
@@ -246,7 +253,8 @@ On real GUIDE alerts, the full LLM/RF-hybrid pipeline was evaluated at two sampl
 fallback path, 18.7\% to the LLM), closely matching the RF baseline. On a larger, later 999-alert
 sample -- the largest real-data evaluation in the project, and the one we treat as primary here --
 accuracy was 0.646 and macro F1 0.648 (79.1\% RF-routed, 20.9\% LLM-routed), a roughly 10-point
-macro F1 gap below the RF baseline alone. This number reflects the current model and the
+macro F1 gap below the RF baseline alone. This number reflects the current model
+(\texttt{openai/gpt-oss-20b} via Groq) and the
 \texttt{build\_context()} formatting-bug fix (Section~\ref{sec:llmgap}); an earlier version of this
 same 999-alert run, on the since-retired \texttt{llama-3.1-8b-instant} model and with the
 formatting bug present, scored macro F1 0.669 -- Section~\ref{sec:llmgap} discusses why neither
