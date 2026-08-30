@@ -1214,8 +1214,96 @@ exhaustion. Flagged explicitly as the next step below, not silently left incompl
 
 ### Next steps (continued)
 
-- Re-run the improved prompt at the full 209-alert LLM-routed scale (matching the baseline
-  prompt's existing full-scale numbers) once quota budget allows, for a fully like-for-like
-  comparison rather than a 60-alert diagnostic plus a 10-alert spot-check.
+- ~~Re-run the improved prompt at the full 209-alert LLM-routed scale~~ — done same day, see
+  below.
 - A true analyst-rated usefulness evaluation remains the one thing this session's content analysis
   cannot substitute for — still an open item, not resolved by the above.
+
+### Continued (2026-08-30, same day): full 209-alert re-run — confirms the accuracy/groundedness
+gain, and surfaces a more important finding the 60-alert diagnostic couldn't show
+
+Reproduced the exact same 209 LLM-routed alerts used in the paper's 999-alert headline run (same
+cached seed-42 sample, `should_use_fallback` routing verified to reproduce the original 790/209
+split exactly before spending any live calls) and ran all 209 live against Groq under the now
+deployed improved prompt. 209/209 completed, zero errors, ~26 minutes wall time. Full results in
+`experiments/results/llm_subset_eval_improved_full209.json`.
+
+**Accuracy and groundedness both improve at full scale, though the accuracy gain is smaller than
+the 60-alert diagnostic suggested.**
+
+| | baseline (n=209) | improved (n=209) |
+|---|---|---|
+| Accuracy | 0.230 | 0.282 |
+| Macro F1 | 0.174 | 0.212 |
+| Grounded/specific reasoning | 16.3% | **99.0%** |
+| Generic boilerplate | 36.4% | **0.0%** |
+
+The macro F1 gain (0.174 → 0.212) is real but smaller than the 60-alert diagnostic's 0.151 → 0.268
+— expected, since a 60-alert stratified sample has more sampling variance than the full 209. The
+groundedness gain, by contrast, is *larger* and more complete at full scale than the diagnostic
+suggested (99.0% vs the diagnostic's 46.7%) — virtually every response now cites concrete evidence.
+**Methodological caveat, reported rather than hidden:** at 99% grounded, the specificity-vs-
+correctness correlation from the 60-alert diagnostic (60% vs 40%) disappears at full scale (100.0%
+vs 98.7%) — a ceiling effect. The regex-based specificity metric is now saturated: the improved
+prompt's instructions essentially require citing field names in every response, so presence of a
+field-name marker stops being informative about whether the underlying reasoning is *correct*, only
+that it's *format-compliant*. This is a real limitation of the proxy metric, not a retraction of the
+groundedness finding itself (0% boilerplate and 99% concrete field citation are still true and
+still meaningfully different from the baseline prompt's 36%/16%) — but it means the metric can no
+longer distinguish good reasoning from bad reasoning at this prompt's compliance level, only
+grounded from ungrounded.
+
+**The more important finding: both prompts collapse to a single dominant class, but onto opposite
+classes — and the direction matters for security risk, not just the macro F1 number.**
+
+| | baseline prompt | improved prompt |
+|---|---|---|
+| Prediction distribution | 187/209 FalsePositive (89.5%) | 147/209 TruePositive (70.3%) |
+| TruePositive recall (real attacks caught) | **0.07** | **0.54** |
+| FalsePositive recall (false alarms caught) | 0.89 | **0.01** |
+
+The baseline prompt's near-total collapse into "FalsePositive" means it misses 93% of actual
+attacks (57 of 61 TruePositive-ground-truth alerts predicted as something else) — the single worst
+failure mode a SOC triage tool can have, since a missed attack is not a workload problem, it is a
+security incident that goes unflagged. The improved prompt inverts this: it now catches 54% of real
+attacks (up from 7%), a large, operationally significant gain, but at the cost of collapsing the
+opposite direction — only 2 of 45 FalsePositive-ground-truth alerts are correctly labeled, with 38
+mislabeled TruePositive and 7 BenignPositive. Standard SOC risk framing weights missed detections
+far above excess false alarms (an over-triggered detector costs analyst minutes; a missed attack
+does not get a second chance), so on this specific, more operationally important axis than macro
+F1, the improved prompt is a clear net improvement, not just a numerically larger number.
+
+**But this needs a real caveat, not a clean "deploy and done" story: the pipeline's own
+confidence-based human-review safety net does not catch most of the improved prompt's new failure
+mode.** `route_after_verdict` (`src/agent/nodes.py`) only auto-closes `confidence == "high"`
+verdicts; everything else routes to human review. Checked directly: of the 45 FalsePositive-truth
+alerts the improved prompt gets wrong, **42 (93%)** were scored `high` confidence -- meaning the
+pipeline would auto-close them as a confidently-stated "real attack" with no human ever reviewing
+the call, rather than flagging the low reliability that's actually there. By contrast, of the 28
+TruePositive-truth alerts the improved prompt misses, only 4 are high-confidence; 23 are `medium`
+(routes to human review) and 1 is `low` -- so most *missed real attacks* still get a human look,
+while most *wrongly-escalated false positives* do not. The model's stated confidence is not
+tracking its actual reliability on the FalsePositive class specifically, and the safety net that's
+supposed to catch exactly this kind of unreliability isn't triggering for it.
+
+**Decision: keep the improved prompt deployed, with the confidence-miscalibration gap flagged as a
+concrete, scoped follow-up rather than reverted.** The security-priority reasoning above (missed
+attacks are categorically worse than excess false alarms) favors this prompt over the original even
+with the new failure mode, and reverting would restore the 7%-attack-recall behavior, which is
+worse on the metric that matters most. The actionable gap is narrower than "the prompt doesn't
+work": the model needs to stop reporting `high` confidence when its main evidence is a bare
+`Suspicion Level`/`Last Verdict` match without a corroborating MITRE technique or category-specific
+signal -- exactly the over-generalization the prompt's own few-shot examples warn against
+(``'Suspicious' does not always mean TruePositive'') but that the model isn't consistently applying
+to its own confidence self-report. A confidence-calibration pass (e.g. explicitly downgrading
+confidence when Suspicion Level/Last Verdict are the *only* signal present) is a well-scoped next
+step, distinct from and more targeted than another round of general prompt iteration.
+
+### Next steps (continued, 2)
+
+- Confidence-calibration follow-up on the improved prompt: reduce `high`-confidence self-reports
+  specifically when Suspicion Level/Last Verdict are the only evidence present, so more of the
+  FalsePositive-collapse cases route to human review instead of auto-closing. Concrete and scoped,
+  not another open-ended prompt-engineering pass.
+- A true analyst-rated usefulness evaluation remains the one thing this session's content analysis
+  cannot substitute for — still an open item.
