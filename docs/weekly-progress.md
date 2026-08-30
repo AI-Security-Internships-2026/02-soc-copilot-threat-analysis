@@ -749,10 +749,12 @@ with openai/gpt-oss-20b on Groq`), since it's a standalone production fix, not a
 - Branch sequencing note: Week 10's PR (#20) had already been merged to `dev` by the time this
   week's uncommitted follow-up fixes (the `evaluate.py`/`nodes.py`/lit-review corrections mentioned
   under Week 10's "residual gap") were committed — those were moved to their own branch
-  (`asma-week-10-followup`, not yet opened as a PR) rather than bundled into an already-closed PR.
-  `asma-week-11` is built on top of that branch, so its eventual PR will show those commits too
-  unless `asma-week-10-followup` merges to `dev` first — worth merging that one first to keep PRs
-  atomic.
+  (`asma-week-10-followup`) rather than bundled into an already-closed PR. `asma-week-11` is built
+  on top of that branch, so its eventual PR shows those commits too unless `asma-week-10-followup`
+  merges to `dev` first. **Correction (2026-08-21):** both are already open — PR #21
+  (`asma-week-10-followup`) and PR #22 (`asma-week-11`) — not "not yet opened" as originally
+  written here; merging #21 first still keeps history atomic, it just isn't blocking anything else
+  this week.
 - deepteam's README documents an older/simplified `model_callback` API than the installed
   `deepteam==1.0.9` actually exposes, and its `run_all_attacks` parameter defaults to `False`
   (silently sampling one attack per vulnerability instead of the full cross product) — both cost
@@ -770,3 +772,200 @@ with openai/gpt-oss-20b on Groq`), since it's a standalone production fix, not a
 - Merge `asma-week-10-followup` before or alongside this week's PR to keep history clean.
 - GeNIS integration and Wazuh Docker deployment remain open decisions from Week 10, still pending
   supervisor sign-off — not touched this week.
+
+### Continued (2026-08-21): live-verification and full-graph run, both closed out
+
+Two days after the quota exhaustion above, picked up both items flagged as the actual next steps.
+Full detail in `docs/redteam-deepteam-eval.md`'s new sections; summary here.
+
+**JSON-repair fix, live-verified — helps, doesn't fully close the gap.** Reran the exact
+`PromptInjection`/`Roleplay` retry command with a fresh daily quota (no 429s this time). Result:
+4/12 conclusive (up from 0/12 when the quota blocked it), all 4 passed, 0% attack success. Per
+attack method, conclusive rate roughly doubled versus the original run (PromptInjection 0/3→1/6,
+Roleplay 1/3→3/6). The remaining 8/12 still hit the same generic `"Error enhancing attack"` label —
+confirmed real improvement, not a full fix.
+
+**`--mode full-graph`, run for the first time — found a test-harness gap, not the intended
+result.** 9/12 conclusive, 0% attack success, which looks like a strong pipeline-level result until
+reading the actual per-case output: all 9 conclusive cases routed through `rf_fallback`, not the
+LLM. The synthesized full-graph alert (`AlertTitle`, `Category`, `DetectorId` only) never sets
+`MitreTechniques`/`SuspicionLevel`/`LastVerdict`, so the Week 6 sparse-context gate
+(`route_by_context`, `src/agent/nodes.py:220`) diverts it to the RF baseline before the LLM node is
+ever reached — for a routing reason unrelated to the guardrails the run was meant to test. Both
+`apply_regex_guardrail` and `apply_schema_guardrail` did pass cleanly on every case, so they aren't
+bypassed, they just rarely mattered in this configuration. Real finding, just a different one than
+intended: an attack phrased only as `Category` text with no other context gets diverted away from
+the LLM by the routing design itself. Fixing `_full_graph_callback()` to set one of the three gating
+fields (so the case actually reaches the LLM) is now the first-priority follow-up in
+`docs/redteam-deepteam-eval.md`, not attempted this session since it's a test-harness change, not a
+pipeline change.
+
+Both new result files committed: `experiments/results/deepteam_redteam_promptinjection_retry.json`
+(overwritten with the live-verified version) and
+`experiments/results/deepteam_redteam_fullgraph_results.json` (new).
+
+---
+
+## Week 12 — reliability/accuracy audit of the LLM path, full-graph routing fix, lit review
+
+**Branch:** `asma-week-12`
+**PR link:** _[fill in when opened]_
+
+Scope driven by supervisor meeting notes rather than the original roadmap slot: (1) fallback/
+reliability testing with and without the LLM path; (2) justify or challenge the hybrid design's
+accuracy case for using an LLM over RF alone, and try to improve it; (3) whether the LLM reasons
+usefully on contextually incomplete alerts; (4) literature context for our evaluation sample sizes.
+GeNIS/generalization to a second dataset was explicitly deferred this week (still pending supervisor
+sign-off from Week 10, not touched) rather than attempted alongside everything else below.
+
+### PR review follow-ups (asma-week-10-followup / #21, asma-week-11 / #22)
+
+Both open PRs had review comments landed mid-week; addressed before starting new work rather than
+alongside it, to keep review threads current.
+
+**PR #21:** the previous "fix" for `evaluate.py`'s silent `predicted_label` default was reviewed and
+found inert — the new `raise RuntimeError(...)` sat inside the same `try:` block that wraps
+`triage_graph.invoke()`, so the unchanged `except Exception` right below it caught it and still
+produced a scored default, just with `predicted=None` instead of `"FalsePositive"` this time. The
+check was also over-broad: guardrail-blocked alerts and handled RF/LLM failures legitimately reach
+`END` with no `predicted_label` via `human_review_node` (which always sets `needs_human_review`), so
+treating every missing-verdict case as fatal would have aborted a run over normal pipeline behavior.
+Fixed by moving the check into the `try/except`'s `else` clause (only reached when `invoke()`
+didn't raise, so the `except` above can no longer catch it) and narrowing it to fire only when
+*both* `predicted_label` and `needs_human_review` are absent — the actual Week 9 dead-end signature.
+Legitimate no-verdict outcomes are now tracked separately via `routing_summary.no_verdict_count`.
+`tests/test_evaluate.py` grew two cases pinning exactly what the review asked for: a dead-ended
+graph must raise and propagate, a guardrail-blocked alert must not. 18/18 passing on that branch.
+
+**PR #22:** review confirmed the deepteam attack types and result numbers check out against the
+installed package source, but the PR body's test-plan checklist still said "19/19 passed" after a
+second commit added 5 more tests. Corrected to 24/24 (verified via a live `pytest tests/ -v` run,
+not just arithmetic) and confirmed via the PR body edit.
+
+### Full-graph red-team routing fix
+
+The first-priority follow-up flagged at the end of Week 11 (`docs/redteam-deepteam-eval.md`):
+`_full_graph_callback()`'s synthesized attack alert never set `MitreTechniques`/`SuspicionLevel`/
+`LastVerdict`, so `route_by_context()` diverted every one of the 12 test cases to the RF fallback
+before the LLM node was ever exercised — the full-graph run was silently testing RF's routing
+behavior, not LLM adversarial robustness. Fixed by setting two deliberately neutral placeholder
+values (`SuspicionLevel: "Unspecified"`, `LastVerdict: "Unknown"`) on the synthesized alert, chosen
+to clear the two-of-three evidence threshold without leaning the verdict either way. Re-ran the
+identical scope live: **8 of 12 cases now show `triage_path == "llm"`** (versus 0/12 before), both
+guardrails still pass cleanly on every case (confirming they were never actually bypassed, just
+rarely the deciding factor for this attack shape), and of the 8 that reached the LLM, 6 completed
+and were scored — all 6 resisted the attack (0% attack success on conclusive cases), consistent with
+the `llm-only` mode's result. The remaining 6 errors reduce to the same pre-existing judge-model
+JSON-reliability issue documented in Week 11, unrelated to this fix. Full detail and the updated
+Known Limitations/Future Work lists in `docs/redteam-deepteam-eval.md`; new result file
+`experiments/results/deepteam_redteam_fullgraph_llm_reached.json`.
+
+### The LLM-accuracy investigation: two real bugs found, neither explains the gap
+
+Starting point: the paper draft already reported that the hybrid pipeline's LLM-routed subset (209
+of 999 alerts, `agent_metrics_week6_fallback_rerun.json`) scores macro F1 0.308 versus the RF-routed
+subset's 0.752 — almost the entire hybrid-vs-RF gap traces to the LLM path alone, on the exact
+alerts it was designed to handle (the ones with the *most* analyst-readable context). Two candidate
+explanations, investigated live rather than assumed:
+
+1. **That run used `llama-3.1-8b-instant`**, retired from Groq's catalog since Week 11 (replaced
+   with `openai/gpt-oss-20b`) — a stronger current model might close the gap on its own.
+2. **A real formatting bug in `build_context()`** (`src/agent/nodes.py`): `if alert.get(field):`
+   treats a missing-data `NaN` float as truthy, so a missing `MitreTechniques`/`SuspicionLevel`
+   wasn't omitted — it was rendered as the literal text `"MITRE Technique: nan"` in the LLM's
+   prompt. Measured against the exact LLM-eligible subset: **55% of those prompts contained the
+   literal string "MITRE Technique: nan"**, 31% contained `"Suspicion Level: nan"`. Fixed with a new
+   `_has_value()` NaN-aware presence check (mirrors `fallback_classifier.py`'s `_present()`),
+   applied to all six `build_context()` field checks. `tests/test_build_context.py` pins it.
+
+Built `experiments/llm_subset_eval.py`, a new diagnostic scoped to exactly the LLM-eligible subset
+(the only alerts either bug could affect), and live-tested both explanations on a stratified
+60-alert sample (20/class) of that subset:
+
+| Run | accuracy | macro F1 |
+|---|---|---|
+| Old run, deprecated model, un-fixed prompt (n=209, reference) | 0.364 | 0.308 |
+| Current model, NaN bug fixed, original prompt (n=60) | 0.283 | 0.151 |
+| Current model, NaN bug fixed, improved prompt (n=60) | 0.333 | 0.268 |
+| RF baseline, same routing subset (n=790, reference) | 0.756 | 0.752 |
+
+**Neither the model swap nor the bug fix closed the gap — if anything, the corrected baseline
+scored worse than the old number.** Reading the model's own reasoning text confirms why: it isn't
+misparsing a garbled field, it is explicitly reasoning "insufficient evidence → FalsePositive" on
+alerts whose only content is a generic category label and a bare suspicion flag — a defensible
+inference in isolation that collapsed onto one class 55/60 times. Time-boxed one prompt-engineering
+attempt per this week's scope decision: explicit signal-weighting guidance, three grounded few-shot
+examples in GUIDE's own field conventions, and reasoning-before-verdict response ordering. This
+raised accuracy to 0.333 and macro F1 to 0.268 — a real, measured improvement that eliminated the
+single-class collapse — but it remains roughly 40+ macro-F1 points below RF on the same alerts, and
+slightly below even the deprecated-model reference number. Read as a genuine, if partial, negative
+result: prompt engineering helps, but a few-hundred-token prompt can't reliably supply evidence
+GUIDE's schema doesn't encode for these alerts. Reported the full 0.751 → 0.152 → 0.268 progression
+in the paper rather than only the improved number.
+
+**Direct answer to "why shift to LLM, is it worth it":** not on raw classification accuracy for this
+task — the honest, evidence-based recommendation is the RF baseline alone if macro F1 is the only
+criterion. What the LLM path adds instead is qualitative (MITRE-grounded natural-language reasoning
+RF cannot produce, and, per the full-graph red-team finding above, different behavior on alerts with
+little structured evidence where RF is never exercised). We do not have an analyst-rated evaluation
+of that reasoning's usefulness, so the paper reports the accuracy cost precisely rather than
+asserting the trade-off is worth it. New paper section `sec:llmgap` ("Where the hybrid gap comes
+from, and whether it closes") and a new Discussion opening paragraph make this case directly.
+
+New result files: `experiments/results/llm_subset_eval_baseline.json`,
+`experiments/results/llm_subset_eval_improved.json`.
+
+### Literature review: are our sample sizes comparable?
+
+Researched published LLM-based SOC alert-triage evaluations to contextualize the project's 300/999
+sample sizes (meeting-note ask, not previously covered in the lit review). Finding: LLM-specific
+evaluations in this space are consistently bounded well below their source datasets' full size —
+Freitas et al., who introduced GUIDE itself, evaluate their investigation module on 1,000 incidents
+out of GUIDE's ~1M, despite classical-ML baselines in the same paper running on regional splits an
+order of magnitude larger; other recent papers (Zhao et al.'s information-dense-reasoning work,
+retrieval-augmented incident-analysis papers, SIABench) use LLM-evaluation subsamples ranging from 5
+to ~20,000 items. Our 300–999 is in line with, and close to, the 1,000-incident scale GUIDE's own
+authors used for their comparable LLM/investigation-module evaluation — not full-dataset scale, but
+not an outlier either. Added as a new paragraph in the paper's Dataset subsection with two new
+citations (`freitas2024guide`, `zhao2025infodense`), not as a standalone lit-review document, since
+it's directly load-bearing for the Evaluation section's methodology.
+
+### Full-scale current-model hybrid rerun (999 alerts)
+
+Closed out the "consider re-running" item below same-day rather than leaving it for next week: ran
+`python -m src.agent.evaluate --sample-size 999` end to end against the full triage graph (current
+model, `build_context()` bug fix applied, original prompt — i.e. exactly what's committed, not the
+standalone `llm_subset_eval.py` prompt-engineering variant), output
+`experiments/results/agent_metrics_week12_999_current.json`. Same 79.1%/20.9% RF/LLM routing split
+as the historical run (790/209 — routing depends only on context-field presence, not the model).
+Result: accuracy 0.646, macro F1 0.648 — this replaces the paper's previous 999-alert headline
+number (0.669), which was on the now-retired `llama-3.1-8b-instant` model with the formatting bug
+present. Splitting this new run by path: RF-routed subset macro F1 0.752 (unaffected by either
+fix, as expected), full 209-alert LLM-routed subset macro F1 0.174 / accuracy 0.230 — consistent
+with, and slightly worse than, this week's 60-alert diagnostic (0.151), confirming that result
+wasn't a small-sample artifact. Groq's daily quota held up fine across all 209 live calls plus
+everything else run this week. Paper updated (abstract, `sec:hybrideval`, `sec:llmgap`) to report
+this as the primary headline number, with the superseded figure kept as context for why the
+model/bug-fix investigation happened in the first place.
+
+### Documentation reconciliation
+
+README's "Current state" summary was still describing end-of-Week-8 status (last touched around PR
+#12) despite five weeks of work landing since. Brought current: model swap, Wazuh adapter, red-team
+eval, and the paper draft's existence are now all mentioned, and the roadmap table's Aug 30 row
+reflects this week's actual scope.
+
+### Problems / Blockers
+
+- None this week that blocked the plan — Groq quota held up across roughly 90 live LLM calls
+  (full-graph re-run + two 60-alert diagnostic runs) without hitting the daily wall that blocked
+  Week 11's work, and held up again across the 209 live calls in the full-scale rerun above.
+
+### Next steps
+
+- GeNIS integration and Wazuh Docker deployment remain deferred, pending supervisor sign-off (Week
+  10/11 status unchanged).
+- If further LLM-accuracy work is prioritized, richer context retrieval (e.g. surfacing similar
+  historically-labeled alerts, not just MITRE technique text) is a more promising direction than
+  further prompt iteration, per this week's finding that prompt engineering alone plateaus well
+  below RF's accuracy on this subset.
