@@ -561,7 +561,7 @@ replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
 ## Week 10 — Wazuh integration research, GeNIS dataset research, literature review finalized
 
 **Branch:** `asma-week-10`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/20 (merged)
 
 Direction for this week came out of a supervisor meeting: investigate Wazuh, look for a newer
 (2025+) SOC-related dataset — specifically one covering SME network traffic, since the project has
@@ -681,7 +681,7 @@ before doing anything about it — noted for Dr. Rana rather than acted on unila
 ## Week 11 — deepteam red-team evaluation of the LLM triage node
 
 **Branch:** `asma-week-11`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/22 (merged)
 
 Not on the original roadmap — new scope, prompted by wanting to close a real, previously-flagged
 gap: the project's only adversarial-input testing (`experiments/soc_domain_eval.py`) has only ever
@@ -809,7 +809,7 @@ Both new result files committed: `experiments/results/deepteam_redteam_promptinj
 ## Week 12 — reliability/accuracy audit of the LLM path, full-graph routing fix, lit review
 
 **Branch:** `asma-week-12`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/23 (merged)
 
 Scope driven by supervisor meeting notes rather than the original roadmap slot: (1) fallback/
 reliability testing with and without the LLM path; (2) justify or challenge the hybrid design's
@@ -969,3 +969,160 @@ reflects this week's actual scope.
   historically-labeled alerts, not just MITRE technique text) is a more promising direction than
   further prompt iteration, per this week's finding that prompt engineering alone plateaus well
   below RF's accuracy on this subset.
+
+---
+
+## Week 13 — pre-submission audit of the paper draft, doc hygiene
+
+**Branch:** `asma-week-13`
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/24 (closed — paper draft moved out of the repo; non-paper content re-landed via PR opened in Week 14)
+
+No new supervisor meeting fell in this slot, so rather than invent new experimental scope (GeNIS
+and Wazuh Docker remain explicitly gated on supervisor sign-off, unchanged from Week 10/11/12),
+this week did an unbiased, re-derive-don't-trust audit of the IEEE-format paper draft against its
+underlying source data, in the same style as Week 10's citation/claims audit.
+
+### Paper audit: one real ~4x error found, plus three smaller issues
+
+Checked every quantitative claim in the paper against its source JSON in `experiments/results/`,
+every citation against `docs/literature-review.md`, and internal consistency with
+`docs/weekly-progress.md`'s own record of what actually happened. Most of the paper held up exactly
+— the 999-alert hybrid numbers (0.646/0.648), the RF baseline (0.751 macro F1), the 300-alert run,
+the red-team pass/fail counts, the scalability-benchmark figures, and all cited arXiv
+IDs/authors/venues all reproduced exactly against source. Four things didn't:
+
+1. **Real error, not a rounding issue:** the section on the retired ML guardrail claimed the
+   real-data benign/injection classifier scores were "mean 0.791 vs. 0.776." The actual measured
+   values, confirmed two independent ways (recomputing directly from
+   `experiments/results/soc_domain_eval_results.json`'s 40-row scores, and cross-checking Week 8's
+   own "Corrected results" table earlier in this file) are **0.209 vs. 0.224** — roughly 4x off.
+   The wrong number had also propagated into `README.md`'s "Novel contribution, landed" paragraph.
+   The qualitative conclusion (statistically indistinguishable, chance-level 52.5% best accuracy)
+   was never wrong — only the two example numbers illustrating it. Fixed in the paper source and
+   (via Week 14, see below) in `README.md`.
+2. **A citation used to justify this paper's own sample size mischaracterized the cited paper.**
+   The Dataset section's sample-size justification described Freitas et al. (GUIDE's own authors)
+   as an example of an "LLM-based" evaluation bounded by "per-call inference cost and rate limits."
+   Their actual investigation module is Random Forest + PCA + cosine similarity — not an LLM at all
+   — and their 1,000-incident cap exists because their evaluation required manual analyst relevance
+   judgments per incident, not API cost. Rewrote the paragraph to attribute the cost/rate-limit
+   constraint correctly to Zhao et al. and to this project's own evaluation, and the
+   manual-judgment constraint to Freitas et al.
+3. **Two bibliography entries were defined but never cited:** `guide2024` (the GUIDE dataset itself
+   — cited nowhere despite the entire Evaluation section depending on it) and `socaugsurvey2025`
+   (Srinivas et al.'s AI-augmented-SOC survey, lit-review Paper 5). Added both at the appropriate
+   points.
+4. **The current production model was never named in the body text**, only "the current model."
+   Named it (`openai/gpt-oss-20b` via Groq) at its first mention.
+
+**Deliberately not touched:** the empty Acknowledgment section — its TODO explicitly defers it to
+issue #16's institutional funding decision, not an oversight.
+
+### Paper draft removed from the public repo
+
+Mid-review, the supervisor (Dr. Rana) flagged that the paper draft (`.tex`/`.pdf`) shouldn't be
+pushed to the public repository. PR #24 was closed, then the paper files were stripped from
+`asma-week-11`/`asma-week-12`/`asma-week-13`'s git history (force-push) and `docs/paper/` was added
+to `.gitignore`. The audit findings above (the numeric-error fix, citation corrections) were applied
+directly to the paper's own source, which now lives outside this repository; only the parts of the
+audit that touch tracked, non-paper files (the `README.md` number, doc hygiene) needed to be
+re-landed — done in Week 14 below, since PR #24 itself stayed closed rather than being reopened
+against a moving `dev`.
+
+### Problems / Blockers
+
+None on the audit itself. The mid-week paper-draft-in-repo policy correction meant PR #24 couldn't
+simply be merged as originally written — see Week 14 for how its non-paper content got re-landed.
+
+---
+
+## Week 14 — land PR #23, re-land Week 13's non-paper fixes, full verification pass
+
+**Branch:** `asma-week-14`
+**PR link:** _[fill in when opened]_
+
+No new supervisor meeting fell in this slot either. Rather than invent new experimental scope, this
+week closed out two pieces of already-approved, already-correct work that hadn't actually landed
+yet, and ran a full verification pass ahead of the Aug 30 writeup checkpoint — the exact situation
+Week 13 named as its own precedent.
+
+### What was actually blocking, and why it wasn't obvious
+
+PR #23 (Week 12) had supervisor approval on record, but GitHub still showed it as open. Re-checking
+its state directly (rather than trusting the last comment in the thread) showed it was already
+`MERGEABLE` / `mergeStateStatus: CLEAN` — the rebase onto `dev` that the approval was waiting on had
+already happened on `origin/asma-week-12`, just never merged. Merged it (`gh pr merge 23 --merge`,
+preserving the repo's existing merge-commit style used for #20/#21/#22); full test suite re-run
+immediately after against the new `dev` tip (32/32 passing) to confirm the merge itself introduced
+no regression.
+
+PR #24 (Week 13) stayed closed rather than reopened, since its branch was force-pushed mid-review
+and reopening against a `dev` that had since moved (via PR #23) would have re-created the same
+conflict problem PR #23 had just been rebased to fix. Re-landing its real, non-paper content as a
+fresh PR onto the post-#23 `dev` was cleaner than fighting a stale branch's history.
+
+### Two real risks found and avoided before touching anything
+
+1. **A stale local branch could have resurrected the removed paper draft.** The `asma-week-12`
+   branch checked out locally in the main working tree still contained the pre-force-push history
+   — including `docs/paper/ieee-conference/draft.tex` and `draft.pdf`, exactly what the supervisor
+   had asked removed — and was missing the `evaluate.py` hardening fix entirely. It had never been
+   pushed anywhere, but working from it (or accidentally pushing it) would have undone the history
+   cleanup. Reset it to match `origin/asma-week-12` before doing anything else, and did all
+   subsequent work from fresh `origin/*` refs in an isolated worktree, never from that branch.
+2. **Porting Week 13's branch wholesale would have silently reverted PR #21's regression fix.**
+   `origin/asma-week-13`'s `src/agent/evaluate.py` and `tests/test_evaluate.py` matched a version of
+   the file from *before* PR #21's hardening — missing the `else`-clause `raise` that turns a real
+   graph-wiring regression into a loud failure instead of a silently-scored `FalsePositive`, and
+   missing the `error_count`/`no_verdict_count` tracking. This isn't mentioned anywhere in Week 13's
+   own write-up, so it reads as an artifact of the branch predating that fix rather than intentional
+   content. Confirmed by diffing `origin/asma-week-13` against `origin/dev` directly: only
+   `evaluate.py`/`test_evaluate.py` regressed; nothing else did. **Only the genuine Week-13 content
+   was ported** — the `README.md` number fix, `.gitignore`'s `docs/paper/` exclusion, and the
+   Week 10/11/12 PR-link backfill in this file — and `evaluate.py`/`test_evaluate.py` were left
+   exactly as `dev` has them post-PR #23. Confirmed after porting: `error_count`, `no_verdict_count`,
+   and the graph-wiring-regression `raise` are all still present in `evaluate.py` on this branch.
+
+### The `README.md` number fix, re-verified independently
+
+Recomputed the benign/injection mean scores directly from
+`experiments/results/soc_domain_eval_results.json`'s 40 `per_row` entries (not just trusted Week
+13's number): benign mean = 0.209 (20 rows, min 0.021, max 0.608), injection mean = 0.224 (20 rows,
+min 0.013, max 0.711) — exact match to Week 13's figure and to Week 8's "Corrected results" table
+earlier in this file. `README.md`'s "Novel contribution, landed" paragraph updated from the wrong
+"0.791 vs 0.776" to the correct "0.209 vs 0.224"; the "Current state" line and PR list updated to
+include #23 and to describe the paper draft as living outside the repo rather than pointing at a
+path that no longer exists in this tree.
+
+### Verification
+
+- `venv/bin/python -m pytest tests/ -q`: **32/32 passing** against the post-PR-#23 `dev` tip, and
+  again **32/32 passing** on this branch after the Week-13 content port — same count both times, no
+  regression introduced by either step. (One environment-only failure was hit and resolved before
+  these counts: a fresh worktree doesn't carry the gitignored `experiments/results/baseline_model.joblib`,
+  which `test_graph_wiring.py`'s RF-fallback test needs; copying it from the main checkout, not a
+  code change, fixed it.)
+- `README.md`'s ported number independently recomputed from source JSON, not copied on trust (see
+  above).
+- `gh pr view 23` confirmed `state: MERGED` after merging.
+
+### Still pending — supervisor, not this session
+
+Per PR #23's own "Left for you" list, unchanged and not acted on here since these are explicitly
+the supervisor's calls to make, not something to guess at:
+
+- Statements & Declarations for the paper: funding, competing interests, ethics-approval wording,
+  the supervisor's own co-authorship (still a `TODO` in the author block), ORCID, and
+  data/code-availability/repo-visibility wording for submission.
+- GeNIS integration and Wazuh Docker deployment — pending sign-off since Week 10, unchanged.
+
+### Problems / Blockers
+
+None that weren't resolved same-session. The two risks in "Two real risks found and avoided" above
+cost investigation time but were caught before anything was pushed, not after.
+
+### Next steps
+
+- Get PR #23's follow-on (this branch) reviewed and merged.
+- Supervisor sign-off on the "Still pending" list above, ahead of the Sep 6 "revise draft" and
+  Sep 8 final-submission checkpoints.
