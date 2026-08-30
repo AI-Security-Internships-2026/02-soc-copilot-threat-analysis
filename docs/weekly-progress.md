@@ -975,7 +975,7 @@ reflects this week's actual scope.
 ## Week 13 — pre-submission audit of the paper draft, doc hygiene
 
 **Branch:** `asma-week-13`
-**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/24 (closed — paper draft moved out of the repo; non-paper content re-landed via PR opened in Week 14)
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/24 (closed — paper draft moved out of the repo; non-paper content re-landed via PR #25, Week 14)
 
 No new supervisor meeting fell in this slot, so rather than invent new experimental scope (GeNIS
 and Wazuh Docker remain explicitly gated on supervisor sign-off, unchanged from Week 10/11/12),
@@ -1039,7 +1039,7 @@ simply be merged as originally written — see Week 14 for how its non-paper con
 ## Week 14 — land PR #23, re-land Week 13's non-paper fixes, full verification pass
 
 **Branch:** `asma-week-14`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/25
 
 No new supervisor meeting fell in this slot either. Rather than invent new experimental scope, this
 week closed out two pieces of already-approved, already-correct work that hadn't actually landed
