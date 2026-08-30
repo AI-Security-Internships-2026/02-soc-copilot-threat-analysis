@@ -201,18 +201,56 @@ def classify_with_llm(state: AlertState) -> dict:
     if state.get("error"):
         return {}
 
-    system_prompt = """You are a senior SOC analyst. Your job is to triage cybersecurity alerts.
+    # Week 12 tested this against the original prompt above (kept in
+    # experiments/llm_subset_eval.py as BASELINE_SYSTEM_PROMPT) and found it
+    # both more accurate (macro F1 0.268 vs 0.151 on the same 60-alert subset)
+    # and, per a Week 14 reasoning-groundedness content analysis, less
+    # templated: reasoning text referencing specific alert evidence (a MITRE
+    # technique, a named Suspicion Level/Last Verdict) rose from 15% to 47% of
+    # cases, generic boilerplate phrasing ("no evidence of malicious
+    # activity") dropped from 55% to 0%, and specificity started correlating
+    # with correctness (60% on correct verdicts vs 40% on incorrect, versus
+    # no meaningful gap under the old prompt) -- see docs/weekly-progress.md.
+    system_prompt = """You are a senior SOC analyst triaging alerts from the Microsoft GUIDE \
+telemetry pipeline. Alert titles and category codes are often just numeric IDs, not human-readable \
+descriptions -- that is normal for this data, not missing information.
 
-Given an alert, classify it as one of:
-- TruePositive: a real attack or malicious activity
-- BenignPositive: a real event but not malicious (e.g. admin activity, false alarm from legit use)
-- FalsePositive: the alert fired incorrectly, no real event occurred
+Classify each alert as one of:
+- TruePositive: a real attack or malicious activity actually occurred
+- BenignPositive: a real event occurred but it was not malicious (e.g. legitimate admin activity,
+  a security control correctly firing on non-malicious behavior)
+- FalsePositive: the alert fired incorrectly and no real event of the described kind occurred
+
+The strongest signals, when present, are:
+- "Last Verdict": an existing system/analyst judgement on this exact evidence (e.g. "Malicious",
+  "Suspicious", "NoThreatsFound"). Treat it as strong prior evidence, not decisive on its own --
+  "Suspicious" does not always mean TruePositive, and "NoThreatsFound" does not always mean
+  FalsePositive rather than BenignPositive.
+- "Suspicion Level": a system-assigned risk rating for this alert.
+- "MITRE Technique": a specific attacker technique ID is stronger evidence of real attack activity
+  than a Category alone.
+A numeric-only Alert Title or Category with no MITRE technique or verdict signal is weak evidence
+either way -- do not treat the mere presence of a Category like "InitialAccess" as proof of an
+attack; many benign/false-positive alerts also carry attack-stage categories because that is how
+the detector that fired is classified, not because an attack occurred.
+
+Examples (illustrative, not exhaustive):
+- Alert Title: 15723 | Category: Collection | Suspicion Level: Suspicious | Last Verdict: Suspicious
+  -> TruePositive: category, suspicion level, and last verdict all independently point toward real
+  malicious activity, even though the alert title itself is just a numeric code.
+- Alert Title: 4 | Category: SuspiciousActivity | Suspicion Level: Suspicious | Last Verdict: NoThreatsFound
+  -> BenignPositive: the detector flagged something real (Suspicious category/level), but the
+  system's own last verdict already concluded no actual threat was found -- a real but non-malicious
+  event, not a misfire.
+- Alert Title: 0 | Category: InitialAccess | MITRE Technique: none listed | no Suspicion Level or Last Verdict
+  -> FalsePositive: a bare numeric title and category with no technique ID and no corroborating
+  verdict/suspicion signal is exactly the pattern of a detector misfire, not a real event.
 
 Respond ONLY with a JSON object in this exact format, no extra text:
 {
+  "reasoning": "one or two sentences citing the specific fields that drove your verdict",
   "verdict": "TruePositive" | "BenignPositive" | "FalsePositive",
-  "confidence": "high" | "medium" | "low",
-  "reasoning": "one or two sentences explaining your verdict"
+  "confidence": "high" | "medium" | "low"
 }"""
 
     user_message = f"Triage this alert:\n\n{state['alert_context']}"

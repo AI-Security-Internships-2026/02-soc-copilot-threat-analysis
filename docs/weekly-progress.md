@@ -561,7 +561,7 @@ replacing it: `regex_guardrail → schema_guardrail → fetch_mitre_context →
 ## Week 10 — Wazuh integration research, GeNIS dataset research, literature review finalized
 
 **Branch:** `asma-week-10`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/20 (merged)
 
 Direction for this week came out of a supervisor meeting: investigate Wazuh, look for a newer
 (2025+) SOC-related dataset — specifically one covering SME network traffic, since the project has
@@ -681,7 +681,7 @@ before doing anything about it — noted for Dr. Rana rather than acted on unila
 ## Week 11 — deepteam red-team evaluation of the LLM triage node
 
 **Branch:** `asma-week-11`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/22 (merged)
 
 Not on the original roadmap — new scope, prompted by wanting to close a real, previously-flagged
 gap: the project's only adversarial-input testing (`experiments/soc_domain_eval.py`) has only ever
@@ -809,7 +809,7 @@ Both new result files committed: `experiments/results/deepteam_redteam_promptinj
 ## Week 12 — reliability/accuracy audit of the LLM path, full-graph routing fix, lit review
 
 **Branch:** `asma-week-12`
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/23 (merged)
 
 Scope driven by supervisor meeting notes rather than the original roadmap slot: (1) fallback/
 reliability testing with and without the LLM path; (2) justify or challenge the hybrid design's
@@ -969,3 +969,341 @@ reflects this week's actual scope.
   historically-labeled alerts, not just MITRE technique text) is a more promising direction than
   further prompt iteration, per this week's finding that prompt engineering alone plateaus well
   below RF's accuracy on this subset.
+
+---
+
+## Week 13 — pre-submission audit of the paper draft, doc hygiene
+
+**Branch:** `asma-week-13`
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/24 (closed — paper draft moved out of the repo; non-paper content re-landed via PR #25, Week 14)
+
+No new supervisor meeting fell in this slot, so rather than invent new experimental scope (GeNIS
+and Wazuh Docker remain explicitly gated on supervisor sign-off, unchanged from Week 10/11/12),
+this week did an unbiased, re-derive-don't-trust audit of the IEEE-format paper draft against its
+underlying source data, in the same style as Week 10's citation/claims audit.
+
+### Paper audit: one real ~4x error found, plus three smaller issues
+
+Checked every quantitative claim in the paper against its source JSON in `experiments/results/`,
+every citation against `docs/literature-review.md`, and internal consistency with
+`docs/weekly-progress.md`'s own record of what actually happened. Most of the paper held up exactly
+— the 999-alert hybrid numbers (0.646/0.648), the RF baseline (0.751 macro F1), the 300-alert run,
+the red-team pass/fail counts, the scalability-benchmark figures, and all cited arXiv
+IDs/authors/venues all reproduced exactly against source. Four things didn't:
+
+1. **Real error, not a rounding issue:** the section on the retired ML guardrail claimed the
+   real-data benign/injection classifier scores were "mean 0.791 vs. 0.776." The actual measured
+   values, confirmed two independent ways (recomputing directly from
+   `experiments/results/soc_domain_eval_results.json`'s 40-row scores, and cross-checking Week 8's
+   own "Corrected results" table earlier in this file) are **0.209 vs. 0.224** — roughly 4x off.
+   The wrong number had also propagated into `README.md`'s "Novel contribution, landed" paragraph.
+   The qualitative conclusion (statistically indistinguishable, chance-level 52.5% best accuracy)
+   was never wrong — only the two example numbers illustrating it. Fixed in the paper source and
+   (via Week 14, see below) in `README.md`.
+2. **A citation used to justify this paper's own sample size mischaracterized the cited paper.**
+   The Dataset section's sample-size justification described Freitas et al. (GUIDE's own authors)
+   as an example of an "LLM-based" evaluation bounded by "per-call inference cost and rate limits."
+   Their actual investigation module is Random Forest + PCA + cosine similarity — not an LLM at all
+   — and their 1,000-incident cap exists because their evaluation required manual analyst relevance
+   judgments per incident, not API cost. Rewrote the paragraph to attribute the cost/rate-limit
+   constraint correctly to Zhao et al. and to this project's own evaluation, and the
+   manual-judgment constraint to Freitas et al.
+3. **Two bibliography entries were defined but never cited:** `guide2024` (the GUIDE dataset itself
+   — cited nowhere despite the entire Evaluation section depending on it) and `socaugsurvey2025`
+   (Srinivas et al.'s AI-augmented-SOC survey, lit-review Paper 5). Added both at the appropriate
+   points.
+4. **The current production model was never named in the body text**, only "the current model."
+   Named it (`openai/gpt-oss-20b` via Groq) at its first mention.
+
+**Deliberately not touched:** the empty Acknowledgment section — its TODO explicitly defers it to
+issue #16's institutional funding decision, not an oversight.
+
+### Paper draft removed from the public repo
+
+Mid-review, the supervisor (Dr. Rana) flagged that the paper draft (`.tex`/`.pdf`) shouldn't be
+pushed to the public repository. PR #24 was closed, then the paper files were stripped from
+`asma-week-11`/`asma-week-12`/`asma-week-13`'s git history (force-push) and `docs/paper/` was added
+to `.gitignore`. The audit findings above (the numeric-error fix, citation corrections) were applied
+directly to the paper's own source, which now lives outside this repository; only the parts of the
+audit that touch tracked, non-paper files (the `README.md` number, doc hygiene) needed to be
+re-landed — done in Week 14 below, since PR #24 itself stayed closed rather than being reopened
+against a moving `dev`.
+
+### Problems / Blockers
+
+None on the audit itself. The mid-week paper-draft-in-repo policy correction meant PR #24 couldn't
+simply be merged as originally written — see Week 14 for how its non-paper content got re-landed.
+
+---
+
+## Week 14 — land PR #23, re-land Week 13's non-paper fixes, full verification pass
+
+**Branch:** `asma-week-14`
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/25
+
+No new supervisor meeting fell in this slot either. Rather than invent new experimental scope, this
+week closed out two pieces of already-approved, already-correct work that hadn't actually landed
+yet, and ran a full verification pass ahead of the Aug 30 writeup checkpoint — the exact situation
+Week 13 named as its own precedent.
+
+### What was actually blocking, and why it wasn't obvious
+
+PR #23 (Week 12) had supervisor approval on record, but GitHub still showed it as open. Re-checking
+its state directly (rather than trusting the last comment in the thread) showed it was already
+`MERGEABLE` / `mergeStateStatus: CLEAN` — the rebase onto `dev` that the approval was waiting on had
+already happened on `origin/asma-week-12`, just never merged. Merged it (`gh pr merge 23 --merge`,
+preserving the repo's existing merge-commit style used for #20/#21/#22); full test suite re-run
+immediately after against the new `dev` tip (32/32 passing) to confirm the merge itself introduced
+no regression.
+
+PR #24 (Week 13) stayed closed rather than reopened, since its branch was force-pushed mid-review
+and reopening against a `dev` that had since moved (via PR #23) would have re-created the same
+conflict problem PR #23 had just been rebased to fix. Re-landing its real, non-paper content as a
+fresh PR onto the post-#23 `dev` was cleaner than fighting a stale branch's history.
+
+### Two real risks found and avoided before touching anything
+
+1. **A stale local branch could have resurrected the removed paper draft.** The `asma-week-12`
+   branch checked out locally in the main working tree still contained the pre-force-push history
+   — including `docs/paper/ieee-conference/draft.tex` and `draft.pdf`, exactly what the supervisor
+   had asked removed — and was missing the `evaluate.py` hardening fix entirely. It had never been
+   pushed anywhere, but working from it (or accidentally pushing it) would have undone the history
+   cleanup. Reset it to match `origin/asma-week-12` before doing anything else, and did all
+   subsequent work from fresh `origin/*` refs in an isolated worktree, never from that branch.
+2. **Porting Week 13's branch wholesale would have silently reverted PR #21's regression fix.**
+   `origin/asma-week-13`'s `src/agent/evaluate.py` and `tests/test_evaluate.py` matched a version of
+   the file from *before* PR #21's hardening — missing the `else`-clause `raise` that turns a real
+   graph-wiring regression into a loud failure instead of a silently-scored `FalsePositive`, and
+   missing the `error_count`/`no_verdict_count` tracking. This isn't mentioned anywhere in Week 13's
+   own write-up, so it reads as an artifact of the branch predating that fix rather than intentional
+   content. Confirmed by diffing `origin/asma-week-13` against `origin/dev` directly: only
+   `evaluate.py`/`test_evaluate.py` regressed; nothing else did. **Only the genuine Week-13 content
+   was ported** — the `README.md` number fix, `.gitignore`'s `docs/paper/` exclusion, and the
+   Week 10/11/12 PR-link backfill in this file — and `evaluate.py`/`test_evaluate.py` were left
+   exactly as `dev` has them post-PR #23. Confirmed after porting: `error_count`, `no_verdict_count`,
+   and the graph-wiring-regression `raise` are all still present in `evaluate.py` on this branch.
+
+### The `README.md` number fix, re-verified independently
+
+Recomputed the benign/injection mean scores directly from
+`experiments/results/soc_domain_eval_results.json`'s 40 `per_row` entries (not just trusted Week
+13's number): benign mean = 0.209 (20 rows, min 0.021, max 0.608), injection mean = 0.224 (20 rows,
+min 0.013, max 0.711) — exact match to Week 13's figure and to Week 8's "Corrected results" table
+earlier in this file. `README.md`'s "Novel contribution, landed" paragraph updated from the wrong
+"0.791 vs 0.776" to the correct "0.209 vs 0.224"; the "Current state" line and PR list updated to
+include #23 and to describe the paper draft as living outside the repo rather than pointing at a
+path that no longer exists in this tree.
+
+### Verification
+
+- `venv/bin/python -m pytest tests/ -q`: **32/32 passing** against the post-PR-#23 `dev` tip, and
+  again **32/32 passing** on this branch after the Week-13 content port — same count both times, no
+  regression introduced by either step. (One environment-only failure was hit and resolved before
+  these counts: a fresh worktree doesn't carry the gitignored `experiments/results/baseline_model.joblib`,
+  which `test_graph_wiring.py`'s RF-fallback test needs; copying it from the main checkout, not a
+  code change, fixed it.)
+- `README.md`'s ported number independently recomputed from source JSON, not copied on trust (see
+  above).
+- `gh pr view 23` confirmed `state: MERGED` after merging.
+
+### Still pending — supervisor, not this session
+
+Per PR #23's own "Left for you" list, unchanged and not acted on here since these are explicitly
+the supervisor's calls to make, not something to guess at:
+
+- Statements & Declarations for the paper: funding, competing interests, ethics-approval wording,
+  the supervisor's own co-authorship (still a `TODO` in the author block), ORCID, and
+  data/code-availability/repo-visibility wording for submission.
+- GeNIS integration and Wazuh Docker deployment — pending sign-off since Week 10, unchanged.
+
+### Problems / Blockers
+
+None that weren't resolved same-session. The two risks in "Two real risks found and avoided" above
+cost investigation time but were caught before anything was pushed, not after.
+
+### Next steps
+
+- Get PR #23's follow-on (this branch) reviewed and merged.
+- Supervisor sign-off on the "Still pending" list above, ahead of the Sep 6 "revise draft" and
+  Sep 8 final-submission checkpoints.
+
+### Continued (2026-08-30): closing the "is the LLM path worth it" gap the paper itself flagged as untested
+
+The paper's Discussion section (`sec:discussion`) says plainly: *"We did not run an analyst-rated
+evaluation of \[the LLM's reasoning\]'s usefulness, so we do not assert the trade-off is worth
+it."* That's an honest limitation, not a hole to leave alone indefinitely — a real SOC-analyst
+panel is out of scope for this project, but a rule-based content analysis of what the reasoning
+text actually contains is not, and it's a meaningfully different question from raw accuracy. This
+session ran that analysis.
+
+**Method.** For every LLM-routed alert where full reasoning text is available (60-alert baseline
+diagnostic, 60-alert improved-prompt diagnostic, and the full 209-alert LLM-routed subset of the
+999-alert production run), classify each reasoning string two ways: (1) does it contain a
+*specific, checkable evidence marker* — a MITRE technique ID (regex `T\d{4}`), a named prior
+verdict (`TruePositive`/`FalsePositive`/`BenignPositive`/`NoThreatsFound`), or an explicit
+reference to `Suspicion Level`/`Category`; (2) does it contain known *generic-boilerplate* phrasing
+("no evidence of malicious activity", "insufficient evidence", "no actionable details", etc, that
+say nothing about which specific field drove the verdict). Also measured: exact-string uniqueness
+(a proxy for template collapse) and whether specificity correlates with prediction correctness.
+This is **not** an analyst-rated usefulness score — it can't tell us whether a real analyst would
+find the reasoning helpful — but it directly tests whether the reasoning is alert-specific and
+evidence-grounded versus templated filler, which is a necessary (not sufficient) condition for the
+qualitative value the paper's Discussion claims but doesn't verify.
+
+**Result: the deployed prompt's reasoning was mostly generic; a prompt Week 12 had already tested
+and found more accurate was also, independently, far more grounded — and had never been deployed.**
+
+| | baseline prompt (60, offline) | baseline prompt (209, production) | improved prompt (60, offline) |
+|---|---|---|---|
+| Exact-string uniqueness | 58.3% | 40.2% | 65.0% |
+| Contains generic boilerplate | 55.0% | 36.4% | **0.0%** |
+| Contains specific/grounded marker | 15.0% | 16.3% | **46.7%** |
+| Specificity, correct preds | 17.6% | 18.8% | **60.0%** |
+| Specificity, incorrect preds | 14.0% | 15.5% | 40.0% |
+
+Under the prompt that was actually running in production (`src/agent/nodes.py`, unchanged since
+Week 3), specificity barely differs between correct and incorrect predictions (roughly a 3-4 point
+gap) — grounding, such as it is, isn't tracking correctness. Under the improved prompt Week 12
+already tested for accuracy (`experiments/llm_subset_eval.py`'s `IMPROVED_SYSTEM_PROMPT` — explicit
+field-signal guidance, three grounded few-shot examples, reasoning written before verdict), that
+gap widens to 20 points, and generic boilerplate phrasing disappears entirely. This lines up with
+Week 12's own accuracy finding for the same prompt (macro F1 0.268 vs.\ 0.151 on the same 60-alert
+set) — the same change that made the model more accurate also made its stated reasoning more
+grounded, which is the kind of convergent evidence a single metric alone wouldn't have shown.
+
+**Finding, stated plainly: the trade-off was not being used correctly, because the tested-and-better
+prompt was never deployed.** Week 12 ran this exact comparison, reported the accuracy result in the
+paper, and then left the production code (`classify_with_llm` in `src/agent/nodes.py`) on the
+original prompt regardless — an oversight, not a considered decision; nothing in Week 12's own
+write-up argues for keeping the old prompt. That's a real gap between what the evaluation showed
+and what was actually running.
+
+**Action taken:** deployed the improved prompt to `src/agent/nodes.py`'s `classify_with_llm`,
+replacing the original inline prompt. Full test suite re-run: 32/32 passing (no test asserts on
+exact prompt text; `parse_verdict` reads JSON by key name, so the improved prompt's
+reasoning-before-verdict key ordering doesn't affect parsing). **Live-verified against the real
+pipeline**, not just the offline diagnostic script: ran 10 real high-context GUIDE alerts (sampled
+from 46,547 candidates with \ge2 of the three routing-evidence fields present) through
+`build_triage_graph().invoke()` end-to-end against live Groq. All 10 completed with no errors, all
+10 correctly routed through the `llm` path, and scored against the same specificity metric: **10/10
+(100%) grounded**, 70% exact-string-unique — consistent with, and even stronger than, the offline
+60-alert improved-prompt result, live-verified in the actual production code path rather than only
+the standalone `experiments/` diagnostic script.
+
+**What this does and doesn't close.** This is real, reproducible, live-verified evidence that the
+LLM's reasoning output is now substantially more evidence-grounded than it was — a concrete,
+testable proxy for "is the reasoning useful," not a stand-in for the human-analyst rating the paper
+still correctly flags as absent. It does not change the accuracy conclusion (Section
+`sec:llmgap`'s honest finding — LLM-routed accuracy still trails RF by a wide margin — is
+unaffected; the improved prompt raises it from 0.151 to 0.268 macro F1 on the diagnostic subset,
+still well below RF's 0.751). What it does add: independent, convergent evidence (accuracy *and*
+grounding both improve together under the same prompt change) that strengthens the paper's existing
+narrower claim — routing by evidence density is the right design regardless of the LLM subset's
+accuracy — by showing that when the LLM is used correctly (the tested-better prompt, actually
+deployed), its qualitative output is measurably less generic, not just numerically more accurate.
+
+**Honest limitation, stated rather than skipped:** the improved-prompt accuracy/groundedness
+comparison above is still only a 60-alert diagnostic, not the full 209-alert scale used for the
+baseline prompt's production numbers. Re-running the improved prompt at full 209-alert scale would
+strengthen this further, but was not done this session — each live Groq call against this longer,
+few-shot-example-laden prompt costs meaningfully more tokens per call than the original, and this
+project has hit Groq's daily quota wall before (Week 11) from cumulative same-day testing; time-
+boxing this at a live-verified 10-alert spot-check plus the existing 60-alert offline diagnostic was
+a deliberate choice to get a real, live-verified result without risking a repeat of that quota
+exhaustion. Flagged explicitly as the next step below, not silently left incomplete.
+
+### Next steps (continued)
+
+- ~~Re-run the improved prompt at the full 209-alert LLM-routed scale~~ — done same day, see
+  below.
+- A true analyst-rated usefulness evaluation remains the one thing this session's content analysis
+  cannot substitute for — still an open item, not resolved by the above.
+
+### Continued (2026-08-30, same day): full 209-alert re-run — confirms the accuracy/groundedness
+gain, and surfaces a more important finding the 60-alert diagnostic couldn't show
+
+Reproduced the exact same 209 LLM-routed alerts used in the paper's 999-alert headline run (same
+cached seed-42 sample, `should_use_fallback` routing verified to reproduce the original 790/209
+split exactly before spending any live calls) and ran all 209 live against Groq under the now
+deployed improved prompt. 209/209 completed, zero errors, ~26 minutes wall time. Full results in
+`experiments/results/llm_subset_eval_improved_full209.json`.
+
+**Accuracy and groundedness both improve at full scale, though the accuracy gain is smaller than
+the 60-alert diagnostic suggested.**
+
+| | baseline (n=209) | improved (n=209) |
+|---|---|---|
+| Accuracy | 0.230 | 0.282 |
+| Macro F1 | 0.174 | 0.212 |
+| Grounded/specific reasoning | 16.3% | **99.0%** |
+| Generic boilerplate | 36.4% | **0.0%** |
+
+The macro F1 gain (0.174 → 0.212) is real but smaller than the 60-alert diagnostic's 0.151 → 0.268
+— expected, since a 60-alert stratified sample has more sampling variance than the full 209. The
+groundedness gain, by contrast, is *larger* and more complete at full scale than the diagnostic
+suggested (99.0% vs the diagnostic's 46.7%) — virtually every response now cites concrete evidence.
+**Methodological caveat, reported rather than hidden:** at 99% grounded, the specificity-vs-
+correctness correlation from the 60-alert diagnostic (60% vs 40%) disappears at full scale (100.0%
+vs 98.7%) — a ceiling effect. The regex-based specificity metric is now saturated: the improved
+prompt's instructions essentially require citing field names in every response, so presence of a
+field-name marker stops being informative about whether the underlying reasoning is *correct*, only
+that it's *format-compliant*. This is a real limitation of the proxy metric, not a retraction of the
+groundedness finding itself (0% boilerplate and 99% concrete field citation are still true and
+still meaningfully different from the baseline prompt's 36%/16%) — but it means the metric can no
+longer distinguish good reasoning from bad reasoning at this prompt's compliance level, only
+grounded from ungrounded.
+
+**The more important finding: both prompts collapse to a single dominant class, but onto opposite
+classes — and the direction matters for security risk, not just the macro F1 number.**
+
+| | baseline prompt | improved prompt |
+|---|---|---|
+| Prediction distribution | 187/209 FalsePositive (89.5%) | 147/209 TruePositive (70.3%) |
+| TruePositive recall (real attacks caught) | **0.07** | **0.54** |
+| FalsePositive recall (false alarms caught) | 0.89 | **0.01** |
+
+The baseline prompt's near-total collapse into "FalsePositive" means it misses 93% of actual
+attacks (57 of 61 TruePositive-ground-truth alerts predicted as something else) — the single worst
+failure mode a SOC triage tool can have, since a missed attack is not a workload problem, it is a
+security incident that goes unflagged. The improved prompt inverts this: it now catches 54% of real
+attacks (up from 7%), a large, operationally significant gain, but at the cost of collapsing the
+opposite direction — only 2 of 45 FalsePositive-ground-truth alerts are correctly labeled, with 38
+mislabeled TruePositive and 7 BenignPositive. Standard SOC risk framing weights missed detections
+far above excess false alarms (an over-triggered detector costs analyst minutes; a missed attack
+does not get a second chance), so on this specific, more operationally important axis than macro
+F1, the improved prompt is a clear net improvement, not just a numerically larger number.
+
+**But this needs a real caveat, not a clean "deploy and done" story: the pipeline's own
+confidence-based human-review safety net does not catch most of the improved prompt's new failure
+mode.** `route_after_verdict` (`src/agent/nodes.py`) only auto-closes `confidence == "high"`
+verdicts; everything else routes to human review. Checked directly: of the 45 FalsePositive-truth
+alerts the improved prompt gets wrong, **42 (93%)** were scored `high` confidence -- meaning the
+pipeline would auto-close them as a confidently-stated "real attack" with no human ever reviewing
+the call, rather than flagging the low reliability that's actually there. By contrast, of the 28
+TruePositive-truth alerts the improved prompt misses, only 4 are high-confidence; 23 are `medium`
+(routes to human review) and 1 is `low` -- so most *missed real attacks* still get a human look,
+while most *wrongly-escalated false positives* do not. The model's stated confidence is not
+tracking its actual reliability on the FalsePositive class specifically, and the safety net that's
+supposed to catch exactly this kind of unreliability isn't triggering for it.
+
+**Decision: keep the improved prompt deployed, with the confidence-miscalibration gap flagged as a
+concrete, scoped follow-up rather than reverted.** The security-priority reasoning above (missed
+attacks are categorically worse than excess false alarms) favors this prompt over the original even
+with the new failure mode, and reverting would restore the 7%-attack-recall behavior, which is
+worse on the metric that matters most. The actionable gap is narrower than "the prompt doesn't
+work": the model needs to stop reporting `high` confidence when its main evidence is a bare
+`Suspicion Level`/`Last Verdict` match without a corroborating MITRE technique or category-specific
+signal -- exactly the over-generalization the prompt's own few-shot examples warn against
+(``'Suspicious' does not always mean TruePositive'') but that the model isn't consistently applying
+to its own confidence self-report. A confidence-calibration pass (e.g. explicitly downgrading
+confidence when Suspicion Level/Last Verdict are the *only* signal present) is a well-scoped next
+step, distinct from and more targeted than another round of general prompt iteration.
+
+### Next steps (continued, 2)
+
+- Confidence-calibration follow-up on the improved prompt: reduce `high`-confidence self-reports
+  specifically when Suspicion Level/Last Verdict are the only evidence present, so more of the
+  FalsePositive-collapse cases route to human review instead of auto-closing. Concrete and scoped,
+  not another open-ended prompt-engineering pass.
+- A true analyst-rated usefulness evaluation remains the one thing this session's content analysis
+  cannot substitute for — still an open item.
