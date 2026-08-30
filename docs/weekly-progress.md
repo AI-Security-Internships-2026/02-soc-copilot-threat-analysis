@@ -1126,3 +1126,96 @@ cost investigation time but were caught before anything was pushed, not after.
 - Get PR #23's follow-on (this branch) reviewed and merged.
 - Supervisor sign-off on the "Still pending" list above, ahead of the Sep 6 "revise draft" and
   Sep 8 final-submission checkpoints.
+
+### Continued (2026-08-30): closing the "is the LLM path worth it" gap the paper itself flagged as untested
+
+The paper's Discussion section (`sec:discussion`) says plainly: *"We did not run an analyst-rated
+evaluation of \[the LLM's reasoning\]'s usefulness, so we do not assert the trade-off is worth
+it."* That's an honest limitation, not a hole to leave alone indefinitely — a real SOC-analyst
+panel is out of scope for this project, but a rule-based content analysis of what the reasoning
+text actually contains is not, and it's a meaningfully different question from raw accuracy. This
+session ran that analysis.
+
+**Method.** For every LLM-routed alert where full reasoning text is available (60-alert baseline
+diagnostic, 60-alert improved-prompt diagnostic, and the full 209-alert LLM-routed subset of the
+999-alert production run), classify each reasoning string two ways: (1) does it contain a
+*specific, checkable evidence marker* — a MITRE technique ID (regex `T\d{4}`), a named prior
+verdict (`TruePositive`/`FalsePositive`/`BenignPositive`/`NoThreatsFound`), or an explicit
+reference to `Suspicion Level`/`Category`; (2) does it contain known *generic-boilerplate* phrasing
+("no evidence of malicious activity", "insufficient evidence", "no actionable details", etc, that
+say nothing about which specific field drove the verdict). Also measured: exact-string uniqueness
+(a proxy for template collapse) and whether specificity correlates with prediction correctness.
+This is **not** an analyst-rated usefulness score — it can't tell us whether a real analyst would
+find the reasoning helpful — but it directly tests whether the reasoning is alert-specific and
+evidence-grounded versus templated filler, which is a necessary (not sufficient) condition for the
+qualitative value the paper's Discussion claims but doesn't verify.
+
+**Result: the deployed prompt's reasoning was mostly generic; a prompt Week 12 had already tested
+and found more accurate was also, independently, far more grounded — and had never been deployed.**
+
+| | baseline prompt (60, offline) | baseline prompt (209, production) | improved prompt (60, offline) |
+|---|---|---|---|
+| Exact-string uniqueness | 58.3% | 40.2% | 65.0% |
+| Contains generic boilerplate | 55.0% | 36.4% | **0.0%** |
+| Contains specific/grounded marker | 15.0% | 16.3% | **46.7%** |
+| Specificity, correct preds | 17.6% | 18.8% | **60.0%** |
+| Specificity, incorrect preds | 14.0% | 15.5% | 40.0% |
+
+Under the prompt that was actually running in production (`src/agent/nodes.py`, unchanged since
+Week 3), specificity barely differs between correct and incorrect predictions (roughly a 3-4 point
+gap) — grounding, such as it is, isn't tracking correctness. Under the improved prompt Week 12
+already tested for accuracy (`experiments/llm_subset_eval.py`'s `IMPROVED_SYSTEM_PROMPT` — explicit
+field-signal guidance, three grounded few-shot examples, reasoning written before verdict), that
+gap widens to 20 points, and generic boilerplate phrasing disappears entirely. This lines up with
+Week 12's own accuracy finding for the same prompt (macro F1 0.268 vs.\ 0.151 on the same 60-alert
+set) — the same change that made the model more accurate also made its stated reasoning more
+grounded, which is the kind of convergent evidence a single metric alone wouldn't have shown.
+
+**Finding, stated plainly: the trade-off was not being used correctly, because the tested-and-better
+prompt was never deployed.** Week 12 ran this exact comparison, reported the accuracy result in the
+paper, and then left the production code (`classify_with_llm` in `src/agent/nodes.py`) on the
+original prompt regardless — an oversight, not a considered decision; nothing in Week 12's own
+write-up argues for keeping the old prompt. That's a real gap between what the evaluation showed
+and what was actually running.
+
+**Action taken:** deployed the improved prompt to `src/agent/nodes.py`'s `classify_with_llm`,
+replacing the original inline prompt. Full test suite re-run: 32/32 passing (no test asserts on
+exact prompt text; `parse_verdict` reads JSON by key name, so the improved prompt's
+reasoning-before-verdict key ordering doesn't affect parsing). **Live-verified against the real
+pipeline**, not just the offline diagnostic script: ran 10 real high-context GUIDE alerts (sampled
+from 46,547 candidates with \ge2 of the three routing-evidence fields present) through
+`build_triage_graph().invoke()` end-to-end against live Groq. All 10 completed with no errors, all
+10 correctly routed through the `llm` path, and scored against the same specificity metric: **10/10
+(100%) grounded**, 70% exact-string-unique — consistent with, and even stronger than, the offline
+60-alert improved-prompt result, live-verified in the actual production code path rather than only
+the standalone `experiments/` diagnostic script.
+
+**What this does and doesn't close.** This is real, reproducible, live-verified evidence that the
+LLM's reasoning output is now substantially more evidence-grounded than it was — a concrete,
+testable proxy for "is the reasoning useful," not a stand-in for the human-analyst rating the paper
+still correctly flags as absent. It does not change the accuracy conclusion (Section
+`sec:llmgap`'s honest finding — LLM-routed accuracy still trails RF by a wide margin — is
+unaffected; the improved prompt raises it from 0.151 to 0.268 macro F1 on the diagnostic subset,
+still well below RF's 0.751). What it does add: independent, convergent evidence (accuracy *and*
+grounding both improve together under the same prompt change) that strengthens the paper's existing
+narrower claim — routing by evidence density is the right design regardless of the LLM subset's
+accuracy — by showing that when the LLM is used correctly (the tested-better prompt, actually
+deployed), its qualitative output is measurably less generic, not just numerically more accurate.
+
+**Honest limitation, stated rather than skipped:** the improved-prompt accuracy/groundedness
+comparison above is still only a 60-alert diagnostic, not the full 209-alert scale used for the
+baseline prompt's production numbers. Re-running the improved prompt at full 209-alert scale would
+strengthen this further, but was not done this session — each live Groq call against this longer,
+few-shot-example-laden prompt costs meaningfully more tokens per call than the original, and this
+project has hit Groq's daily quota wall before (Week 11) from cumulative same-day testing; time-
+boxing this at a live-verified 10-alert spot-check plus the existing 60-alert offline diagnostic was
+a deliberate choice to get a real, live-verified result without risking a repeat of that quota
+exhaustion. Flagged explicitly as the next step below, not silently left incomplete.
+
+### Next steps (continued)
+
+- Re-run the improved prompt at the full 209-alert LLM-routed scale (matching the baseline
+  prompt's existing full-scale numbers) once quota budget allows, for a fully like-for-like
+  comparison rather than a 60-alert diagnostic plus a 10-alert spot-check.
+- A true analyst-rated usefulness evaluation remains the one thing this session's content analysis
+  cannot substitute for — still an open item, not resolved by the above.
