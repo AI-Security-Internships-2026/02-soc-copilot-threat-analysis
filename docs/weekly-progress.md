@@ -1465,6 +1465,76 @@ explanation but cannot change a triage outcome, a review decision, or any report
   commit in June; it is now a complete report whose every figure was cross-checked against its
   source JSON (16/16 verified). Abstract is 246 words, inside the venue's 150–250 range.
 
+### Closing a citation that pointed at nothing
+
+The paper cites `experiments/results/schema_guardrail_eval.json` for both halves of the schema
+guardrail's headline claim. **That file does not exist in this repository.** It was produced on the
+PR #19 branch, which was merged into `asma-week-09` — a branch already merged to `dev` two weeks
+earlier — so it never reached the mainline. Issue #16 item E1 was marked done on the strength of
+that merge. The paper has therefore been citing an artifact no reader could reproduce, and the same
+dead-branch merge is why the paper's RF-60/120 and hybrid benchmark tables cite rows absent from
+`week7_scalability_benchmark.json` on `dev`.
+
+`experiments/schema_guardrail_eval.py` regenerates it from committed inputs: 100% on the balanced
+synthetic set, **0/5000 false positives** on real `AlertTitle` values. Both halves now reproduce.
+Two caveats are recorded in the JSON rather than left implicit — the synthetic result is true by
+construction (the check rejects anything not int-parseable, so any non-numeric set scores 100%),
+and the real-data result covers the first 5,000 rows in file order, supporting "no false positives
+among the first 5,000 encountered" rather than a claim about the full 86,149-value population.
+
+### Paper re-centred
+
+The draft's thesis was the guardrail-transfer negative result. This week produced a larger and
+better-evidenced one, so the paper now leads with it: *"LLM as Explainer, Not Classifier: A Paired
+Evaluation of Language-Model Alert Triage on Structured Security Telemetry."* New sections 4.5
+(paired comparison), 4.6 (calibration), 4.7 (effect of the change) and 4.9 (guardrail layers);
+discussion, limitations and conclusion rewritten around the current claims. All 17 quoted figures
+cross-checked programmatically against source JSON. The abstract is 246 words, **counted** — the
+previous draft claimed ~230 while actually running to 298.
+
+Three previously-reported figures were corrected: the regex microbenchmark was quoted at 3.766 µs
+where the committed file says **3.616** (the 3.766 value came from the same dead branch); the
+microbenchmark's "10,000/10,000 injection alerts blocked" was being read as a detection rate when
+it is repeated evaluation of two hardcoded strings, one written to match an existing pattern; and
+the n=30/n=60 scalability accuracy rows are stated as invalid rather than quoted.
+
+Committed on `recovered-paper-springer-ijis`, which has no remote. Per Dr. Rana's PR #24
+instruction the paper stays out of the public repository.
+
+### Documentation consistency pass
+
+Week 15's architecture change invalidated claims in several docs that were accurate when written:
+
+- **`docs/redteam-deepteam-eval.md`** — added a limitation that had been missed at write-up time:
+  **four of the seven "passes" in the first run are `"output": "[error] None"`** — the target
+  returning nothing, which the judge scored as resistance while stating the AI "did not engage."
+  Genuine conclusive coverage in that run is **3/12, not 7/12**, and 0% attack success should be
+  quoted against 3 cases. Also added a Week 15 section: since the LLM no longer assigns verdicts,
+  a successful injection can corrupt an *explanation* but not a triage outcome, so the existing
+  full-graph runs measure a pipeline that no longer exists and re-running against `rf_primary`
+  targeting explanation integrity is now the highest-value open item there.
+- **`docs/wazuh-integration.md`** — the RF-path caveat **got wider, not narrower**. It was scoped to
+  sparse alerts routed to the fallback; the RF now classifies *every* alert, so it applies to all
+  Wazuh traffic. An origin tag plus a hard "always review non-GUIDE alerts" rule is now the minimum
+  bar before any live feed. Honest description: a validated schema adapter with an unvalidated
+  classifier behind it.
+- **`datasets/README.md`** — corrected a factually wrong line. It claimed *"Using GUIDE's provided
+  train/test split"*; `GUIDE_Test.csv` is **never read by any code in this repository** (verified by
+  grep). Documented what is actually used, with the measured 1.91% overlap. Filled the download-date
+  placeholder (2024-07-11, sourced from the evaluation-sample sidecar's `modified_ns`, whose
+  `size_bytes` still matches the file exactly) and added the directly-counted row counts and class
+  distribution.
+- **`docs/proposal.md`** — kept as the original planning document, with a status reconciliation
+  appended. Records that Elasticsearch, FastAPI and the OpenAI backend were never built, that three
+  of five proposed evaluation metrics (precision/recall@K, rubric-rated report quality, analyst-time
+  reduction) were **never measured and should not be claimed**, and gives the current answers to
+  RQ1–RQ3 — including that RQ2's hallucination comparison remains genuinely open.
+- **`docs/literature-review.md`** — Wazuh was described as *"prototyped as a real, live alert
+  source."* No live server was ever deployed; corrected to what exists.
+
+The pattern across all five is the same one this week's results kept surfacing: a claim that was
+true when written, left unchecked while the thing underneath it changed.
+
 ### Still open — supervisor decisions, not mine
 
 1. **Paper declarations**, deferred on 11 August: funding, competing interests, ethics approval,
