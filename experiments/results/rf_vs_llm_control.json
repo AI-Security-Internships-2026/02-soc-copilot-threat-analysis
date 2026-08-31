@@ -1,8 +1,8 @@
 {
   "experiment": "RandomForest vs LLM on the identical LLM-routed alert subset",
   "question": "Prior comparisons scored the two models on different alerts, so a lower LLM score could have meant the LLM-routed alerts were harder. This scores both models on the same rows to remove that confound.",
-  "generated_at_utc": "2026-08-31T14:58:42.802312+00:00",
-  "git_sha": "3fef836",
+  "generated_at_utc": "2026-08-31T15:33:47.091256+00:00",
+  "git_sha": "2a8c43f",
   "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
   "llm_model": "openai/gpt-oss-20b (Groq), improved prompt",
   "llm_results_source": "experiments/results/llm_subset_eval_improved_full209.json",
@@ -856,7 +856,7 @@
       "_row_index": 392,
       "ground_truth": "BenignPositive",
       "rf_predicted": "BenignPositive",
-      "rf_top1_probability": 0.6943,
+      "rf_top1_probability": 0.6942,
       "rf_margin": 0.3885,
       "llm_predicted": "TruePositive",
       "llm_confidence": "medium"
@@ -1802,7 +1802,7 @@
       "ground_truth": "FalsePositive",
       "rf_predicted": "BenignPositive",
       "rf_top1_probability": 0.574,
-      "rf_margin": 0.2213,
+      "rf_margin": 0.2212,
       "llm_predicted": "BenignPositive",
       "llm_confidence": "high"
     },
