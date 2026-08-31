@@ -13,13 +13,14 @@ import re
 import time
 from src.agent.state import AlertState
 from src.agent.fallback_classifier import (
+    EVIDENCE_FIELDS,
     evidence_field_count,
     predict_with_fallback,
+    predict_with_margin,
     should_use_fallback,
 )
 from src.agent.guardrails import inspect_alert
 from src.agent.mitre_lookup import get_technique_info, load_technique_map
-from src.agent.ml_guardrail import inspect_alert_ml
 from src.agent.schema_guardrail import validate_field_types
 
 # load once at module level so it's not re-reading the cache file on every alert
@@ -140,27 +141,19 @@ def route_after_guardrail(state: AlertState) -> str:
     return "human_review" if state.get("guardrail_status") == "blocked" else "continue"
 
 # ---------------------------------------------------------------------------
-# input guardrail, stage 2: ml classifier fallback (issue #10)
-# ---------------------------------------------------------------------------
-def apply_ml_guardrail(state: AlertState) -> dict:
-    """Second-stage check for alert text the regex guardrail let through."""
-    flagged = inspect_alert_ml(state["raw_alert"])
-    if not flagged:
-        return {"ml_guardrail_status": "passed"}
-
-    reasons = [f"ml_injection_risk:{field}:{score:.2f}" for field, score in flagged]
-    return {
-        "ml_guardrail_status": "blocked",
-        "ml_guardrail_reasons": reasons,
-        "confidence": "low",
-        "needs_human_review": True,
-        "reasoning": "ML guardrail flagged possible injection: " + ", ".join(reasons),
-    }
-
-
-def route_after_ml_guardrail(state: AlertState) -> str:
-    return "human_review" if state.get("ml_guardrail_status") == "blocked" else "continue"
-
+# Note on the removed ML guardrail (issue #10, Weeks 8-9).
+#
+# A TF-IDF + logistic-regression injection detector used to sit here as a
+# second guardrail stage. It was never wired into the compiled graph after
+# Week 9 -- experiments/soc_domain_eval.py measured it at 0.525 accuracy with
+# 0.05 recall on the project's own 40-example set, i.e. no better than chance
+# at the thresholds that would have been safe to gate on. It was replaced by
+# the deterministic schema check below, which catches the same class of
+# malformed input by construction rather than by a learned score.
+#
+# Week 15 deleted the dead node and its import. The scoring module
+# (src/agent/ml_guardrail.py) and its evaluation are deliberately kept: the
+# negative result is a documented finding, not dead weight.
 # ---------------------------------------------------------------------------
 # input guardrail, stage 2 replacement: deterministic schema/type check
 # (issue #10, week 9 -- replaces the ml classifier, see schema_guardrail.py)
@@ -309,7 +302,7 @@ def classify_with_fallback(state: AlertState) -> dict:
         "context_signal_count": signal_count,
         "fallback_probability": probability,
         "reasoning": (
-            f"RF fallback used because only {signal_count}/{len(('MitreTechniques', 'SuspicionLevel', 'LastVerdict'))} "
+            f"RF fallback used because only {signal_count}/{len(EVIDENCE_FIELDS)} "
             f"discriminative context fields were populated (model probability: {probability:.2f})."
         ),
     }
@@ -382,13 +375,33 @@ def fetch_mitre_context(state: AlertState) -> AlertState:
 
 def human_review_node(state: AlertState) -> AlertState:
     """
-    week 4 node: checkpoint that fires when the LLM's confidence is
-    medium or low. doesn't actually block on a human, just flags the
-    alert so a human can review it later instead of auto-triaging it.
+    week 4 node: checkpoint that flags an alert for a human instead of
+    auto-triaging it. doesn't actually block on a human.
+
+    week 15: the reason is now recorded accurately. This node is reached for
+    three quite different situations -- a guardrail block, an outright
+    failure, and a genuine low-confidence verdict -- and previously labelled
+    all three "confidence was not high", which turned an API outage into what
+    looked like an ordinary uncertain call in the logs.
     """
     state["needs_human_review"] = True
-    state["reasoning"] = (state.get("reasoning") or "") + \
-        " [flagged for human review: confidence was not high]"
+
+    if state.get("error"):
+        reason = f"flagged for human review: no automated verdict ({state['error']})"
+    elif state.get("guardrail_status") == "blocked":
+        reason = "flagged for human review: input guardrail blocked this alert"
+    elif state.get("schema_guardrail_status") == "blocked":
+        reason = "flagged for human review: alert failed schema validation"
+    elif state.get("rf_margin") is not None:
+        reason = (
+            f"flagged for human review: RF decision margin "
+            f"{state['rf_margin']:.2f} is below the {RF_REVIEW_MARGIN_THRESHOLD:.2f} "
+            f"threshold, so this verdict is not safe to auto-action"
+        )
+    else:
+        reason = "flagged for human review: confidence was not high"
+
+    state["reasoning"] = f"{(state.get('reasoning') or '').strip()} [{reason}]".strip()
     return state
 
 
@@ -397,7 +410,156 @@ def route_after_verdict(state: AlertState) -> str:
     conditional edge function: decides where to go after parse_verdict.
     returns the name of the next node as a string, which graph.py uses
     to wire up the conditional edge.
+
+    Used by the legacy hybrid graph only. The rf_primary graph gates on
+    route_after_rf_verdict below, because this function trusts a
+    self-reported confidence string that Week 15 measured as inverted.
     """
     if state.get("confidence") == "high":
         return "end"
     return "human_review"
+
+
+# ---------------------------------------------------------------------------
+# week 15: RF decides, LLM explains
+#
+# Week 15's control experiment (experiments/rf_vs_llm_control.py) scored the RF
+# and the LLM on the *same* 209 well-evidenced alerts, eliminating the confound
+# that had made every previous comparison unreadable -- until then the two
+# models had only ever been measured on different alerts, so the LLM's lower
+# score could have meant its alerts were harder. They were not:
+#
+#     RandomForest   accuracy 0.6555   macro F1 0.6035
+#     LLM            accuracy 0.2823   macro F1 0.2121
+#     majority-class floor            0.4928
+#
+# The LLM scored below "always answer BenignPositive" on the alerts chosen as
+# its best case, and lost 105 of the 132 disagreements (McNemar p = 4.7e-12).
+#
+# The nodes below implement the consequence. The RF classifies every alert and
+# is the only writer of predicted_label. The LLM keeps the job it is actually
+# good at -- turning structured evidence into an explanation an analyst can
+# read -- and is structurally prevented from influencing the verdict.
+# ---------------------------------------------------------------------------
+
+# Chosen from the margin sweep in experiments/results/rf_vs_llm_control.json
+# rather than by feel. At 0.20 the auto-accepted alerts score 0.6905 (up from
+# 0.6555 ungated) while 19.6% of alerts go to a human -- roughly one in five,
+# which is affordable review load. The next step up (0.30) buys only another
+# 2 accuracy points but escalates 35.4%, which is not.
+RF_REVIEW_MARGIN_THRESHOLD = 0.20
+
+
+def classify_with_rf(state: AlertState) -> dict:
+    """Assign the verdict with the Random Forest. The only writer of a label.
+
+    Confidence is derived from the RF's decision margin (top-1 minus top-2
+    probability), which Week 15 verified is monotonically related to accuracy,
+    unlike the LLM's self-reported confidence.
+    """
+    signal_count = evidence_field_count(state["raw_alert"])
+    try:
+        label, probability, margin = predict_with_margin(state["raw_alert"])
+    except Exception as exc:
+        # Surface the failure rather than guessing a class. A fabricated label
+        # here would be indistinguishable from a real prediction downstream.
+        return {
+            "confidence": "low",
+            "triage_path": "rf_primary",
+            "context_signal_count": signal_count,
+            "reasoning": f"RF classifier unavailable; requires human review: {exc}",
+            "error": f"RF classifier failed: {exc}",
+        }
+
+    confidence = "high" if margin >= RF_REVIEW_MARGIN_THRESHOLD else "low"
+    return {
+        "predicted_label": label,
+        "confidence": confidence,
+        "triage_path": "rf_primary",
+        "context_signal_count": signal_count,
+        "fallback_probability": probability,
+        "rf_margin": margin,
+        "reasoning": (
+            f"Random Forest verdict {label} (probability {probability:.2f}, "
+            f"decision margin {margin:.2f} against a review threshold of "
+            f"{RF_REVIEW_MARGIN_THRESHOLD:.2f}); {signal_count}/"
+            f"{len(EVIDENCE_FIELDS)} discriminative context fields populated."
+        ),
+    }
+
+
+def explain_with_llm(state: AlertState) -> dict:
+    """Write an analyst-facing explanation of a verdict the RF already made.
+
+    This node deliberately cannot change the outcome. It never returns
+    predicted_label or confidence, so a wrong, malicious, or injected LLM
+    response degrades the explanation and nothing else -- the verdict, the
+    review decision, and every metric are already fixed before it runs.
+
+    A failure here is not a triage failure: the alert keeps its verdict and is
+    simply shown without a natural-language rationale.
+    """
+    if state.get("error") or not state.get("predicted_label"):
+        return {}
+
+    system_prompt = """You are a senior SOC analyst. A classifier has already assigned a \
+verdict to this alert. Your job is to explain that verdict to a human analyst in plain \
+English, grounded strictly in the evidence shown.
+
+Rules:
+- The verdict is already decided. Do not dispute it, revise it, or offer an alternative.
+- Cite only fields that actually appear in the alert context below. Never invent evidence.
+- If the evidence is thin, say so plainly -- "the verdict rests on a weak signal" is a
+  useful thing for an analyst to read, and far better than inventing support for it.
+- Note anything a human should check before acting.
+- Write 2-3 sentences of prose. No JSON, no bullet points, no preamble."""
+
+    user_message = (
+        f"Alert:\n\n{state['alert_context']}\n\n"
+        f"Assigned verdict: {state['predicted_label']}\n"
+        f"Classifier confidence: {state.get('confidence', 'unknown')}\n\n"
+        "Explain this verdict for the analyst who has to action it."
+    )
+    messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=user_message),
+    ]
+
+    last_error = None
+    for attempt in range(MAX_LLM_RETRIES):
+        try:
+            response = llm.invoke(messages)
+            return {
+                "llm_response": response.content,
+                "rationale": (response.content or "").strip(),
+                "rationale_status": "generated",
+            }
+        except Exception as e:
+            last_error = str(e)
+            if "rate_limit_exceeded" in last_error or "429" in last_error:
+                time.sleep(_extract_retry_seconds(last_error))
+                continue
+            break
+
+    # Explanation is a presentation concern, so its failure must not become a
+    # triage error -- writing `error` here would wrongly mark a perfectly good
+    # RF verdict as a failed alert.
+    return {
+        "rationale": None,
+        "rationale_status": "unavailable",
+        "llm_response": f"[explanation unavailable: {last_error}]",
+    }
+
+
+def route_after_rf_verdict(state: AlertState) -> str:
+    """Send low-margin RF verdicts to a human before they are acted on.
+
+    Gates on the RF's decision margin, not on any model's self-report. Alerts
+    that failed earlier (no verdict at all) always go to review.
+    """
+    if state.get("error") or not state.get("predicted_label"):
+        return "human_review"
+    margin = state.get("rf_margin")
+    if margin is None or margin < RF_REVIEW_MARGIN_THRESHOLD:
+        return "human_review"
+    return "end"

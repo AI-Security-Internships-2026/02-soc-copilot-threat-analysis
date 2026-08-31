@@ -59,7 +59,15 @@ def generate(n_rows: int, seed: int = 42) -> pd.DataFrame:
                 "DetectorId": random.randint(1, 500),
                 "DeviceId": random.randint(1, 1000),
                 "Timestamp": ts.isoformat(),
-                "AlertTitle": f"Alert_{random.randint(1, 80)}",
+                # Numeric, matching real GUIDE data. This used to be
+                # f"Alert_{n}", which is not int-parseable, so the schema
+                # guardrail (EXPECTED_NUMERIC_FIELDS in
+                # src/agent/schema_guardrail.py) blocked 100% of the synthetic
+                # alerts. Anyone following the documented no-Kaggle-credentials
+                # path got every alert held for human review with no verdict,
+                # which the evaluator then scored as roughly chance accuracy --
+                # a broken configuration that looked like a weak model.
+                "AlertTitle": random.randint(1, 80),
                 "Category": random.choice(CATEGORIES),
                 "MitreTechniques": random.choice(MITRE_TECHNIQUES),
                 "ActionGrouped": random.choice(ACTIONS_GROUPED),
