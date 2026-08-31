@@ -498,7 +498,18 @@ def explain_with_llm(state: AlertState) -> dict:
 
     A failure here is not a triage failure: the alert keeps its verdict and is
     simply shown without a natural-language rationale.
+
+    Set SOC_COPILOT_SKIP_EXPLANATION=1 to skip the call entirely. Because the
+    explanation cannot affect the verdict, the review decision, or any metric,
+    accuracy evaluation over thousands of alerts is exactly identical with it
+    off -- and runs offline, deterministically, and without consuming API
+    quota. That equivalence is a property of the architecture, not a shortcut:
+    under the pre-Week-15 design, skipping the LLM would have changed the
+    results, which is the point.
     """
+    if os.getenv("SOC_COPILOT_SKIP_EXPLANATION") == "1":
+        return {"rationale": None, "rationale_status": "skipped"}
+
     if state.get("error") or not state.get("predicted_label"):
         return {}
 
