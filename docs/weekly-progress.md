@@ -1312,7 +1312,7 @@ step, distinct from and more targeted than another round of general prompt itera
 
 ## Week 15 — the control experiment, and moving the LLM off the decision path
 
-**PR link:** _[fill in when opened]_
+**PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/26
 **Branch:** `asma-week-15` (from `asma-week-14`)
 
 ### Why this week's scope
