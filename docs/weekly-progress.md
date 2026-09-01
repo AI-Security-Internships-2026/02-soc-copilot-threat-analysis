@@ -1312,8 +1312,84 @@ step, distinct from and more targeted than another round of general prompt itera
 
 ## Week 15 — the control experiment, and moving the LLM off the decision path
 
+**Branch:** `asma-week-15`
 **PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/26
-**Branch:** `asma-week-15` (from `asma-week-14`)
+
+### Completed this week
+- [x] Ran the paired control experiment (`experiments/rf_vs_llm_control.py`): scored the RF on the **exact same 209 alerts** as the LLM, removing the routing confound every prior comparison carried — RF **0.6555** vs LLM **0.2823**, against a **0.4928** majority-class floor (exact McNemar p = **4.66e-12**, 1.91% training overlap)
+- [x] Measured the LLM's self-reported confidence as **inversely calibrated** (0.256 accurate at "high" vs 0.383 at "medium") — the human-review gate had been auto-accepting its least reliable verdicts
+- [x] Re-architected the pipeline to `rf_primary`: the RF assigns every verdict and is the sole writer of `predicted_label`; the LLM writes the analyst rationale and cannot set a label, confidence, or review decision
+- [x] Replaced the confidence gate with an RF **decision-margin** gate at 0.20, chosen from a threshold sweep (auto-accepted accuracy 0.6555 → 0.6905 at a 19.6% escalation rate)
+- [x] Full pipeline on the identical 999-alert sample: **0.6456 → 0.7347 accuracy**, 0.6484 → 0.7307 macro F1, zero errors
+- [x] Retained the Weeks 6–14 graph as `build_triage_graph("legacy_hybrid")` so published results stay reproducible
+- [x] Fixed: MITRE enrichment never reached the prompt (`build_context` ran before `fetch_mitre_context`, so the branch always read `None` — inert since Week 4)
+- [x] Fixed: `mitre_lookup` split technique IDs on `,` where GUIDE uses `;` — 232 of 428 enrichable alerts silently lost ATT&CK context; resolution **45.8% → 100%**
+- [x] Fixed: `benchmark.py` sliced an unshuffled class-ordered sample, making its n=30 rows single-class and n=60 two-class — those accuracy figures are invalid; now seeded-shuffled
+- [x] Fixed: `app.py` collected `Title`/`Evidence`, which no node reads — the only two fields a human types were discarded, and the only ones the schema guardrail does not cover
+- [x] Fixed: `generate_sample.py` wrote a non-numeric `AlertTitle`, which the schema guardrail blocks 100% of — the documented no-Kaggle path scored a broken config as chance accuracy
+- [x] Fixed: `run_agent.py`'s demo alert was blocked by the schema guardrail and printed `predicted label: None` — the flagship demo was broken; rebuilt with four `--scenario` cases
+- [x] Removed the dead `apply_ml_guardrail` node and import (kept the scoring module: the negative result is part of the contribution)
+- [x] Measured both wired guardrails for the first time (`experiments/guardrail_layer_eval.py`): regex filter **1/20 (5%) recall**, 0/20 benign false positives; schema type-check **20/20 (100%)**
+- [x] Regenerated `schema_guardrail_eval.json`, which the paper cited but the repo never had (stranded by the PR #19 dead-branch merge) — synthetic 100%, real-data 0/5000 false positives; closes issue #16 item E1 for real
+- [x] Regenerated the RF scalability rows lost to the same dead-branch merge (`week15_rf_benchmark.json`); withdrew the hybrid table rather than spend quota documenting a retired architecture
+- [x] Tests **33 → 65 passing**: new coverage for `guardrails.py` (wired since Week 3, never tested), the MITRE separator, and the invariant that the LLM cannot set a verdict; the end-to-end test now skips cleanly when the gitignored RF artifact is absent instead of failing with a message blaming a graph regression
+- [x] Wrote `docs/project-explained.md` (the project from zero assumed knowledge) and `docs/demo-runbook.md` (every command verified end to end with real output)
+- [x] Filled `docs/final-report.md`, an untouched 246-word template since June — all 16 quoted figures cross-checked against source JSON; abstract 246 words, counted
+- [x] Re-centred the paper on the paired comparison; corrected three previously-reported figures; all 17 quoted numbers verified (kept on the local-only branch per Dr. Rana's instruction)
+- [x] Documentation consistency pass across `redteam-deepteam-eval.md`, `wazuh-integration.md`, `datasets/README.md`, `proposal.md`, `literature-review.md`, `tasks/week-01.md`, and the README
+
+### Problems / Blockers
+
+**The working checkout was three weeks stale.** It sat on `asma-week-11` while work had continued
+through Week 14, so the first task was rebasing onto `origin/asma-week-14`. PR #25 (Week 14) is
+still open and unreviewed.
+
+**Two artifacts the paper cites were never in the repository.** PR #19 was merged into
+`asma-week-09` — a branch already merged to `dev` — so `schema_guardrail_eval.json` and the 18-row
+`week7_scalability_benchmark.json` never reached the mainline, while issue #16 items E1 and E3 were
+marked done on the strength of that merge. The lesson generalises: *marked done* and *reproducible
+from the repository* are not the same thing, and only the second counts at submission.
+
+**A defect I introduced and caught the same day.** A `git add` on a whole directory swept a symlink
+into the tree as a tracked mode-`120000` entry pointing at an absolute local path, which resolved to
+itself on checkout and broke every script reading the evaluation cache. `.gitignore` had the path
+but with a trailing slash, which matches directories only and let a symlink through. Untracked, both
+patterns added, zero tracked symlinks remaining. No data or result was lost — verified by
+reproducing the committed control-experiment numbers exactly from the restored files.
+
+**Groq quota was not spent this week.** Everything decisive is computable offline from committed
+artifacts, so the control experiment, calibration analysis and guardrail measurements carry no API
+risk. That is a property of the new architecture, not a shortcut: because the explanation cannot
+affect a verdict, accuracy evaluation is identical with the LLM switched off
+(`SOC_COPILOT_SKIP_EXPLANATION=1`). Under the old design, skipping it would have changed the results.
+
+### Next week plan
+- **Evaluate on `GUIDE_Test.csv`.** The official 4.1M-alert split has never been touched; everything
+  is measured on samples from the training file. Overlap is only 1.91%, but this is the single
+  cleanest methodological improvement available and it is the first thing I would do.
+- Ablate the high-cardinality identifier features (`IpAddress`, `Sha256`, `AccountName`) to quantify
+  how much of the 0.7718 baseline is leakage.
+- Move to incident-level rather than row-level splits.
+- Repeated trials for confidence intervals — every current figure is a single-run point estimate.
+- An analyst-rated evaluation of explanation quality. This is now the capability the whole design
+  argument rests on, and it remains the one thing none of the automated content analysis substitutes
+  for. Carried from Week 14, and more load-bearing than it was then.
+
+### Still open — supervisor decisions, not mine
+1. **Paper declarations**, deferred on 11 August: funding, competing interests, ethics approval,
+   ORCID, repo visibility, and **co-authorship** (still a `TODO` in the author block).
+2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since Week 10, unchanged.
+3. **PR #25 (Week 14) is open and unreviewed.**
+4. Three commits on `main` (`7cbc58b`, `ad02c85`, `61ea961`) carry AI co-authorship trailers,
+   conflicting with the project's attribution policy. Rewriting shared history needs an explicit
+   decision; still not raised in an issue.
+
+---
+
+## Notes for Week 15 — reasoning behind the implementations
+
+*The checklist above is the summary. This section records **why** each change was made and what
+the evidence was, so the decisions can be defended rather than just listed.*
 
 ### Why this week's scope
 
@@ -1608,25 +1684,3 @@ The README also gained a documentation index this session. `docs/project-explain
 `docs/demo-runbook.md` had been written but were mentioned only once, mid-file, in prose — they were
 effectively unfindable in a repository this size, which defeats the purpose of writing them.
 
-### Still open — supervisor decisions, not mine
-
-1. **Paper declarations**, deferred on 11 August: funding, competing interests, ethics approval,
-   ORCID, repo visibility, and **co-authorship** (still a `TODO` in the author block).
-2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since Week 10, unchanged.
-3. **PR #25 (Week 14) is open and unreviewed.**
-4. Three commits on `main` (`7cbc58b`, `ad02c85`, `61ea961`) carry AI co-authorship trailers,
-   conflicting with the project's attribution policy. Rewriting shared history needs an explicit
-   decision; still not raised in an issue.
-
-### Next steps
-
-- **Evaluate on `GUIDE_Test.csv`.** The official 4.1M-alert split has never been touched; everything
-  is measured on samples from the training file. Overlap is only 1.91%, but this is the single
-  cleanest methodological improvement available and it is the first thing I would do.
-- Ablate the high-cardinality identifier features (`IpAddress`, `Sha256`, `AccountName`) to quantify
-  how much of the 0.7718 baseline is leakage.
-- Move to incident-level rather than row-level splits.
-- Repeated trials for confidence intervals — every current figure is a single-run point estimate.
-- An analyst-rated evaluation of explanation quality. This is now the capability the whole design
-  argument rests on, and it remains the one thing none of the automated content analysis substitutes
-  for. Carried from Week 14, and more load-bearing than it was then.
