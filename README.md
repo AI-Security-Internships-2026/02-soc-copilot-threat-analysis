@@ -4,6 +4,38 @@
 
 ---
 
+## Documentation — start here
+
+| Document | What it is |
+|---|---|
+| **[`docs/project-explained.md`](docs/project-explained.md)** | **The project explained from zero.** Assumes no background: what SOC triage is, what the three labels mean, what a Random Forest and an LLM each are, every metric defined, the week-by-week story, the limitations, and the questions a reviewer is most likely to ask — with answers. **Read this first.** |
+| **[`docs/demo-runbook.md`](docs/demo-runbook.md)** | **The live demo.** Every command in order with its real output, what each one shows, and what to say. About 6 minutes end to end, plus fallbacks if the network or API quota fails. |
+| [`docs/final-report.md`](docs/final-report.md) | The full technical report: abstract, method, results, discussion, limitations. Every figure cross-checked against its source JSON. |
+| [`docs/weekly-progress.md`](docs/weekly-progress.md) | Week-by-week engineering log, Weeks 1–15. The record of what was done and why. |
+| [`docs/literature-review.md`](docs/literature-review.md) | 8 annotated papers with DOIs, methods, datasets, and per-paper limitations. |
+| [`docs/proposal.md`](docs/proposal.md) | The original plan, with a status reconciliation recording where the built system diverged from it. |
+| [`docs/redteam-deepteam-eval.md`](docs/redteam-deepteam-eval.md) | Adversarial evaluation of the LLM node, its limitations, and what red-teaming means under the current architecture. |
+| [`docs/wazuh-integration.md`](docs/wazuh-integration.md) | The Wazuh alert-schema adapter and the unvalidated-classifier caveat that applies to it. |
+| [`datasets/README.md`](datasets/README.md) | Dataset provenance, licence, sizes, class distribution, and exactly which split is used. |
+
+The journal paper draft is deliberately **not** in this repository, per supervisor guidance.
+
+### Headline result
+
+On an identical 209-alert subset — the alerts the router selected as *most* favourable to the LLM —
+the Random Forest scored **0.6555** accuracy against the LLM's **0.2823**, below the **0.4928**
+obtained by always answering `BenignPositive` (exact McNemar p = 4.66e-12). The LLM's self-reported
+confidence was *inversely* calibrated. The pipeline was restructured so the classifier assigns every
+verdict and the LLM only explains it, taking whole-pipeline accuracy from **0.6456 to 0.7347** on the
+same 999 alerts. Details in [`docs/final-report.md`](docs/final-report.md) §5.2–5.4.
+
+```bash
+# see it for yourself (offline, ~10 seconds, no API key needed)
+venv/bin/python experiments/rf_vs_llm_control.py
+```
+
+---
+
 ## Research Problem
 
 Design an LLM-powered Security Operations Centre (SOC) co-pilot that automatically triages security alerts, enriches them with threat-intelligence context, and generates plain-language analyst reports.
@@ -28,17 +60,28 @@ Design an LLM-powered Security Operations Centre (SOC) co-pilot that automatical
 | Architecture design document (`docs/proposal.md`) | Week 3 |
 | Working prototype (`src/`) | Week 6 |
 | Evaluation results (`experiments/results/`) | Week 7 |
-| Final report (`docs/final-report.md`) | Sep 8 — see "Roadmap to September 8" below; superseded from the original Week 8 date |
+| Final report (`docs/final-report.md`) | Sep 8 — see "Roadmap to September 8" below; superseded from the original Week 8 date. **Written.** |
+| Project explainer (`docs/project-explained.md`) + demo runbook (`docs/demo-runbook.md`) | Week 15 — added for the review meeting |
 
 ---
 
 ## Recommended Technology Stack
 
+*Originally proposed:*
+
 ```
 Python, LangChain, OpenAI API, Elasticsearch, FastAPI, Streamlit
 ```
 
-See `requirements.txt` for pinned dependencies.
+*Actually built:*
+
+```
+Python, LangGraph, Groq (openai/gpt-oss-20b), scikit-learn, pandas, Streamlit, deepteam
+```
+
+Elasticsearch and FastAPI were never implemented, and the OpenAI backend was replaced by Groq in
+Week 3. See the status reconciliation in [`docs/proposal.md`](docs/proposal.md) for why. See
+`requirements.txt` for pinned dependencies.
 
 ---
 
