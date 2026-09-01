@@ -330,15 +330,25 @@ triage outcome, a review decision, or any reported metric.
 
 ### 5.6 Performance
 
-`experiments/results/week7_scalability_benchmark.json`: Random Forest 16.69
-alerts/s (1 worker) to 41.85 alerts/s (4 workers) at 0.024–0.060 s latency; LLM
-0.37–0.57 alerts/s at 1.76–2.73 s. The Random Forest is **45–113× faster** and
+LLM path (`week7_scalability_benchmark.json`): 0.37–0.57 alerts/s at 1.76–2.73 s
+per alert. Random Forest path, re-measured in Week 15 after the sampling fix
+(`week15_rf_benchmark.json`): 21.36–66.27 alerts/s at 0.015–0.047 s per alert,
+zero errors. **The classifier is roughly two orders of magnitude faster** and
 requires no network. Regex guardrail cost: 3.616 µs per check.
 
-**The accuracy rows for n=30 and n=60 in that file are invalid** and are not
-reported here: the benchmark sliced an unshuffled class-ordered sample, making
-those slices single- and two-class respectively. Throughput and latency are
-unaffected. Fixed in Week 15 by seeded shuffling.
+Two caveats on the older file. **Its n=30 and n=60 accuracy rows are invalid**
+and are not reported: the benchmark sliced a prefix of an unshuffled,
+class-ordered sample, so those slices held one and two classes respectively.
+The Week 15 re-run fixes this with a seeded shuffle — every slice is now
+class-balanced, and the difference is visible at n=60, where the corrected macro
+F1 is 0.6772 against 0.490 for the two-class slice. Throughput and latency were
+never affected, since they do not depend on class balance.
+
+The two tables were also collected in different process states and their
+absolute throughputs are not directly comparable. The claim they jointly support
+does not rest on that: local CPU-bound inference scales with worker count and
+remote inference does not, because the provider's token budget is shared across
+threads regardless of concurrency.
 
 ### 5.7 Adversarial evaluation
 

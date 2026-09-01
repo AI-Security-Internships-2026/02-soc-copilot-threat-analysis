@@ -395,8 +395,12 @@ class imbalance as a cause and disproved it.
 evidence, route those to the Random Forest instead. Hybrid scored **0.7533** on
 300 alerts. This looked like success.
 
-**Week 7 — Speed.** The RF is **45–113× faster** than the LLM (41.85 vs 0.37
-alerts/second) and needs no network. Latency 0.024s vs 2.7s.
+**Week 7 — Speed.** The RF is roughly **two orders of magnitude faster** than the
+LLM and needs no network. Re-measured in Week 15 after fixing the sampling bug:
+21–66 alerts/second at 0.015–0.047s each, against the LLM's 0.37–0.57 per second
+at 1.76–2.73s. (The Week 7 figures were 16.69–41.85 alerts/s; the two runs were
+taken in different process states, so the exact numbers are not comparable — the
+gap between the two approaches is what matters, and it is enormous either way.)
 
 **Week 8 — A negative result, kept.** Tried a learned TF-IDF injection detector
 to replace the regex. It scored **0.525 accuracy, 0.05 recall, AUC 0.46** —
@@ -696,7 +700,7 @@ Never let a reviewer find these first. Raise them yourself.
 **"Why not fine-tune the LLM on GUIDE?"**
 > It would likely help, and it is the obvious next experiment. But it would be
 > competing with a Random Forest that already learns from 9.5 million labelled
-> rows at 0.024 seconds per alert and no API cost. The bar is high.
+> rows in under 0.05 seconds per alert with no API cost. The bar is high.
 
 **"Is your guardrail any good?"**
 > The regex filter is not — 5% recall, and I measured it rather than assuming.

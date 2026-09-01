@@ -1535,6 +1535,43 @@ Week 15's architecture change invalidated claims in several docs that were accur
 The pattern across all five is the same one this week's results kept surfacing: a claim that was
 true when written, left unchecked while the thing underneath it changed.
 
+### A second artifact the paper cited but the repo never had
+
+The `schema_guardrail_eval.json` problem was not isolated. The same dead-branch merge (PR #19 into
+`asma-week-09`, itself already merged to `dev`) also stranded the 18-row version of
+`week7_scalability_benchmark.json`. The committed file has **8 rows** — llm ×6, rf 30 ×2 — so the
+paper's RF-60/120 rows and its entire six-row hybrid table cited numbers present nowhere in the
+repository. Verified: `git merge-base --is-ancestor ba24f09 origin/dev` returns false.
+
+Handled differently for the two halves, on the principle that regenerating is better than
+withdrawing only when the thing is still worth having:
+
+- **RF rows regenerated** (`experiments/results/week15_rf_benchmark.json`). RF mode needs no API,
+  so this ran offline and deterministically. The new rows are *better* than the originals rather
+  than merely present: this run uses the Week 15 seeded shuffle, so every slice is class-balanced
+  (n=30 is 12/10/8, not 30/0/0) and the accuracies are valid where the old ones were not. The
+  contrast is the clearest evidence yet for the slicing bug — corrected macro F1 at n=60 is
+  **0.6772** against **0.490** for the two-class slice.
+- **Hybrid table withdrawn.** It needs live LLM calls, and it documents the routed architecture
+  this week retired. Spending quota to characterise the throughput of a pipeline the paper argues
+  against deploying is not a good use of it. The two remaining modes bound the current system
+  between them.
+
+`docs/paper/figures/throughput_scaling.png` was generated from the withdrawn file and still renders
+a hybrid panel; flagged inline in the draft as needing regeneration before submission rather than
+left for a reviewer to notice.
+
+`docs/paper/PROGRESS.md` now carries a correction at the top. E1 is genuinely done, E3 is partly
+resolved and partly withdrawn, and E2's "n=30 is the only comparable run" justification is
+superseded by the two 999-alert runs. The general lesson is recorded there because it caused three
+separate defects: **"marked done" and "reproducible from the repository" were not the same thing,
+and only the second one counts at submission.**
+
+Throughput figures in `docs/final-report.md` §5.6 and `docs/project-explained.md` were updated to
+the re-measured values, with the caveat that the two benchmark runs were taken in different process
+states and their absolute numbers are not directly comparable. The claim they support does not rest
+on that: local inference scales with worker count, remote inference does not.
+
 ### Still open — supervisor decisions, not mine
 
 1. **Paper declarations**, deferred on 11 August: funding, competing interests, ethics approval,
