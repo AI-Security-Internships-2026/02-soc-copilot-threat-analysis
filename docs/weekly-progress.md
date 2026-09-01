@@ -1572,6 +1572,42 @@ the re-measured values, with the caveat that the two benchmark runs were taken i
 states and their absolute numbers are not directly comparable. The claim they support does not rest
 on that: local inference scales with worker count, remote inference does not.
 
+### A defect introduced this week, and caught the same day
+
+Worth recording because it is the same class of failure this week kept finding elsewhere: something
+that looked fine and was not.
+
+While setting up an isolated worktree, the gitignored evaluation-sample cache
+(`experiments/results/evaluation_samples/`) was symlinked in from the main checkout. A later commit
+used `git add experiments/results/` on the whole directory, which swept the symlink into the tree
+as a tracked entry of mode `120000` pointing at an absolute path on one machine. On checkout it
+resolved to itself, and every script reading the cache failed with `OSError: [Errno 62] Too many
+levels of symbolic links`.
+
+`.gitignore` already listed `experiments/results/evaluation_samples/`. The trailing slash matches
+directories only, so a *symlink* at that path was never covered. Both forms are now listed and the
+entry is untracked; `git ls-files -s | awk '$1=="120000"'` confirms there are no tracked symlinks
+left on the branch.
+
+**No data or result was lost.** The cache survived in two other worktrees, was restored, and
+re-running `experiments/rf_vs_llm_control.py` against the restored files reproduces the committed
+numbers exactly — RF 0.6555 / LLM 0.2823 / McNemar p = 4.66e-12, with the output JSON differing only
+in its timestamp and git SHA. That check is the point: the restore was verified against a committed
+artifact rather than assumed from the fact that the files looked right.
+
+Two lessons, both cheap:
+
+- **`git add <directory>` is not safe in a tree containing anything you did not create.** Every
+  other commit this week listed files explicitly, which is why this is the only one affected.
+- **A trailing slash in `.gitignore` is a type constraint, not a path constraint** — the same
+  distinction, in a different guise, as the schema guardrail catching injection by rejecting a type
+  rather than recognising content. It stops directories and lets a symlink of the same name
+  through.
+
+The README also gained a documentation index this session. `docs/project-explained.md` and
+`docs/demo-runbook.md` had been written but were mentioned only once, mid-file, in prose — they were
+effectively unfindable in a repository this size, which defeats the purpose of writing them.
+
 ### Still open — supervisor decisions, not mine
 
 1. **Paper declarations**, deferred on 11 August: funding, competing interests, ethics approval,
