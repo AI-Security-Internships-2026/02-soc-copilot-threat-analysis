@@ -1,0 +1,23 @@
+{
+  "experiment": "deterministic schema guardrail evaluation",
+  "generated_at_utc": "2026-08-31T15:28:56.516080+00:00",
+  "git_sha": "624970d",
+  "guardrail": "src/agent/schema_guardrail.py: AlertTitle/DetectorId must parse as integers",
+  "synthetic": {
+    "n_benign_numeric_ids": 20,
+    "n_injection_strings": 20,
+    "false_positives": 0,
+    "true_positives": 20,
+    "accuracy": 1.0,
+    "caveat": "True by construction, not by discrimination. The check rejects anything that is not int-parseable, so any set of non-numeric strings scores 100% and any set of integers scores 0% false positives. This confirms the implementation matches its specification; it is not evidence that the guardrail recognises attacks."
+  },
+  "real_data": {
+    "source": "datasets/GUIDE_train.csv",
+    "n_sampled": 5000,
+    "sampling": "first N rows in file order, not a random sample",
+    "n_false_positives": 0,
+    "false_positive_rate": 0.0,
+    "claim_scope": "No false positives among the first 5,000 AlertTitle values encountered. This is not a claim about the full 86,149-value population."
+  },
+  "status": "ran"
+}

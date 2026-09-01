@@ -161,7 +161,24 @@ def run_benchmark(
     source_sample_size = source_sample_size or max_count
     if source_sample_size < max_count:
         raise ValueError("source_sample_size must be at least the largest prompt count")
-    sample = load_balanced_evaluation_sample(source_sample_size).head(max_count).to_dict("records")
+    # Shuffle before slicing. load_balanced_evaluation_sample() returns three
+    # concatenated per-class blocks (all TruePositive, then all
+    # BenignPositive, then all FalsePositive) and never shuffles them, while
+    # the loop below takes sample[:prompt_count]. Taking a prefix of a
+    # class-ordered list yields a class-homogeneous slice: with the committed
+    # 40-per-class cache, sample[:30] was 30/30 TruePositive and sample[:60]
+    # was two-class. Any accuracy or macro-F1 computed on those slices is
+    # meaningless -- macro F1 is capped at 0.333 when y_true has one class --
+    # which is why the n=30 and n=60 accuracy rows in the Week 7 results file
+    # are marked invalid rather than quoted. Latency and throughput in that
+    # file are unaffected, since they do not depend on class balance.
+    # Seeded so a given source_sample_size always yields the same order.
+    sample = (
+        load_balanced_evaluation_sample(source_sample_size)
+        .sample(frac=1.0, random_state=42)
+        .head(max_count)
+        .to_dict("records")
+    )
     results = []
     for mode in modes:
         for prompt_count in prompt_counts:

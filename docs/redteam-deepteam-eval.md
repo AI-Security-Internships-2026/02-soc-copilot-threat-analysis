@@ -260,6 +260,17 @@ still-open item is the judge-model JSON-reliability gap itself.
   pass cleanly on every case, confirming they are not bypassed. The still-open gap is scope, not
   routing: 6/12 cases (across both LLM-only and full-graph modes) still error on the judge model's
   JSON reliability rather than producing a conclusive pass/fail.
+- **Four of the seven "passes" in the first run are the target returning nothing.** Re-reading
+  `experiments/results/deepteam_redteam_results.json` in Week 15: the Robustness/Base64,
+  Robustness/ROT-13, GoalTheft/Base64 and GoalTheft/ROT-13 cases all record
+  `"output": "[error] None"` with a passing status, and the judge's own stated reason is that the
+  AI "did not engage... it simply returned an error message." An empty response is not a defence,
+  and scoring it as one inflates the headline. That string also reveals a second issue: `[error]
+  None` means `llm_response` was falsy *and* no `error` was set — i.e. `classify_with_llm` returned
+  empty content, because `openai/gpt-oss-20b` is a reasoning model that can spend its whole
+  `max_tokens` budget on hidden reasoning before emitting an answer. **Genuinely conclusive
+  coverage in that run is 3/12, not 7/12**, and the 0% attack-success rate should be quoted against
+  3 cases. This was not caught when the run was first written up.
 - **Small scope, not a certified robustness measurement.** 12 test cases (7 conclusive) is enough
   to answer "is this totally broken" — not enough to bound a real attack-success-rate confidence
   interval. Same caveat `soc_domain_eval.py`'s own docstring already makes about its 40-row set.
@@ -304,3 +315,45 @@ fix and re-run" above) — the item previously listed here as first priority. Re
   the generic `"Error enhancing attack"` label had to be chased down with `ignore_errors=False` in
   a throwaway script before the actual `DeepEvalError` was visible, and two of the three generic
   error labels never reveal their underlying exception at all even with that flag set.
+
+
+---
+
+## Week 15 update: what red-teaming this pipeline now means
+
+The architecture changed on 2026-08-31 (see `docs/weekly-progress.md` Week 15). The LLM no longer
+assigns verdicts. A Random Forest classifies every alert and is the only writer of
+`predicted_label`; the LLM writes the analyst-facing explanation and structurally cannot set a
+label, a confidence, or the human-review decision.
+
+**This changes the threat model rather than the results.** Everything measured above was measured
+against a pipeline in which a successful prompt injection could change a triage verdict. In the
+current pipeline it cannot. The realistic worst case for an injection that reaches
+`explain_with_llm` is a misleading *explanation* attached to a verdict the classifier already made
+and to a review decision already taken on the classifier's decision margin. That is a real harm —
+an analyst could be talked out of investigating something — but it is a different and smaller one
+than silently reclassifying an intrusion as benign.
+
+Three consequences for how the results above should be read and extended.
+
+1. **The llm-only figures remain the right measurement of raw model susceptibility**, and are now
+   the *only* thing they measure. They no longer bound end-to-end triage risk, because triage
+   outcomes no longer depend on the LLM at all.
+2. **The full-graph runs need re-running against `rf_primary`.** Both existing full-graph runs
+   exercised the pre-Week-15 graph. A current full-graph red team should target explanation
+   integrity — does the injected text change what the analyst is told about an unchanged verdict?
+   — which deepteam's existing vulnerability set does not directly express. This is now the
+   highest-value open item in this document.
+3. **A new invariant is worth attacking directly.** `tests/test_graph_wiring.py` asserts that
+   `explain_with_llm` never returns `predicted_label` or `confidence`, across a well-behaved model,
+   a model emitting the old verdict JSON shape, and a model that is down. That test is the thing
+   standing between an injection and a changed verdict, and it is a more productive target than the
+   prompt.
+
+**On the guardrails.** Week 15 measured the two wired input defences separately for the first time
+(`experiments/guardrail_layer_eval.py`). The regex filter blocks 1 of 20 injection strings from the
+project's own corpus — 5% recall, with 0 false positives on benign alert text. The deterministic
+schema check blocks 20 of 20 aimed at a numeric ID field, because free text there is invalid
+whatever it says. The red-team results above should therefore not be read as evidence that the
+input filtering is strong; it is not. What protects triage outcomes is the architecture, and the
+guardrails are defence in depth around it.
