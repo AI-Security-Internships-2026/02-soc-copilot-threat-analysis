@@ -126,6 +126,33 @@ None blocking — the real-data evaluation confirmed the agent generalizes well 
 **Branch:** `asma-week-05`
 **PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/5
 
+### Completed this week
+- [x] Tested Dr. Rana's class-imbalance hypothesis and **disproved it** — `evaluate.py` draws exactly 100 rows per class (confirmed 100/100/100 in the saved results), and BenignPositive is the *most* common class in the full 9.5M-row GUIDE_train.csv (4.1M rows), not the rarest
+- [x] Found the real cause in the per-alert reasoning logs: **186/300 alerts (62%) return "not enough information"** reasoning whenever MITRE technique / suspicion level fields are missing
+- [x] Quantified the failure mode: of those 186 sparse-context alerts the model defaults to FalsePositive **156 times (84%)**, while their ground truth is mostly not FalsePositive (74 BP / 58 FP / 54 TP)
+- [x] Tried two prompt rewrites telling the model not to default to FalsePositive — **both made it worse**: the model simply swapped its lazy default to BenignPositive, FalsePositive precision/recall fell to 0.00, macro F1 0.386 → 0.175 (v2) and 0.184 (v3)
+- [x] Reverted to the original prompt as the best-performing version, keeping `agent_metrics_real_v2.json` / `_v3.json` as evidence of what was tried and why it failed
+
+### Problems / Blockers
+The root cause looks less like a prompt wording issue and more like a model capacity
+limitation - llama-3.1-8b-instant seems to fall back on a single dominant guess for
+low-context alerts rather than actually weighing evidence per-alert, and changing the
+wording just moves which label it defaults to. Prompt tuning alone doesn't seem to be
+enough to fix this.
+
+### Next week plan
+Waiting on Dr. Rana's input on how to proceed - possible directions are adding a few
+worked examples to the prompt (few-shot) instead of instructions, or testing whether a
+larger/different model handles the sparse-context alerts better. Not going to keep
+iterating on plain prompt wording without direction, since two attempts already showed
+it just shifts the bias rather than fixing it.
+
+---
+
+### Notes for Week 5 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### What I did
 Dr. Rana's ask for this week was to check whether class imbalance in the 300-row eval
 sample was causing BenignPositive to be under-predicted. Went digging into evaluate.py
@@ -166,20 +193,6 @@ evidence of what was tried and why it didn't work.
 | v2 (sparse-context fix, prefer BenignPositive) | 0.287 | 0.175 | 0.00 / 0.00 |
 | v3 (evidence-based reasoning fix) | 0.280 | 0.184 | 0.00 / 0.00 |
 
-### Problems / Blockers
-The root cause looks less like a prompt wording issue and more like a model capacity
-limitation - llama-3.1-8b-instant seems to fall back on a single dominant guess for
-low-context alerts rather than actually weighing evidence per-alert, and changing the
-wording just moves which label it defaults to. Prompt tuning alone doesn't seem to be
-enough to fix this.
-
-### Next week plan
-Waiting on Dr. Rana's input on how to proceed - possible directions are adding a few
-worked examples to the prompt (few-shot) instead of instructions, or testing whether a
-larger/different model handles the sparse-context alerts better. Not going to keep
-iterating on plain prompt wording without direction, since two attempts already showed
-it just shifts the bias rather than fixing it.
-
 ---
 
 ## Week 6
@@ -187,6 +200,31 @@ it just shifts the bias rather than fixing it.
 **Branch:** `asma-week-06`
 **PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/6
 
+### Completed this week
+- [x] Recorded the Week 5 root cause as **sparse-context collapse**, not class imbalance
+- [x] Implemented a **gated Random Forest fallback** for alerts with fewer than two of `MitreTechniques` / `SuspicionLevel` / `LastVerdict` populated; richer-context alerts continue through the LLM + MITRE path unchanged
+- [x] Wired the fallback to the RF baseline artifact (classifier plus fitted encoders), recreating its saved feature order and timestamp features, and returning RF probability, route, and context-signal count into graph state for auditability
+- [x] Kept low-probability fallback outcomes routed through the human-review checkpoint; a missing or incompatible model fails safely to human review rather than substituting a label
+- [x] Extended evaluation logs with route taken and fallback probability so overall and sparse-alert performance can be reported separately
+- [x] Trained a reusable 100k-row RF artifact and evaluated the hybrid on a fresh balanced 300-alert real-GUIDE sample: **accuracy 0.753, macro F1 0.750** vs the LLM-only 0.400/0.386 and the RF baseline 0.772/0.751
+- [x] Recorded honestly that the fallback handled **244/300 alerts (81.3%)** at 82.0% accuracy — evidence the fallback addresses sparse-context collapse, but *not* evidence the hybrid outperforms the RF baseline
+- [x] Added evaluation-sample caching after one streamed pass through GUIDE, avoiding a full in-memory load per experiment
+
+### Problems / Blockers
+None recorded for this week.
+
+### Next week plan
+*Not recorded at the time — this entry ended with the results table.* For continuity: Week 7
+took the scalability/latency benchmark of the three pipeline modes, and the honest caveat recorded
+here — that the hybrid's score is not evidence it outperforms the RF baseline — is the thread Week 12
+and Week 15 eventually picked up and settled.
+
+---
+
+### Notes for Week 6 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### Root cause recorded from Week 5
 The failure is a **sparse-context collapse**, not a class-imbalance issue. The
 evaluation sample is balanced (100 examples per class), but 186/300 alerts (62%)
@@ -330,6 +368,34 @@ RF and hybrid. Also: delete stale local branches (`asma-week-05`,
 **Branch:** asma-week-08
 **PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/12
 
+### Completed this week
+- [x] Compared all three guardrail candidates on Ehsanullah's shared benchmark data (1000-row balanced set) and selected **TF-IDF + Logistic Regression** (F1 0.883, 0.79 ms) over Meta Llama Prompt Guard (0.747, 179 ms) and Protect AI LLM Guard (0.722, 183 ms)
+- [x] Wired the detector in as a second guardrail stage (`src/agent/ml_guardrail.py`) scoped to `AlertTitle`
+- [x] Found and fixed a cross-version unpickling bug — the model was trained under scikit-learn 1.7.1 against a 1.7.2 venv, silently producing non-deterministic scores run to run
+- [x] Discovered the detector blocked **100% of real GUIDE alerts** (9/9 and 30/30); a plain benign sentence scored 0.726, well above the 0.5 threshold
+- [x] Built a 40-row synthetic SOC-domain eval set (`experiments/soc_domain_eval_v1.csv`) and scoring script (`experiments/soc_domain_eval.py`) to replace a gut check with a measurement
+- [x] **Fixed a real bug Dr. Rana caught in review:** `score_text()` read `predict_proba(X)[0][0]` instead of `[0][1]`, so the guardrail had been reading P(benign) and treating it as an injection score — exactly backwards
+- [x] Actually committed the `scikit-learn==1.7.1` pin, which had previously only been applied locally (also caught in review)
+- [x] Re-ran the threshold sweep post-fix: best accuracy **52.5%** at threshold 0.7 (1 true positive of 20), zero true positives at 0.8+; benign mean 0.209 vs injection mean 0.224
+- [x] **Decided not to hard-gate the classifier** — the corrected numbers show near-zero signal for this domain, not an inverted one; kept `ml_guardrail.py` as tested infrastructure
+
+### Problems / Blockers
+None recorded for this week.
+
+### Next week plan
+Same as before, reinforced by the corrected numbers: needs a domain-specific
+model or fine-tuning on SOC-style data. The near-zero signal here (rather
+than a strong-but-wrong signal) makes it clearer this is a training-data gap,
+not something threshold tuning or a bug fix can close. Worth flagging to
+Dr. Rana before the Aug 9 stress-test milestone, since it assumes a working
+second-stage classifier to stress-test.
+
+---
+
+### Notes for Week 8 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### Goal
 
 Issue #10 asked for a second-stage ML classifier behind the regex guardrail,
@@ -426,7 +492,7 @@ Unchanged: not wiring the detector into the live pipeline as a hard gate.
 infrastructure — the index bug and the code are both fixed and correct now,
 it's the training data that doesn't cover this domain.
 
-### Next step for issue #10
+### Next step for issue #10 (hoisted above into "Next week plan")
 
 Same as before, reinforced by the corrected numbers: needs a domain-specific
 model or fine-tuning on SOC-style data. The near-zero signal here (rather
@@ -434,13 +500,41 @@ than a strong-but-wrong signal) makes it clearer this is a training-data gap,
 not something threshold tuning or a bug fix can close. Worth flagging to
 Dr. Rana before the Aug 9 stress-test milestone, since it assumes a working
 second-stage classifier to stress-test.
-
 ## Week 9 — Issue #10: root cause found, classifier retired, schema guardrail shipped
 
 **Branch:** `asma-week-09`
 **PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/15 (schema guardrail, merged Aug 2)
 **Follow-up PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/17 (post-merge audit fix — graph-wiring regression, RF retrain, doc reconciliation; opened Aug 4, targets `dev`)
 
+### Completed this week
+- [x] **Found the root cause before spending the Aug 9 fine-tune time-box:** `AlertTitle` has **86,149 unique values, all plain integers** in the real GUIDE_train.csv — there is no free-text column in the schema at all, so no amount of domain-matched training data could have closed the Week 8 gap
+- [x] Retired the fine-tune plan on that evidence rather than time-boxing an experiment whose outcome was predictable from the schema alone
+- [x] Built `src/agent/schema_guardrail.py` — deterministic type validation that separates injection from benign **by construction** rather than by learned approximation
+- [x] Validated it two ways: 20 numeric IDs vs the 20 Week 8 injection strings (**100% accuracy, 0 FP, 0 FN**), and 5,000 real `AlertTitle` values from GUIDE_train.csv (**0 false positives**)
+- [x] Hard-gated it into `graph.py` (`regex_guardrail → schema_guardrail → fetch_mitre_context`) — safe to gate here because the check has no threshold and no probabilistic gray zone
+- [x] **Post-merge audit caught a regression introduced by this week's own commit** (`2975183`): wiring in the schema guardrail deleted the `fetch_mitre_context → (classify_with_llm | rf_fallback)` conditional edge and never replaced it
+- [x] Diagnosed why it was invisible: LangGraph does not validate dead-end nodes at compile time, the graph ran to completion producing no verdict, and `evaluate.py`'s `result.get("predicted_label", "FalsePositive")` silently scored every alert as a hardcoded guess
+- [x] Restored the conditional edge so the schema guardrail sits *in front of* the existing routing rather than replacing it
+- [x] **Created `tests/` — the repo had no test directory at all until now**: `test_graph_wiring.py`, `test_schema_guardrail.py`, `test_ml_guardrail.py`, 9 tests passing
+- [x] Re-ran `evaluate.py` post-fix (30 alerts): accuracy 0.533, macro F1 0.534, predictions spread across all three classes — proof the graph classifies again rather than returning a default
+- [x] Retrained `baseline_model.joblib` under the pinned scikit-learn 1.7.1 (it had been pickled under 1.7.2); macro F1 held at 0.751 and the `InconsistentVersionWarning` is gone
+- [x] Reconciled `README.md`'s deliverables table against the roadmap actually being followed, and fixed a stale `STATUS` string in `src/main.py`
+
+### Problems / Blockers
+None blocking. One open item: `DetectorId` is included in
+`EXPECTED_NUMERIC_FIELDS` based on the GUIDE paper's description rather
+than a direct check like AlertTitle got — confirmed — DetectorId values are small integers, not the large ID space the paper implied, but still integers, so no change needed to the check itself
+
+### Next week plan
+Closed with a working fix. Reclaimed the Aug 9 time-box — putting the
+freed time toward Aug 16 writeup prep instead, per the roadmap.
+
+---
+
+### Notes for Week 9 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### Reframing the Aug 9 milestone
 The roadmap's Aug 9 plan was to time-box a fine-tune/retrain of the Week 8
 classifier on SOC-domain-labeled text. Before spending that time-box, checked
@@ -489,12 +583,7 @@ either parses as an integer or it doesn't. `ml_guardrail.py` stays in the
 repo, untouched, as tested infrastructure for a future dataset that has
 an actual free-text field to defend.
 
-### Problems / Blockers
-None blocking. One open item: `DetectorId` is included in
-`EXPECTED_NUMERIC_FIELDS` based on the GUIDE paper's description rather
-than a direct check like AlertTitle got — confirmed — DetectorId values are small integers, not the large ID space the paper implied, but still integers, so no change needed to the check itself
-
-### Next step for issue #10
+### Next step for issue #10 (hoisted above into "Next week plan")
 Closed with a working fix. Reclaimed the Aug 9 time-box — putting the
 freed time toward Aug 16 writeup prep instead, per the roadmap.
 
@@ -569,6 +658,35 @@ only ever evaluated against one static 2024 GUIDE snapshot — and finalize the 
 This replaces the roadmap's previous Aug 16 milestone ("write up domain-mismatch finding"); that
 writeup now follows this week's work instead of preceding it (see updated `README.md` roadmap).
 
+### Completed this week
+- [x] **Found and corrected a fabricated citation** in `docs/literature-review.md`: Paper 3 cited "Ferrag et al., arXiv 2407.08628", which does not correspond to that paper; the real record is arXiv 2405.12750, and the entry's title/method/dataset/relevance were all rewritten to match
+- [x] Added three 2025+ sources: Wazuh RAG-Driven SOC Copilot (MDPI *Sensors*), the GeNIS dataset (Silva et al., *Data in Brief*), and an AI-Driven Security Alert Screening survey (Ndichu et al.)
+- [x] Wrote `docs/wazuh-integration.md` and built `src/integrations/wazuh_adapter.py`, mapping Wazuh alert JSON onto the pipeline's `raw_alert` shape (`rule.id` → AlertTitle/DetectorId, `rule.mitre.id` → MitreTechniques, `rule.groups` → Category, `rule.level` bucketed into SuspicionLevel)
+- [x] Smoke-tested a mapped alert through both guardrails and `build_context` with **no changes to `graph.py`, `nodes.py`, or either guardrail** — confirming the adapter suffices without touching the pipeline
+- [x] Added `tests/test_wazuh_adapter.py` (4 tests) covering field mapping, the missing-MITRE case, severity bucketing, and that mapped output passes `validate_field_types()` unchanged
+- [x] Documented GeNIS in `datasets/README.md` as a **candidate, not integrated** — its flow-level schema does not map onto GUIDE's incident/alert schema and would need its own loader
+- [x] Ran an unbiased post-work audit re-deriving this week's claims *and* older ones already on `dev`, rather than re-reading docs
+
+### Problems / Blockers
+None blocking. Two things intentionally left as open decisions rather than resolved unilaterally:
+1. GeNIS integration approach (second eval dataset vs. a separate flow-level pre-filter stage) —
+   needs a decision before implementation, not a default guess.
+2. Whether Wazuh integration continues toward a real Docker deployment next, or stays adapter-only
+   pending the paper writeup timeline.
+
+### Next week plan
+- If Wazuh continues: stand up a single-node Docker Wazuh stack, enroll at least one agent, and
+  replace the hand-written sample alerts in `tests/test_wazuh_adapter.py` with real generated ones.
+- If GeNIS is approved: build `src/data/genis_schema.py` + a loader mirroring `load_data.py`'s
+  structure, download the real dataset per `datasets/README.md`'s policy (never commit raw data).
+- Aug 16 writeup milestone now follows this week's work — see updated `README.md` roadmap.
+
+---
+
+### Notes for Week 10 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### Literature review: fixed a fabricated citation, added 3 new 2025+ sources
 Auditing `docs/literature-review.md` end-to-end (not just adding to it) surfaced a real problem:
 Paper 3 cited "Ferrag et al., arXiv 2407.08628" — that arXiv ID doesn't correspond to that paper at
@@ -617,20 +735,6 @@ network schema doesn't map onto GUIDE's incident/alert schema, so integrating it
 own loader (`src/data/genis_schema.py`-equivalent) rather than extending `load_data.py`. Not
 downloaded or wired into training/eval this week — flagged as a decision that needs sign-off
 (which pipeline stage would GeNIS feed?) before committing a week to building a second loader path.
-
-### Problems / Blockers
-None blocking. Two things intentionally left as open decisions rather than resolved unilaterally:
-1. GeNIS integration approach (second eval dataset vs. a separate flow-level pre-filter stage) —
-   needs a decision before implementation, not a default guess.
-2. Whether Wazuh integration continues toward a real Docker deployment next, or stays adapter-only
-   pending the paper writeup timeline.
-
-### Next steps
-- If Wazuh continues: stand up a single-node Docker Wazuh stack, enroll at least one agent, and
-  replace the hand-written sample alerts in `tests/test_wazuh_adapter.py` with real generated ones.
-- If GeNIS is approved: build `src/data/genis_schema.py` + a loader mirroring `load_data.py`'s
-  structure, download the real dataset per `datasets/README.md`'s policy (never commit raw data).
-- Aug 16 writeup milestone now follows this week's work — see updated `README.md` roadmap.
 
 ### Post-work audit: verified this week's claims and re-checked older ones, unbiased pass
 Before writing the paper draft, went back through the repo's actual claims — not just re-reading
@@ -690,6 +794,52 @@ actual LLM triage node (`classify_with_llm`). Given today falls inside the roadm
 week, this was deliberately time-boxed rather than left open-ended, with the Aug 30 draft deadline
 in mind.
 
+### Completed this week
+- [x] Closed a previously-flagged gap: no adversarial testing had ever reached `classify_with_llm` itself — the only such testing scored a static 40-row set against the now-retired ML guardrail
+- [x] Wired [deepteam](https://github.com/confident-ai/deepteam) to dynamically red-team the LLM triage node, with a custom `GroqDeepEvalModel` wrapper (`src/agent/deepteam_groq_model.py`) as both judge and attack simulator so no OpenAI key was needed
+- [x] Scoped it to 3 vulnerabilities × 4 attacks mapped onto the existing `soc_domain_eval_v1.csv` taxonomy; **12 test cases, 7 completed cleanly, 0% attack success on conclusive cases**
+- [x] Diagnosed the 5 errored cases: all on `PromptInjection`/`Roleplay`, whose "enhance" step needs the judge model to emit structured JSON; reproduced with `ignore_errors=False` and found deepteam swallows the real exception behind a generic label via a bare `except:`
+- [x] Recorded that an errored case is **inconclusive, not a pass** — a judge-model reliability limit, not evidence about the target either way
+- [x] Hit a **Groq daily-quota wall** (`Limit 200000, Used 198919`) mid-retry, and recorded the JSON-repair fix as code-complete and unit-tested but *not yet live-verified*, with the diagnosis labelled a leading hypothesis rather than a confirmed root cause
+- [x] **Found and fixed a blocking production issue:** `llama-3.1-8b-instant` was retired from Groq's catalog entirely (confirmed via a live 404 and `client.models.list()`), breaking every live-LLM path; migrated to `openai/gpt-oss-20b` and raised `max_tokens` 512 → 1024 for its hidden reasoning tokens
+- [x] Live-verified the JSON-repair fix after quota reset: 4/12 conclusive, up from 0/12 — a confirmed real improvement, but not a full fix
+- [x] Ran `--mode full-graph` and **found a test-harness gap**: all 9 conclusive cases routed through `rf_fallback` and never reached the LLM, because the synthesized alert lacked the fields `route_by_context` checks
+
+### Problems / Blockers
+- The `llama-3.1-8b-instant` deprecation above was a hard blocker for over an hour of this week —
+  couldn't validate anything live until it was root-caused and fixed.
+- Branch sequencing note: Week 10's PR (#20) had already been merged to `dev` by the time this
+  week's uncommitted follow-up fixes (the `evaluate.py`/`nodes.py`/lit-review corrections mentioned
+  under Week 10's "residual gap") were committed — those were moved to their own branch
+  (`asma-week-10-followup`) rather than bundled into an already-closed PR. `asma-week-11` is built
+  on top of that branch, so its eventual PR shows those commits too unless `asma-week-10-followup`
+  merges to `dev` first. **Correction (2026-08-21):** both are already open — PR #21
+  (`asma-week-10-followup`) and PR #22 (`asma-week-11`) — not "not yet opened" as originally
+  written here; merging #21 first still keeps history atomic, it just isn't blocking anything else
+  this week.
+- deepteam's README documents an older/simplified `model_callback` API than the installed
+  `deepteam==1.0.9` actually exposes, and its `run_all_attacks` parameter defaults to `False`
+  (silently sampling one attack per vulnerability instead of the full cross product) — both cost
+  real time this week and are documented in `docs/redteam-deepteam-eval.md` so they don't repeat.
+
+### Next week plan
+- **First:** once Groq's daily quota for `openai/gpt-oss-20b` resets, rerun the focused
+  `PromptInjection`/`Roleplay` retry to get the live-verification the quota wall prevented this week
+  — this is the actual next step, not a nice-to-have.
+- If a more reliable judge model becomes available on this Groq account, retry with it for
+  conclusive `PromptInjection`/`Roleplay` results.
+- Run `--mode full-graph` (already built into `experiments/deepteam_redteam_eval.py`, not run this
+  week) to measure whether the regex/schema guardrails catch what reaches the LLM here.
+- Merge `asma-week-10-followup` before or alongside this week's PR to keep history clean.
+- GeNIS integration and Wazuh Docker deployment remain open decisions from Week 10, still pending
+  supervisor sign-off — not touched this week.
+
+---
+
+### Notes for Week 11 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### deepteam integration
 
 Full design rationale, exact scope, and results are in `docs/redteam-deepteam-eval.md` — not
@@ -742,37 +892,6 @@ call: `triage_graph.invoke()` on a real alert now returns a real verdict via the
 error. Committed separately from the deepteam work (`fix: replace deprecated llama-3.1-8b-instant
 with openai/gpt-oss-20b on Groq`), since it's a standalone production fix, not a feature addition.
 
-### Problems / Blockers
-
-- The `llama-3.1-8b-instant` deprecation above was a hard blocker for over an hour of this week —
-  couldn't validate anything live until it was root-caused and fixed.
-- Branch sequencing note: Week 10's PR (#20) had already been merged to `dev` by the time this
-  week's uncommitted follow-up fixes (the `evaluate.py`/`nodes.py`/lit-review corrections mentioned
-  under Week 10's "residual gap") were committed — those were moved to their own branch
-  (`asma-week-10-followup`) rather than bundled into an already-closed PR. `asma-week-11` is built
-  on top of that branch, so its eventual PR shows those commits too unless `asma-week-10-followup`
-  merges to `dev` first. **Correction (2026-08-21):** both are already open — PR #21
-  (`asma-week-10-followup`) and PR #22 (`asma-week-11`) — not "not yet opened" as originally
-  written here; merging #21 first still keeps history atomic, it just isn't blocking anything else
-  this week.
-- deepteam's README documents an older/simplified `model_callback` API than the installed
-  `deepteam==1.0.9` actually exposes, and its `run_all_attacks` parameter defaults to `False`
-  (silently sampling one attack per vulnerability instead of the full cross product) — both cost
-  real time this week and are documented in `docs/redteam-deepteam-eval.md` so they don't repeat.
-
-### Next steps
-
-- **First:** once Groq's daily quota for `openai/gpt-oss-20b` resets, rerun the focused
-  `PromptInjection`/`Roleplay` retry to get the live-verification the quota wall prevented this week
-  — this is the actual next step, not a nice-to-have.
-- If a more reliable judge model becomes available on this Groq account, retry with it for
-  conclusive `PromptInjection`/`Roleplay` results.
-- Run `--mode full-graph` (already built into `experiments/deepteam_redteam_eval.py`, not run this
-  week) to measure whether the regex/schema guardrails catch what reaches the LLM here.
-- Merge `asma-week-10-followup` before or alongside this week's PR to keep history clean.
-- GeNIS integration and Wazuh Docker deployment remain open decisions from Week 10, still pending
-  supervisor sign-off — not touched this week.
-
 ### Continued (2026-08-21): live-verification and full-graph run, both closed out
 
 Two days after the quota exhaustion above, picked up both items flagged as the actual next steps.
@@ -818,6 +937,36 @@ usefully on contextually incomplete alerts; (4) literature context for our evalu
 GeNIS/generalization to a second dataset was explicitly deferred this week (still pending supervisor
 sign-off from Week 10, not touched) rather than attempted alongside everything else below.
 
+### Completed this week
+- [x] **Addressed both open PR review threads before starting new work.** PR #21: the previous fix for `evaluate.py`'s silent default was found **inert** — the new `raise` sat inside the same `try:` that the `except Exception` below it caught, so it still produced a scored default. Fixed by moving it into the `try/except`'s `else` clause and narrowing it to fire only when *both* `predicted_label` and `needs_human_review` are absent
+- [x] Added `routing_summary.no_verdict_count` so legitimate no-verdict outcomes (guardrail blocks, handled failures) are tracked rather than treated as fatal
+- [x] PR #22: corrected a stale test-plan count in the PR body (19/19 → 24/24), verified with a live `pytest` run rather than arithmetic
+- [x] Fixed the Week 11 full-graph red-team routing gap so attacks genuinely reach `classify_with_llm` (**8/12 now reach the LLM**, up from 0)
+- [x] **Found a real prompt bug:** `build_context()` treated NaN as present, so **55% of LLM-routed prompts contained the literal string `"MITRE Technique: nan"`**; added `_has_value()` mirroring the fallback classifier's `_present()`
+- [x] Ran a full 999-alert hybrid evaluation on the current model: **accuracy 0.6456, macro F1 0.6484**, replacing the stale headline figure
+- [x] **Answered the "is the LLM worth it" question directly and negatively:** the LLM-routed subset scores macro F1 **0.174** against the RF-routed **0.752** — on raw classification accuracy the honest recommendation is the RF baseline alone
+- [x] Reviewed the literature on comparable evaluation sample sizes to put this project's n in context
+- [x] Reconciled documentation against the re-measured numbers
+
+### Problems / Blockers
+- None this week that blocked the plan — Groq quota held up across roughly 90 live LLM calls
+  (full-graph re-run + two 60-alert diagnostic runs) without hitting the daily wall that blocked
+  Week 11's work, and held up again across the 209 live calls in the full-scale rerun above.
+
+### Next week plan
+- GeNIS integration and Wazuh Docker deployment remain deferred, pending supervisor sign-off (Week
+  10/11 status unchanged).
+- If further LLM-accuracy work is prioritized, richer context retrieval (e.g. surfacing similar
+  historically-labeled alerts, not just MITRE technique text) is a more promising direction than
+  further prompt iteration, per this week's finding that prompt engineering alone plateaus well
+  below RF's accuracy on this subset.
+
+---
+
+### Notes for Week 12 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### PR review follow-ups (asma-week-10-followup / #21, asma-week-11 / #22)
 
 Both open PRs had review comments landed mid-week; addressed before starting new work rather than
@@ -955,21 +1104,6 @@ README's "Current state" summary was still describing end-of-Week-8 status (last
 eval, and the paper draft's existence are now all mentioned, and the roadmap table's Aug 30 row
 reflects this week's actual scope.
 
-### Problems / Blockers
-
-- None this week that blocked the plan — Groq quota held up across roughly 90 live LLM calls
-  (full-graph re-run + two 60-alert diagnostic runs) without hitting the daily wall that blocked
-  Week 11's work, and held up again across the 209 live calls in the full-scale rerun above.
-
-### Next steps
-
-- GeNIS integration and Wazuh Docker deployment remain deferred, pending supervisor sign-off (Week
-  10/11 status unchanged).
-- If further LLM-accuracy work is prioritized, richer context retrieval (e.g. surfacing similar
-  historically-labeled alerts, not just MITRE technique text) is a more promising direction than
-  further prompt iteration, per this week's finding that prompt engineering alone plateaus well
-  below RF's accuracy on this subset.
-
 ---
 
 ## Week 13 — pre-submission audit of the paper draft, doc hygiene
@@ -982,6 +1116,28 @@ and Wazuh Docker remain explicitly gated on supervisor sign-off, unchanged from 
 this week did an unbiased, re-derive-don't-trust audit of the IEEE-format paper draft against its
 underlying source data, in the same style as Week 10's citation/claims audit.
 
+### Completed this week
+- [x] Audited every quantitative claim in the paper draft against its source JSON, every citation against the literature review, and internal consistency against this log — most held up exactly, including the 999-alert numbers, RF baseline, red-team counts and all cited arXiv IDs
+- [x] **Found a real ~4x error:** the paper (and `README.md`) claimed benign/injection guardrail scores of "mean 0.791 vs 0.776"; the actual measured values are **0.209 vs 0.224**, confirmed two independent ways. The qualitative conclusion was never wrong — only the two illustrative numbers
+- [x] **Found a citation that mischaracterised its source:** Freitas et al. were described as an "LLM-based" evaluation bounded by API cost; their module is Random Forest + PCA + cosine similarity, and their 1,000-incident cap exists because of manual analyst judgments. Rewrote the paragraph to attribute each constraint correctly
+- [x] Found two bibliography entries defined but never cited, and fixed them
+- [x] **Moved the paper draft out of the public repository** per Dr. Rana's mid-review instruction, force-pushing it out of branch history and gitignoring `docs/paper/`
+
+### Problems / Blockers
+None on the audit itself. The mid-week paper-draft-in-repo policy correction meant PR #24 couldn't
+simply be merged as originally written — see Week 14 for how its non-paper content got re-landed.
+
+### Next week plan
+*Not recorded at the time — this entry ended at Problems / Blockers.* For continuity: Week 14
+landed PR #23 and re-landed this week's non-paper fixes onto `dev`, since PR #24 was closed unmerged
+when the paper draft was moved out of the public repository.
+
+---
+
+### Notes for Week 13 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### Paper audit: one real ~4x error found, plus three smaller issues
 
 Checked every quantitative claim in the paper against its source JSON in `experiments/results/`,
@@ -1029,11 +1185,6 @@ audit that touch tracked, non-paper files (the `README.md` number, doc hygiene) 
 re-landed — done in Week 14 below, since PR #24 itself stayed closed rather than being reopened
 against a moving `dev`.
 
-### Problems / Blockers
-
-None on the audit itself. The mid-week paper-draft-in-repo policy correction meant PR #24 couldn't
-simply be merged as originally written — see Week 14 for how its non-paper content got re-landed.
-
 ---
 
 ## Week 14 — land PR #23, re-land Week 13's non-paper fixes, full verification pass
@@ -1046,6 +1197,31 @@ week closed out two pieces of already-approved, already-correct work that hadn't
 yet, and ran a full verification pass ahead of the Aug 30 writeup checkpoint — the exact situation
 Week 13 named as its own precedent.
 
+### Completed this week
+- [x] Merged PR #23 and re-landed Week 13's non-paper fixes cleanly onto `dev`, keeping the paper source out of the public repo
+- [x] Re-verified the `README.md` number fix independently (0.791/0.776 → **0.209/0.224**) rather than trusting the Week 13 record
+- [x] Identified and avoided two real risks before touching anything, and ran a full verification pass
+- [x] **Found that the improved prompt Week 12 tested and found better had never actually been deployed** — the tested-and-better variant was sitting unused while the pipeline ran the old one
+- [x] Deployed the improved prompt to `classify_with_llm` and ran a full **209-alert** live re-run
+- [x] Measured the result honestly: grounded reasoning **16.3% → 99.0%**, generic boilerplate **36.4% → 0.0%**, TruePositive recall **0.07 → 0.54**
+- [x] **Reported the new failure mode rather than only the wins:** the pipeline's confidence-based human-review net does not catch it — **42 of 45 (93%)** of the affected cases were scored `high` confidence
+- [x] Flagged a confidence-calibration pass as the concrete next step, scoped narrowly rather than another open-ended prompt-engineering round
+
+### Problems / Blockers
+None that weren't resolved same-session. The two risks in "Two real risks found and avoided" above
+cost investigation time but were caught before anything was pushed, not after.
+
+### Next week plan
+- Get PR #23's follow-on (this branch) reviewed and merged.
+- Supervisor sign-off on the "Still pending" list above, ahead of the Sep 6 "revise draft" and
+  Sep 8 final-submission checkpoints.
+
+---
+
+### Notes for Week 14 — reasoning and detail
+
+*The checklist above is the summary. This section is the original working record: why each
+decision was made and what the evidence was.*
 ### What was actually blocking, and why it wasn't obvious
 
 PR #23 (Week 12) had supervisor approval on record, but GitHub still showed it as open. Re-checking
@@ -1115,17 +1291,6 @@ the supervisor's calls to make, not something to guess at:
   the supervisor's own co-authorship (still a `TODO` in the author block), ORCID, and
   data/code-availability/repo-visibility wording for submission.
 - GeNIS integration and Wazuh Docker deployment — pending sign-off since Week 10, unchanged.
-
-### Problems / Blockers
-
-None that weren't resolved same-session. The two risks in "Two real risks found and avoided" above
-cost investigation time but were caught before anything was pushed, not after.
-
-### Next steps
-
-- Get PR #23's follow-on (this branch) reviewed and merged.
-- Supervisor sign-off on the "Still pending" list above, ahead of the Sep 6 "revise draft" and
-  Sep 8 final-submission checkpoints.
 
 ### Continued (2026-08-30): closing the "is the LLM path worth it" gap the paper itself flagged as untested
 
