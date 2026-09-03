@@ -1630,10 +1630,58 @@ to "a CI from one 10k-resample bootstrap at seed 42" — an improvement, but not
 repeated *data-collection* trials across different random samples, which Week 15's plan also
 asked for and this week doesn't provide.
 
+### Week 16 continued — a live Groq key, a hung-call bug, and a corrected quota story
+
+The author supplied a Groq API key later the same day, enabling the live rerun the section above
+flagged as blocked. Three findings from actually using it:
+
+- **Found and fixed a real infrastructure bug: `ChatGroq` had no request timeout.**
+  `ChatGroq.model_fields` confirmed `timeout` defaults to `None`. One call hung for 84+ minutes
+  with no exception raised, so `explain_with_llm`'s own retry loop (which only catches raised
+  exceptions) never even ran, and the whole live run sat idle. Fixed with `timeout=60` on the
+  shared client (`src/agent/nodes.py`) — bounds worst-case call latency without changing any
+  existing retry logic, since a timeout exception falls through to the same non-retried error path
+  a genuine failure already used.
+- **The daily quota story from Week 15 was correct, and this key has the same real limit.**
+  `x-ratelimit-limit-requests: 1000` and `x-ratelimit-limit-tokens: 8000` (rate-limit response
+  headers) looked like a far more generous budget than the 200,000-tokens/day figure documented
+  Week 15, and the live ablation was paced against those headers (`--daily-call-budget`,
+  `experiments/control_node_ablation.py`) on that assumption. That assumption was wrong: those two
+  headers describe a secondary, non-binding limit. Directly reproducing a 429 revealed Groq's actual
+  message — `"Rate limit reached ... on tokens per day (TPD): Limit 200000, Used 199789"` — the same
+  200k/day ceiling as before, just not visible in the headers being watched. Lesson: when a
+  documented constraint and a live number disagree, reproduce the actual failure directly rather
+  than trusting whichever metric is easiest to read.
+- **A real accounting bug in this session's own two-proportion significance tests, caught before
+  it reached the paper.** The control-node ablation ran all four arms to `"complete": true` at
+  `n_total=999`, which reads as "fully scored at scale" — but arms c and d hit the real 200k-TPD
+  wall mid-run: arm c has 796/999 scored (203 unscored), arm d has only 33/999 scored (966
+  unscored). `compute_arm_metrics`'s accuracy is correctly computed over *scored* rows only, but
+  the first pass of `control_node_ablation_two_proportion_tests.json` used `n_total` (999) as the
+  sample size for arms c and d anyway, understating their true uncertainty. Corrected to use
+  `n_scored`: arm (a) vs (d) moves from a spuriously tight 95% CI of `[0.2995, 0.3812]` to the
+  honest, wider `[0.1718, 0.5097]` (still p=1.6e-5, still real, just correctly uncertain at n=33).
+  Arm (b) verdicts are unaffected by any of this — the RF decides regardless of Groq's state, so
+  `n_scored == n_total == 999` for arms (a) and (b) no matter what happens to the LLM calls.
+
+**Net result:** arms (a) and (b) now have genuine full-999 data (RF-only, immune to the token cap).
+Arm (c) improved substantially (203 → to 796 scored, up from the Week 15 run's smaller live subset).
+Arm (d) did **not** improve — 33 scored rows is fewer than Week 15's 42/299 — because llm_primary
+sends every alert to the LLM unconditionally and hit the daily cap almost immediately. This remains
+the one genuinely data-starved arm, for the same real, unresolved reason as before.
+
+Also, entirely offline (no Groq calls, no quota risk): the `GUIDE_Test.csv` holdout evaluation was
+expanded from 999 to 15,000 alerts (5,000/class), with a matched-scale train-sampled reference
+(`experiments/large_train_sampled_rf_eval.py`, new). At the larger sample the held-out-vs-train
+accuracy gap's 95% CI **excludes zero** (`[-0.0629, -0.0062]` at n=15000 vs n=999;
+`[-0.0461, -0.0257]` at a fully matched n=15000 vs n=15000) — the smaller n=999 sample lacked the
+power to detect what is a real, if small, generalisation gap. This is the clean payoff of "larger
+sample" this week: not a different answer, a truer one the smaller sample couldn't see.
+
 ### Next week plan
-- Re-run `control_node_ablation.py --reduced` once Groq quota allows, to populate
-  `failure_reasons`/`paired_mcnemar_tests` for the live arms with real data instead of leaving
-  them structurally ready but empty.
+- Arm (d) (`llm_primary`) remains the one arm still meaningfully data-starved (n=33). No amount of
+  better pacing fixes this on the current key/tier — it needs either patient accumulation over many
+  more days against the 200k-TPD rolling window, or a higher-tier key.
 - The high-cardinality identifier feature-inflation ablation and incident-level (rather than
   row-level) splits are still outstanding, carried from Week 15.
 - Analyst-rated evaluation of explanation quality — still the one gap none of this closes.

@@ -1,66 +1,72 @@
 {
-  "experiment": "Two-proportion z-tests between control-node ablation arms at full n=999 scale",
-  "note": "These arms were run in separate invocations (each single-arm, paced across the daily Groq quota), so the raw per-row predictions needed for a paired McNemar test were not retained across invocations -- only aggregate accuracy/n survived. A two-proportion z-test on the aggregates is a valid, standard significance test, though less statistically powerful than a paired test would have been on the same n. control_node_ablation.py has been fixed to persist per-row predictions going forward so a future rerun can support a proper paired test.",
+  "experiment": "Two-proportion z-tests between control-node ablation arms, using n_scored (not n_total)",
+  "note": "Corrected version: the first pass of this file used n_total (999) for every arm, but arms c and d have large n_unscored counts (203 and 966 respectively) from hitting Groq openai/gpt-oss-20b real daily token-per-day (TPD) limit of 200,000 -- accuracy is computed only over SCORED rows (compute_arm_metrics), so the correct n for a proportion test is n_scored, not n_total. Arms a/b are unaffected: their verdict comes entirely from the RF, which never calls Groq, so n_scored == n_total == 999 for both regardless of LLM quota state.",
+  "n_scored": {
+    "a": 999,
+    "b": 999,
+    "c": 796,
+    "d": 33
+  },
   "comparisons": {
     "a_vs_c": {
       "n1": 999,
       "x1": 734,
       "p1": 0.7347,
-      "n2": 999,
-      "x2": 754,
-      "p2": 0.7548,
-      "diff": -0.02,
+      "n2": 796,
+      "x2": 601,
+      "p2": 0.755,
+      "diff": -0.0203,
       "ci95": [
-        -0.0582,
-        0.0182
+        -0.0608,
+        0.0202
       ],
-      "z": -1.0262,
-      "p_value": 0.3047871060082321
+      "z": -0.9782,
+      "p_value": 0.3279590315542569
     },
     "a_vs_d": {
       "n1": 999,
       "x1": 734,
       "p1": 0.7347,
-      "n2": 999,
-      "x2": 394,
-      "p2": 0.3944,
-      "diff": 0.3403,
+      "n2": 33,
+      "x2": 13,
+      "p2": 0.3939,
+      "diff": 0.3408,
       "ci95": [
-        0.2995,
-        0.3812
+        0.1718,
+        0.5097
       ],
-      "z": 15.3413,
-      "p_value": 0.0
+      "z": 4.3081,
+      "p_value": 1.6462820586315985e-05
     },
     "c_vs_d": {
-      "n1": 999,
-      "x1": 754,
-      "p1": 0.7548,
-      "n2": 999,
-      "x2": 394,
-      "p2": 0.3944,
-      "diff": 0.3604,
+      "n1": 796,
+      "x1": 601,
+      "p1": 0.755,
+      "n2": 33,
+      "x2": 13,
+      "p2": 0.3939,
+      "diff": 0.3611,
       "ci95": [
-        0.32,
-        0.4007
+        0.1917,
+        0.5305
       ],
-      "z": 16.29,
-      "p_value": 0.0
+      "z": 4.6376,
+      "p_value": 3.523981068065396e-06
     },
     "b_vs_d": {
       "n1": 999,
       "x1": 734,
       "p1": 0.7347,
-      "n2": 999,
-      "x2": 394,
-      "p2": 0.3944,
-      "diff": 0.3403,
+      "n2": 33,
+      "x2": 13,
+      "p2": 0.3939,
+      "diff": 0.3408,
       "ci95": [
-        0.2995,
-        0.3812
+        0.1718,
+        0.5097
       ],
-      "z": 15.3413,
-      "p_value": 0.0
+      "z": 4.3081,
+      "p_value": 1.6462820586315985e-05
     }
   }
 }

@@ -34,10 +34,10 @@ every verdict and the LLM produces only analyst-facing explanations, gating
 review on the classifier's decision margin. Whole-pipeline accuracy rose from
 0.6456 to 0.7347 on the same 999 alerts, and prompt injection can no longer
 alter a triage outcome. Scored instead on Microsoft's held-out test split
-rather than a sample of the training file, accuracy is 0.7047 — a small drop
-whose 95% bootstrap confidence interval, [−0.0701, +0.0100], includes zero
-and is therefore not statistically distinguishable from sampling noise at
-this sample size. For structured security telemetry, an LLM is a capable
+rather than a sample of the training file, accuracy is 0.6998 at n=15,000 —
+a small but, at this sample size, statistically real drop (95% CI on the gap
+against a matched-scale train-sampled reference: [−0.0461, −0.0257],
+excluding zero). For structured security telemetry, an LLM is a capable
 explainer and a poor classifier, and the distinction is measurable.
 
 ---
@@ -369,35 +369,52 @@ small, disclosed, judged-immaterial training-row overlap (1.91%, Section
 5.2). `GUIDE_Test.csv`, Microsoft's own held-out split (4.1M alerts), had
 never been read by any code in this repository before this section.
 
-We drew a fresh, class-balanced 999-alert sample from `GUIDE_Test.csv` and
-scored the existing `baseline_model.joblib` against it without retraining:
+We drew a fresh, class-balanced sample from `GUIDE_Test.csv` and scored the
+existing `baseline_model.joblib` against it without retraining. This section
+was first run at n=999 to match the training-side samples elsewhere in this
+report; at that scale the held-out-vs-train gap's confidence interval
+included zero, so the finding was reported as a close call rather than a
+settled effect. To find out whether that was a real "no difference" or just
+insufficient statistical power, we re-ran the same evaluation at n=15,000
+(5,000/class) — the full `GUIDE_Test.csv` split has 4.1M rows, so this is
+still under 0.4% of it — with a matched-scale train-sampled reference
+(`experiments/large_train_sampled_rf_eval.py`, RF-only, no live LLM calls
+needed) rather than comparing against the smaller n=999 training figure:
 
 | Sample | Accuracy | Macro F1 | n |
 |---|---|---|---|
 | `GUIDE_train`-sampled, evidence-rich (5.2) | 0.6555 | 0.6035 | 209 |
-| `GUIDE_train`-sampled, full pipeline (5.4) | **0.7347** | **0.7307** | 999 |
-| **`GUIDE_Test.csv`, held-out** | **0.7047** | **0.7001** | 999 |
+| `GUIDE_train`-sampled, full pipeline (5.4) | 0.7347 | 0.7307 | 999 |
+| `GUIDE_train`-sampled, matched scale | 0.7357 | 0.7331 | 15,000 |
+| **`GUIDE_Test.csv`, held-out** | **0.6998** | **0.6949** | 15,000 |
 
-The gap (−0.0300) has a 95% bootstrap confidence interval of
-**[−0.0701, +0.0100]** (10,000 resamples over the two independent 999-alert
-samples) — since that interval includes 0, the gap is not statistically
-distinguishable from sampling noise at this sample size, not a settled
-generalisation drop. A close call, not a clean pass, but now a checked one
-rather than an eyeballed ±3-point heuristic. Per-class recall shows where it
-concentrates: FalsePositive recall
-falls to 0.532 against BenignPositive's 0.826 and TruePositive's 0.757, so
-the drop is not uniform across classes. Unseen-category encoding failure
-(`transform_with_encoders()` maps unseen values to −1 rather than crashing)
-was checked directly and ruled out as the cause: it fired on only 0.4% of
-alerts. A 60-alert live smoke run through the full `rf_primary` graph,
+At matched n=15,000 vs n=15,000, the accuracy gap (−0.0359) has a 95%
+bootstrap confidence interval of **[−0.0461, −0.0257]** — this **excludes
+zero**, so at this sample size the gap is a real, measured generalisation
+effect, not sampling noise (macro F1 gap: −0.0383, 95% CI
+[−0.0486, −0.0280], also significant;
+`experiments/results/holdout_vs_train_symmetric_15000.json`). The smaller
+n=999 sample's "not distinguishable from noise" verdict was correct as
+stated — it genuinely couldn't distinguish a gap this size from noise at
+that n — but it was a power problem, not evidence of no effect. This is the
+central methodological point of scaling this evaluation up: the larger,
+stricter sample didn't just narrow an existing interval, it changed which
+side of significance the finding falls on. Per-class recall shows where the
+gap concentrates: FalsePositive recall falls to 0.532 against
+BenignPositive's 0.826 and TruePositive's 0.757 at n=999 (per-class recall
+at n=15,000 is in the source JSON), so the drop is not uniform across
+classes. Unseen-category encoding failure (`transform_with_encoders()` maps
+unseen values to −1 rather than crashing) was checked directly and ruled out
+as the cause: it fired on only 0.39% of alerts at n=15,000. A 60-alert live
+smoke run (at the original n=999 scale) through the full `rf_primary` graph,
 including the LLM explanation call, produced zero crashes and predicted
 labels that matched the offline prediction on every row — the
 explanation-cannot-alter-a-verdict property holds on data the model has
 never had any chance to see.
 
-The classifier's one-vs-rest ROC/AUC on this sample is macro 0.8866, 95%
-bootstrap CI [0.8703, 0.903] (per-class: BenignPositive 0.882, FalsePositive
-0.873, TruePositive 0.905) — see
+The classifier's one-vs-rest ROC/AUC at n=15,000 is macro 0.8775, 95%
+bootstrap CI [0.8731, 0.8817] (per-class: BenignPositive 0.8732,
+FalsePositive 0.8555, TruePositive 0.9038) — see
 `experiments/results/guide_test_holdout_eval.json`.
 
 ### 5.9 The control-node ablation and the effect of incomplete context
@@ -405,53 +422,105 @@ bootstrap CI [0.8703, 0.903] (per-class: BenignPositive 0.882, FalsePositive
 `experiments/control_node_ablation.py`. Two questions this report had left as
 inference: does the LLM's explanation role genuinely never touch the verdict,
 and what happens to accuracy as evidence gets sparser, measured directly
-rather than inferred from routing behaviour. Both are answered on a fresh
-299-alert stratified sample (bin targets 126/94/50/29 across 0–3 populated
-evidence fields) — reduced from the originally-planned full 999-alert design
-after Groq's daily token quota (200,000) turned out to support roughly
-300–320 live calls, not the ~2,200 the full design needed.
+rather than inferred from routing behaviour. First attempted on a reduced
+299-alert stratified subsample (bin targets 126/94/50/29) because Groq's
+daily token quota was believed, from its rate-limit response headers, to
+support only ~300–320 live calls. Re-run this week at the originally-planned
+full 999-alert scale, paced across the quota with a `--daily-call-budget`
+flag added for exactly this purpose — and, in doing so, discovered the
+headers were misleading: Groq's actual constraint is a **200,000 tokens/day
+(TPD) limit**, confirmed directly from its own 429 error text
+(`"...on tokens per day (TPD): Limit 200000, Used 199789..."`), not the more
+generous per-minute figures the response headers advertise. That is the same
+underlying limit the original 299-alert design was sized against — this
+key does not have a materially larger quota, the visible headers just
+described the wrong thing.
 
-**Architecture verification.** Running `rf_primary` with the LLM explanation
-call on and off across the identical 299 alerts produced **zero mismatched
-verdicts or confidences**, both scoring 0.7492 accuracy / 0.7453 macro F1.
-This directly confirms, rather than assumes, that `explain_with_llm` cannot
-alter a verdict — under live conditions, including real API failures.
+| Arm | Mode | n scored / 999 | Accuracy | Macro F1 |
+|---|---|---|---|---|
+| (a) | `rf_primary`, explanation on | 999 / 999 | **0.7347** | 0.7307 |
+| (b) | `rf_primary`, explanation off | 999 / 999 | **0.7347** | 0.7307 |
+| (c) | `legacy_hybrid` | 796 / 999 | 0.7550 | 0.7512 |
+| (d) | `llm_primary` (LLM decides every alert) | **33 / 999** | 0.3939 | 0.3070 |
 
-**What happens when the LLM decides.** `legacy_hybrid` routes the same 299
-alerts by evidence count, RF for bins 0–1 and LLM for bins 2–3:
+**Architecture verification.** Arms (a) and (b) score identically (0.7347)
+because the RF decides every verdict in both — explanation on or off cannot
+change it. This is a code-level invariant (`explain_with_llm` structurally
+cannot write `predicted_label`), already verified by exact row-for-row
+matching on a live 299-alert run in the original design; that specific
+row-for-row check was not repeated at n=999 because arms (a) and (b) ran in
+separate daily invocations and only their aggregate metrics, not per-row
+predictions, were retained across that gap (`control_node_ablation.py` now
+persists per-row predictions going forward — `experiments/results/
+control_node_ablation_rows/` — so a future rerun can repeat the exact check
+at full scale). One honest gap: because a verdict comes from the RF
+regardless of whether the explanation call itself succeeded, arm (a)'s
+`n_scored=999` does not mean 999 explanation calls all succeeded — some
+plausibly hit the same daily token cap arms (c) and (d) hit below — but
+per-row detail for that specific run was not retained, so the true
+explanation-success rate for arm (a) is unverified. It does not affect the
+accuracy figures above, which are RF-decided either way.
 
-| Evidence bins | RF | LLM (`legacy_hybrid`) |
-|---|---|---|
-| 0 (n=126) | 0.7698 | 0.7698 *(RF-decided)* |
-| 1 (n=94) | 0.7660 | 0.7660 *(RF-decided)* |
-| 2 (n=50, 29 scored) | 0.6600 | **0.3793** |
-| 3 (n=29, 13 scored) | 0.7586 | **0.1538** |
+**What happens when the LLM decides, at genuinely full scale for the
+RF-decided bins.** `legacy_hybrid` (arm c) routes by evidence count, RF for
+bins 0–1 and LLM for bins 2–3. Bins 0–1 are RF-decided and fully scored at
+n=999; bins 2–3 need a live call per alert and mostly did not get one this
+run — the daily cap was largely spent by arm (a)'s 999 explanation calls
+before arm (c) started:
 
-The RF holds its accuracy across evidence density; the LLM's collapses from
-parity at bins 0–1 to roughly a third to a fifth of the RF's accuracy at the
-evidence-rich bins it is specifically routed to decide. This reproduces
-Section 5.2's finding through an independent measurement path (live per-bin
-routing rather than a reconstructed paired subset).
+| Evidence bin | Population | RF (arms a/b) | LLM (`legacy_hybrid`, arm c) |
+|---|---|---|---|
+| 0 | 453 | 0.7704 | 0.7704 *(RF-decided)* |
+| 1 | 337 | 0.7359 | 0.7359 *(RF-decided)* |
+| 2 | 180 | 0.6389 | 0.6667 (n=6 scored, 174 unscored) |
+| 3 | 29 | 0.7586 | no rows scored |
 
-**Data-quality caveat, disclosed rather than hidden.** The `llm_primary`
-arm (LLM decides every alert, unconditionally) lost most of its data to the
-same quota exhaustion: only 42 of 299 alerts scored. Reported by bin only
-where support exceeds 5 rows — bin 0 (n=25, 0.24), bin 1 (n=9, 0.5556), bin 2
-(n=7, 0.00); bin 3 scored a single alert and is not reported. Its calibration
-table is not reported as a finding: 257 of 280 "escalated" rows are unscored
-alerts, not real low-confidence predictions, so the number would measure
-data loss, not calibration. The `legacy_hybrid` comparison above is the
-better-supported result for exactly this reason.
+The evidence-rich bins (2–3) are too data-starved this run to repeat the
+Section 5.2-style comparison reliably — 6 scored rows at bin 2, none at bin
+3, down from 29 and 13 in the original reduced design (that design ran only
+the live arms, without competing against arm (a)'s 999 explanation calls for
+the same daily budget). **Sequencing arm (a) before arm (c) and (d) in the
+same day was a real design mistake**, not a quota problem alone: running (c)
+and (d) first would have preserved more of their evidence-rich-bin budget.
 
-**Week 16 hardening, disclosed rather than backfilled.** `control_node_ablation.py` now computes
-a paired McNemar's exact test between arms sharing the same rows (RF vs. `legacy_hybrid`, RF vs.
-`llm_primary`, restricted to rows both arms actually scored) and persists a `failure_reasons`
-histogram — grouped, committed error strings, not just a prose claim — so the quota-exhaustion
-count above is evidenced in the artifact itself. Both are tested against synthetic data and the
-offline arm. Neither has a populated value for arms a/c/d yet: the checkpoint files that recorded
-those live rows' per-alert errors are deleted by design once a run completes, and no
-`GROQ_API_KEY` was available this week to re-run the live arms and generate fresh ones. The code
-is ready; the live rerun is not yet done.
+**`llm_primary` (arm d), forced onto every alert, is the arm hit hardest —
+worse than the original design, not better.** Of 999 alerts, only 33 scored
+(966 hit the same 200k-TPD cap), fewer in absolute count than the original
+299-alert design's 42 scored rows. A two-proportion z-test between arm (a)'s
+999-scored accuracy and arm (d)'s 33-scored accuracy is still highly
+significant (diff 0.3408, 95% CI [0.1718, 0.5097], z=4.31, p=1.6e-5,
+`experiments/results/control_node_ablation_two_proportion_tests.json`) — the
+effect is large enough to detect even at n=33 — but the interval is
+genuinely wide, reflecting that real uncertainty rather than hiding it
+behind a misleadingly tight one (an earlier pass of this same file used
+n=999, the attempted count, instead of n=33, the actually-scored count, for
+this arm — caught and corrected before being reported anywhere further).
+The same z-test approach for arm (a) vs. arm (c) (999 vs. 796 scored,
+diff −0.0203, 95% CI [−0.0608, 0.0202], p=0.33) shows no significant
+difference — expected, since bins 0–1 dominate arm (c)'s scored rows and
+those are RF-decided in both arms.
+
+**Data-quality caveat carried forward.** Arm (d)'s calibration table is
+still not reported as a finding, for the same reason as before: most
+"escalated" rows are unscored alerts, not real low-confidence predictions,
+so the number would measure data loss, not calibration.
+`control_node_ablation.py` now persists a grouped histogram of every
+unscored row's error message before any cleanup (`failure_reasons` in the
+committed JSON) — for arm (d) this run, 966/966 unscored rows carry the same
+`"...on tokens per day (TPD)..."` message, evidencing the quota-exhaustion
+claim in the artifact itself rather than only asserting it in prose.
+
+**Net assessment.** This week's rerun is a genuine improvement for arms (a),
+(b), and, on the RF-decided bins, arm (c) — all now fully scored at the
+originally-planned n=999, up from n=299. It is not an improvement, and in
+one respect (arm d's absolute scored count, and arm c's evidence-rich-bin
+coverage) a regression, for the specific question of how the LLM performs
+when forced to decide evidence-rich alerts at scale. That question remains
+answered best by the original reduced-299 design's `legacy_hybrid` bins
+2–3 (n=29, n=13) — cited there, not superseded here — while the RF-vs-LLM
+effect size itself (arm a/b/c vs. arm d) is now confirmed, at even smaller
+n, to be real and large rather than an artifact of the original small
+sample.
 
 ---
 
@@ -473,14 +542,18 @@ and the pipeline was silently auto-accepting its least reliable predictions.
 
 ### 6.2 Limitations
 
-1. **The `GUIDE_Test.csv` evaluation (5.8) is a 999-alert sample, not the
-   full 4.1M-alert file.** The measured gap against the train-sampled figure
-   (0.7047 vs. 0.7347) has a 95% bootstrap CI of [−0.0701, +0.0100], which
-   includes 0 — not statistically distinguishable from sampling noise at
-   this sample size, a close call rather than a settled estimate. A larger
-   held-out run would still sharpen the interval; a single seed's bootstrap
-   is an improvement over no CI, not a substitute for repeated
-   data-collection trials.
+1. **The `GUIDE_Test.csv` evaluation (5.8) is a 15,000-alert sample, not the
+   full 4.1M-alert file.** At n=999 the measured gap against the train-sampled
+   figure had a 95% bootstrap CI including 0 — not distinguishable from noise.
+   At n=15,000, matched against an equally large train-sampled reference, the
+   same gap's CI ([−0.0461, −0.0257]) excludes 0: a real, if small,
+   generalisation effect the smaller sample lacked the power to detect. This
+   is itself a limitation worth stating plainly: the n=999 result was not
+   wrong, it was underpowered, and nothing about a "not significant" result
+   at one sample size rules out a real effect at a larger one. A larger
+   held-out run than 15,000 would still sharpen the interval further; a
+   single seed's bootstrap remains an improvement over no CI, not a
+   substitute for repeated data-collection trials.
 2. **Training rows are the first 100,000, not a random sample.** Their class
    distribution matches the global one, which is reassuring but not conclusive.
 3. **High-cardinality identifier columns remain features** (`IpAddress`,
@@ -497,12 +570,22 @@ and the pipeline was silently auto-accepting its least reliable predictions.
    filter is; it does not estimate production performance.
 8. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
 9. **The control-node ablation's live arms (5.9) lost most of their data to
-   an external API quota, not by design.** `llm_primary` scored only 42 of
-   299 alerts; its bin-level breakdown is reported only where support
-   exceeds 5 rows, and its calibration table is withheld as a finding since
-   its "escalated" bucket is 92% unscored data. The section's conclusion
-   rests on the better-supported `legacy_hybrid` comparison (n=29, n=13 at
-   the evidence-rich bins) for exactly this reason.
+   an external API quota, not by design — confirmed to be a hard 200,000
+   tokens/day limit on the model, not the more generous per-minute figure
+   its response headers advertise.** Re-running at the originally-planned
+   full 999-alert scale improved arms (a)/(b) (RF-decided, immune to the
+   cap) and arm (c)'s RF-decided bins to genuinely full n=999, but left
+   `llm_primary` (arm d) *more* data-starved than the original design — 33
+   of 999 scored, versus 42 of 299 before — because running arm (a)'s 999
+   explanation calls first consumed most of the day's budget before arms
+   (c) and (d) started. The evidence-rich-bin comparison for `legacy_hybrid`
+   (arm c) is likewise thinner at full scale (6 scored at bin 2, 0 at bin 3)
+   than the original reduced design (29, 13) for the same reason. Section
+   5.9's conclusion about the RF-vs-LLM effect size is still supported —
+   now by a two-proportion test at n=33 rather than a per-bin breakdown at
+   n=29/13 — but the original reduced-299 design's evidence-rich-bin numbers
+   remain the better-supported source for that specific breakdown and are
+   cited there, not superseded.
 
 ---
 
