@@ -35,9 +35,10 @@ review on the classifier's decision margin. Whole-pipeline accuracy rose from
 0.6456 to 0.7347 on the same 999 alerts, and prompt injection can no longer
 alter a triage outcome. Scored instead on Microsoft's held-out test split
 rather than a sample of the training file, accuracy is 0.7047 — a small drop
-within this report's own noise band. For structured security telemetry, an
-LLM is a capable explainer and a poor classifier, and the distinction is
-measurable.
+whose 95% bootstrap confidence interval, [−0.0701, +0.0100], includes zero
+and is therefore not statistically distinguishable from sampling noise at
+this sample size. For structured security telemetry, an LLM is a capable
+explainer and a poor classifier, and the distinction is measurable.
 
 ---
 
@@ -377,9 +378,13 @@ scored the existing `baseline_model.joblib` against it without retraining:
 | `GUIDE_train`-sampled, full pipeline (5.4) | **0.7347** | **0.7307** | 999 |
 | **`GUIDE_Test.csv`, held-out** | **0.7047** | **0.7001** | 999 |
 
-The gap (−0.0300) sits right at the edge of the ±3-point noise band this
-report already uses for single 999-alert runs — a close call, not a clean
-pass. Per-class recall shows where it concentrates: FalsePositive recall
+The gap (−0.0300) has a 95% bootstrap confidence interval of
+**[−0.0701, +0.0100]** (10,000 resamples over the two independent 999-alert
+samples) — since that interval includes 0, the gap is not statistically
+distinguishable from sampling noise at this sample size, not a settled
+generalisation drop. A close call, not a clean pass, but now a checked one
+rather than an eyeballed ±3-point heuristic. Per-class recall shows where it
+concentrates: FalsePositive recall
 falls to 0.532 against BenignPositive's 0.826 and TruePositive's 0.757, so
 the drop is not uniform across classes. Unseen-category encoding failure
 (`transform_with_encoders()` maps unseen values to −1 rather than crashing)
@@ -390,9 +395,10 @@ labels that matched the offline prediction on every row — the
 explanation-cannot-alter-a-verdict property holds on data the model has
 never had any chance to see.
 
-The classifier's one-vs-rest ROC/AUC on this sample is macro 0.887
-(per-class: BenignPositive 0.882, FalsePositive 0.873, TruePositive 0.905) —
-see `experiments/results/guide_test_holdout_eval.json`.
+The classifier's one-vs-rest ROC/AUC on this sample is macro 0.8866, 95%
+bootstrap CI [0.8703, 0.903] (per-class: BenignPositive 0.882, FalsePositive
+0.873, TruePositive 0.905) — see
+`experiments/results/guide_test_holdout_eval.json`.
 
 ### 5.9 The control-node ablation and the effect of incomplete context
 
@@ -437,6 +443,16 @@ alerts, not real low-confidence predictions, so the number would measure
 data loss, not calibration. The `legacy_hybrid` comparison above is the
 better-supported result for exactly this reason.
 
+**Week 16 hardening, disclosed rather than backfilled.** `control_node_ablation.py` now computes
+a paired McNemar's exact test between arms sharing the same rows (RF vs. `legacy_hybrid`, RF vs.
+`llm_primary`, restricted to rows both arms actually scored) and persists a `failure_reasons`
+histogram — grouped, committed error strings, not just a prose claim — so the quota-exhaustion
+count above is evidenced in the artifact itself. Both are tested against synthetic data and the
+offline arm. Neither has a populated value for arms a/c/d yet: the checkpoint files that recorded
+those live rows' per-alert errors are deleted by design once a run completes, and no
+`GROQ_API_KEY` was available this week to re-run the live arms and generate fresh ones. The code
+is ready; the live rerun is not yet done.
+
 ---
 
 ## 6. Discussion and Limitations
@@ -459,9 +475,12 @@ and the pipeline was silently auto-accepting its least reliable predictions.
 
 1. **The `GUIDE_Test.csv` evaluation (5.8) is a 999-alert sample, not the
    full 4.1M-alert file.** The measured gap against the train-sampled figure
-   (0.7047 vs. 0.7347) sits right at the edge of the ±3-point noise band this
-   report uses for single runs at this size — a close call, not a settled
-   estimate. A larger held-out run or repeated trials would sharpen it.
+   (0.7047 vs. 0.7347) has a 95% bootstrap CI of [−0.0701, +0.0100], which
+   includes 0 — not statistically distinguishable from sampling noise at
+   this sample size, a close call rather than a settled estimate. A larger
+   held-out run would still sharpen the interval; a single seed's bootstrap
+   is an improvement over no CI, not a substitute for repeated
+   data-collection trials.
 2. **Training rows are the first 100,000, not a random sample.** Their class
    distribution matches the global one, which is reassuring but not conclusive.
 3. **High-cardinality identifier columns remain features** (`IpAddress`,

@@ -64,7 +64,7 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 from src.agent.fallback_classifier import evidence_field_count
 from src.agent.graph import build_triage_graph
-from experiments.rf_vs_llm_control import calibration_table
+from experiments.rf_vs_llm_control import calibration_table, mcnemar
 
 CACHE_PATH = Path(
     "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv"
@@ -125,6 +125,75 @@ def _checkpoint_path(arm_key: str) -> Path:
     return CHECKPOINT_DIR / f"arm_{arm_key}.jsonl"
 
 
+# Error strings this pipeline has actually seen from the Groq API when the
+# daily token quota is exhausted (openai/gpt-oss-20b, 200,000 tokens/day --
+# see the module docstring). Retrying these is pointless: the quota doesn't
+# refill mid-run, so a retry just burns the request budget faster. Anything
+# else (timeouts, connection resets) is treated as transient and retried.
+_QUOTA_ERROR_MARKERS = ("rate_limit", "quota", "429", "insufficient_quota")
+
+
+def _is_quota_error(message: str) -> bool:
+    lowered = message.lower()
+    return any(marker in lowered for marker in _QUOTA_ERROR_MARKERS)
+
+
+def _invoke_with_retry(graph, alert: dict, max_attempts: int = 3, base_delay: float = 2.0):
+    """Retry a graph invocation on transient errors; give up immediately on quota errors.
+
+    NOTE: this makes the pipeline resilient to transient network/API
+    hiccups, but it cannot recover the llm_primary arm's lost calls -- that
+    loss is a daily-quota ceiling, not a transient failure, and retrying a
+    quota error just wastes what's left of the budget. Recovering that data
+    still needs a GROQ_API_KEY with unused quota, which this environment
+    does not have; see README for the disclosed limitation this leaves in
+    place.
+    """
+    last_exc = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return graph.invoke({"raw_alert": alert}), None
+        except Exception as exc:  # noqa: BLE001 - genuinely need to catch and classify anything
+            message = str(exc)
+            if _is_quota_error(message):
+                return None, message
+            last_exc = message
+            if attempt < max_attempts:
+                time.sleep(base_delay * attempt)
+    return None, last_exc
+
+
+def error_histogram(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Group unscored rows' error strings so a quota-exhaustion claim is
+    evidenced in the committed output, not just asserted in prose.
+
+    Groups by whether the error looks like a quota/rate-limit error vs.
+    something else, then by the first ~80 characters of the message (error
+    strings from the same root cause are near-identical, so this collapses
+    them without needing exact-string matching).
+    """
+    unscored = [r for r in rows if r.get("predicted_label") is None]
+    quota = [r for r in unscored if r.get("error") and _is_quota_error(r["error"])]
+    other = [r for r in unscored if r.get("error") and not _is_quota_error(r["error"])]
+    no_error_recorded = [r for r in unscored if not r.get("error")]
+
+    def _bucket(records: list[dict]) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for r in records:
+            key = (r["error"] or "")[:80]
+            counts[key] = counts.get(key, 0) + 1
+        return counts
+
+    return {
+        "n_unscored": len(unscored),
+        "n_quota_exhaustion": len(quota),
+        "n_other_error": len(other),
+        "n_unscored_no_error_string": len(no_error_recorded),
+        "quota_error_messages": _bucket(quota),
+        "other_error_messages": _bucket(other),
+    }
+
+
 def _load_checkpoint(arm_key: str) -> dict[int, dict[str, Any]]:
     """Rows already scored for this arm, keyed by row index -- lets a killed
     run resume instead of re-spending live API calls on rows already done.
@@ -179,9 +248,9 @@ def run_arm(mode: str, sample: pd.DataFrame, skip_explanation: bool, arm_key: st
             bin_count = evidence_field_count(alert)
 
             started = time.perf_counter()
-            try:
-                result = graph.invoke({"raw_alert": alert})
-                elapsed = time.perf_counter() - started
+            result, error_message = _invoke_with_retry(graph, alert)
+            elapsed = time.perf_counter() - started
+            if result is not None:
                 record = {
                     "_row_index": int(row_index),
                     "ground_truth": ground_truth,
@@ -193,8 +262,7 @@ def run_arm(mode: str, sample: pd.DataFrame, skip_explanation: bool, arm_key: st
                     "error": result.get("error"),
                     "latency_seconds": round(elapsed, 4),
                 }
-            except Exception as exc:
-                elapsed = time.perf_counter() - started
+            else:
                 record = {
                     "_row_index": int(row_index),
                     "ground_truth": ground_truth,
@@ -203,7 +271,7 @@ def run_arm(mode: str, sample: pd.DataFrame, skip_explanation: bool, arm_key: st
                     "confidence": None,
                     "triage_path": "error",
                     "rationale_status": None,
-                    "error": str(exc),
+                    "error": error_message,
                     "latency_seconds": round(elapsed, 4),
                 }
             rows.append(record)
@@ -265,6 +333,35 @@ def compute_arm_metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return {"overall": overall, "by_evidence_bin": by_bin, "latency": latency}
 
 
+def paired_mcnemar(rows_reference: list[dict], rows_other: list[dict]) -> dict:
+    """McNemar's test between two arms scored on the SAME alert rows.
+
+    Unlike arm (a) vs (b) (verify_explanation_cannot_change_verdict, which
+    asserts identical verdicts), arms (c) and (d) are genuinely different
+    architectures and are expected to disagree -- this measures whether
+    that disagreement favours one arm significantly. Restricted to rows
+    BOTH arms actually scored: arm (d)'s quota losses mean not every row in
+    the sample has a verdict from both sides, so an unrestricted pairing
+    would silently misalign rows.
+    """
+    by_index_other = {r["_row_index"]: r for r in rows_other if r.get("predicted_label") is not None}
+    reference_correct, other_correct = [], []
+    for r in rows_reference:
+        if r.get("predicted_label") is None:
+            continue
+        other_row = by_index_other.get(r["_row_index"])
+        if other_row is None:
+            continue
+        reference_correct.append(r["predicted_label"] == r["ground_truth"])
+        other_correct.append(other_row["predicted_label"] == other_row["ground_truth"])
+
+    if not reference_correct:
+        return {"n_paired": 0, "note": "no rows were scored by both arms -- test not computable"}
+    result = mcnemar(reference_correct, other_correct)
+    result["n_paired"] = len(reference_correct)
+    return result
+
+
 def verify_explanation_cannot_change_verdict(rows_a: list[dict], rows_b: list[dict]) -> dict:
     """Arm (a) and arm (b) must agree on every verdict; assert it, don't assume it."""
     by_index_b = {r["_row_index"]: r for r in rows_b}
@@ -304,6 +401,21 @@ def main() -> None:
     args = parser.parse_args()
     arms = ["b"] if args.skip_live else args.arms
 
+    # Load any previously-committed output up front. A partial run (--arms,
+    # --skip-live) must not silently drop live-arm data it isn't
+    # re-scoring this time -- that's a real data-loss bug this script had:
+    # `--skip-live` (arm b only) used to overwrite the file and discard
+    # committed live results for arms a/c/d. Arms not run this invocation
+    # are carried forward from the previous output instead, as long as the
+    # sample design matches (a reduced-sample run must not be silently
+    # merged with a full-999 run under the same arm key).
+    previous_output = None
+    if OUTPUT_PATH.exists():
+        try:
+            previous_output = json.loads(OUTPUT_PATH.read_text())
+        except json.JSONDecodeError:
+            previous_output = None
+
     print(f"loading the 999-alert balanced evaluation cache...")
     full_sample = pd.read_csv(CACHE_PATH)
 
@@ -322,21 +434,63 @@ def main() -> None:
         print(f"\n=== arm ({arm}): {config['label']} ===")
         rows = run_arm(config["mode"], sample, config["skip_explanation"], arm_key=arm)
         raw_rows[arm] = rows
-        results[arm] = {"config": config, "metrics": compute_arm_metrics(rows)}
+        results[arm] = {
+            "config": config,
+            "metrics": compute_arm_metrics(rows),
+            "failure_reasons": error_histogram(rows),
+        }
         acc = results[arm]["metrics"]["overall"]["accuracy"]
-        print(f"  accuracy: {acc}")
+        unscored = results[arm]["failure_reasons"]["n_unscored"]
+        print(f"  accuracy: {acc}  (unscored: {unscored})")
+
+    # Carry forward arms not run this invocation, rather than silently
+    # dropping them -- this script used to fully overwrite OUTPUT_PATH, so
+    # e.g. `--skip-live` (arm b only) would discard committed live-call
+    # results for arms a/c/d that took real API quota to produce and can't
+    # be regenerated on demand. Carried forward regardless of whether the
+    # previous run's sample_design matches this one's (a --skip-live full-999
+    # run and a --reduced 299-alert run legitimately coexist at different
+    # scales); each carried-forward arm is tagged with the sample_design it
+    # was actually scored under so the output stays honest about the mix.
+    carried_forward = []
+    if previous_output:
+        for arm_key, arm_data in previous_output.get("arms", {}).items():
+            if arm_key not in results:
+                arm_data = dict(arm_data)
+                arm_data["_carried_forward_from_sample_design"] = previous_output.get("sample_design")
+                results[arm_key] = arm_data
+                carried_forward.append(arm_key)
+    same_design_previous = (
+        previous_output
+        if previous_output and previous_output.get("sample_design") == sample_design
+        else None
+    )
+    if carried_forward:
+        print(f"\ncarried forward arms not run this invocation (not overwritten): {carried_forward}")
 
     verification = None
     if "a" in raw_rows and "b" in raw_rows:
         print("\nverifying arm (a) and arm (b) produce identical verdicts...")
         verification = verify_explanation_cannot_change_verdict(raw_rows["a"], raw_rows["b"])
         print(f"  {verification['verdict']}")
+    elif same_design_previous:
+        verification = same_design_previous.get("arm_a_vs_arm_b_verification")
+
+    paired_tests = dict(same_design_previous.get("paired_mcnemar_tests", {})) if same_design_previous else {}
+    if "a" in raw_rows and "c" in raw_rows:
+        paired_tests["a_vs_c"] = paired_mcnemar(raw_rows["a"], raw_rows["c"])
+        print(f"\nMcNemar arm (a) vs arm (c): {paired_tests['a_vs_c'].get('interpretation', paired_tests['a_vs_c'])}")
+    if "a" in raw_rows and "d" in raw_rows:
+        paired_tests["a_vs_d"] = paired_mcnemar(raw_rows["a"], raw_rows["d"])
+        print(f"McNemar arm (a) vs arm (d): {paired_tests['a_vs_d'].get('interpretation', paired_tests['a_vs_d'])}")
 
     calibration = None
     if "d" in raw_rows:
         calibration = calibration_table(raw_rows["d"])
         print(f"\narm (d) calibration (LLM deciding every alert, including evidence-poor ones):")
         print(f"  gate inverted: {calibration['gate_behaviour']['gate_is_inverted']}")
+    elif same_design_previous:
+        calibration = same_design_previous.get("arm_d_calibration")
 
     cross_arm_summary = {
         arm: {
@@ -352,17 +506,13 @@ def main() -> None:
     }
 
     full_b_reference = None
-    if args.reduced and OUTPUT_PATH.exists():
+    if args.reduced and previous_output:
         # Preserve the full-999 offline arm-b run (already committed, free to
         # keep) as a top-line reference alongside the quota-limited reduced
         # arms, rather than losing it when this run's output overwrites the
         # file.
-        try:
-            previous = json.loads(OUTPUT_PATH.read_text())
-            if previous.get("sample_design") in (None, "full_999") and "b" in previous.get("arms", {}):
-                full_b_reference = previous["arms"]["b"]
-        except (json.JSONDecodeError, KeyError):
-            pass
+        if previous_output.get("sample_design") in (None, "full_999") and "b" in previous_output.get("arms", {}):
+            full_b_reference = previous_output["arms"]["b"]
 
     output = {
         "experiment": "Control-node ablation: which node decides, and what happens as evidence gets sparser",
@@ -376,11 +526,17 @@ def main() -> None:
             "roughly 300-320 live calls at this pipeline's actual per-call cost, not the ~2,200 the "
             "full design needs; see REDUCED_BIN_TARGETS in this script."
             if args.reduced else "Full 999-alert balanced cache, no reduction."
+        ) + (
+            f" This run only re-scored {arms}; arms {carried_forward} were carried forward "
+            "unchanged from a previous run and may have been scored under a different "
+            "sample_design -- see each carried arm's _carried_forward_from_sample_design."
+            if carried_forward else ""
         ),
         "evidence_bin_distribution": {str(b): int((sample.apply(lambda r: evidence_field_count(r.to_dict()), axis=1) == b).sum()) for b in EVIDENCE_BINS},
         "arms": results,
         "arm_b_full_999_reference": full_b_reference,
         "arm_a_vs_arm_b_verification": verification,
+        "paired_mcnemar_tests": paired_tests,
         "arm_d_calibration": calibration,
         "cross_arm_summary": cross_arm_summary,
     }

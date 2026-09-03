@@ -1565,6 +1565,79 @@ affect a verdict, accuracy evaluation is identical with the LLM switched off
   argument rests on, and it remains the one thing none of the automated content analysis substitutes
   for. Carried from Week 14, and more load-bearing than it was then.
 
+## Week 16 — confidence intervals, and committing the code the paper already cites
+
+**Branch:** `worktree-week16-hardening` (based on `asma-week-15`)
+
+The 2026-09-01 supervisor follow-up (E4/E5: GUIDE_Test holdout, ROC/AUC, control-node ablation)
+had landed as real, working code, but only as uncommitted state in the working checkout — nothing
+beyond the result JSONs had reached git. Reported findings from that session (accuracy 0.7047 on
+the held-out split vs. 0.7347 on train-sampled, macro AUC 0.887/0.7636, zero explanation-flips
+across 299 live alerts, 42/299 `llm_primary` calls scored before Groq's quota ran out) were
+therefore not reproducible by anyone who wasn't looking at that exact working tree. This week
+closes that gap and answers Week 15's own "next week plan" item: *"Repeated trials for confidence
+intervals — every current figure is a single-run point estimate."*
+
+### Completed this week
+- [x] **Committed the E4/E5 code for the first time.** `experiments/guide_test_holdout_eval.py`,
+  `experiments/roc_auc_analysis.py`, `experiments/control_node_ablation.py`, and the
+  `llm_primary` graph mode (`src/agent/graph.py`) existed only in an uncommitted working tree
+  until now. Every number in the paper's §4.10/§4.11 now traces to a file in git history, not
+  just a result JSON someone has to trust was produced honestly.
+- [x] New `experiments/stats_utils.py`: percentile-bootstrap confidence intervals for a metric on
+  one sample, for macro ROC/AUC, and for the *difference* between two independent samples (not a
+  paired/McNemar comparison — the held-out and train-sampled runs score different alerts).
+- [x] Re-ran the GUIDE_Test holdout eval with the new CI machinery: accuracy 0.7047 (95% CI
+  [0.6757, 0.7327]) vs. 0.7347 train-sampled. The gap's own bootstrap CI is
+  **[−0.0701, +0.0100] — includes 0**, so the −0.03 gap is not distinguishable from sampling noise
+  at n=999. This replaces the earlier ad hoc "±3-point noise band" heuristic with an actual
+  computed interval and turns "a close call" into a checked, not asserted, non-significant result.
+- [x] Re-ran the 209-alert control-set ROC/AUC: macro AUC 0.7636, 95% CI [0.708, 0.8174].
+- [x] Hardened `control_node_ablation.py`:
+  - Added a `failure_reasons` histogram (quota-exhaustion vs. other errors, bucketed by message)
+    persisted to the committed output JSON. Previously the per-row error strings that would prove
+    the Groq-quota-exhaustion claim were written to a checkpoint file and then deleted on a
+    successful run — the claim was asserted in prose, not evidenced in the artifact.
+  - Added retry-with-backoff for transient (non-quota) errors, explicitly *not* retrying
+    quota-exhaustion errors (retrying those only burns what's left of the daily budget).
+  - Added paired McNemar's tests between arms that share the same alert rows (a vs c, a vs d),
+    restricted to rows both arms actually scored — reusing the existing `mcnemar()` helper from
+    `rf_vs_llm_control.py` rather than duplicating it.
+  - **Found and fixed a real data-loss bug while testing this**: running `--skip-live` (arm b
+    only, to verify the offline path) used to silently overwrite the committed output file and
+    discard the live-call results for arms a/c/d — hard-won API quota, gone, with no warning.
+    Arms not re-scored in a given invocation are now carried forward from the previous output
+    instead of dropped.
+- [x] 21 new unit tests (`tests/test_experiment_statistics.py`) for the bootstrap-CI helpers, the
+  quota-error classifier, the failure histogram, the paired McNemar helper, and
+  `compute_ovr_roc_auc`'s class-order handling — its own docstring already flagged getting
+  `classes` out of column order with `proba_matrix` as a silent-failure risk; this pins that it
+  really does change the answer with no error raised, so the risk stays caught by a test instead
+  of only a comment. Full suite: **65 → 86 passing**, zero failures.
+
+### Problems / Blockers
+**The live-arm data in `control_node_ablation.json` predates this week's hardening and can't be
+regenerated here.** No `GROQ_API_KEY` is available in this environment, and the checkpoint files
+that would have let the histogram/paired-test code run against the already-completed live rows
+are deleted by design once a run finishes successfully (confirmed empty on disk). The new
+`failure_reasons` and `paired_mcnemar_tests` fields are real, tested code — proven correct on
+synthetic data and on the offline arm (b) — but arms a/c/d's committed JSON won't carry populated
+values for them until the ablation is re-run live. Left as a disclosed limitation rather than
+backfilled with guessed numbers.
+
+**Bootstrap CIs are single-seed.** `bootstrap_metric_ci`/`bootstrap_auc_ci` reduce "no CI at all"
+to "a CI from one 10k-resample bootstrap at seed 42" — an improvement, but not the same as
+repeated *data-collection* trials across different random samples, which Week 15's plan also
+asked for and this week doesn't provide.
+
+### Next week plan
+- Re-run `control_node_ablation.py --reduced` once Groq quota allows, to populate
+  `failure_reasons`/`paired_mcnemar_tests` for the live arms with real data instead of leaving
+  them structurally ready but empty.
+- The high-cardinality identifier feature-inflation ablation and incident-level (rather than
+  row-level) splits are still outstanding, carried from Week 15.
+- Analyst-rated evaluation of explanation quality — still the one gap none of this closes.
+
 ### Still open — supervisor decisions, not mine
 1. **Paper declarations**, deferred on 11 August: funding, competing interests, ethics approval,
    ORCID, repo visibility, and **co-authorship** (still a `TODO` in the author block).

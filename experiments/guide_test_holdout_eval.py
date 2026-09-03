@@ -46,6 +46,11 @@ from src.agent.fallback_classifier import _load_model, _to_feature_frame
 from src.agent.graph import build_triage_graph
 from src.data.schema import TARGET_COLUMN, TARGET_CLASSES
 from experiments.roc_auc_analysis import compute_ovr_roc_auc
+from experiments.stats_utils import (
+    bootstrap_auc_ci,
+    bootstrap_metric_ci,
+    bootstrap_two_sample_diff_ci,
+)
 
 TEST_DATA_PATH = Path("datasets/GUIDE_Test.csv")
 CACHE_DIR = Path("experiments/results/evaluation_samples")
@@ -182,11 +187,18 @@ def score_holdout(sample: pd.DataFrame) -> dict:
 
     proba_matrix = np.array(proba_rows)
     roc = compute_ovr_roc_auc(y_true, proba_matrix, classes=classes)
+    roc["macro_auc_bootstrap_ci"] = bootstrap_auc_ci(y_true, proba_matrix, classes=classes)
 
     return {
         "n": len(y_true),
         "accuracy": round(accuracy_score(y_true, y_pred), 4),
+        "accuracy_bootstrap_ci": bootstrap_metric_ci(
+            y_true, y_pred, lambda t, p: accuracy_score(t, p)
+        ),
         "macro_f1": round(f1_score(y_true, y_pred, average="macro", zero_division=0), 4),
+        "macro_f1_bootstrap_ci": bootstrap_metric_ci(
+            y_true, y_pred, lambda t, p: f1_score(t, p, average="macro", zero_division=0)
+        ),
         "classification_report": classification_report(y_true, y_pred, zero_division=0, digits=3),
         "roc_auc": roc,
         "unknown_category_diagnostic": {
@@ -226,7 +238,35 @@ def train_vs_test_comparison(test_scores: dict) -> dict:
     return comparison
 
 
-def compute_interpretation(comparison: dict) -> str:
+def compute_gap_significance(test_scores: dict) -> dict | None:
+    """Bootstrap CI on (held-out accuracy) - (train-sampled accuracy).
+
+    test_holdout_999 and train_sampled_999_rf_primary_pipeline are two
+    INDEPENDENT samples of different alerts scored by the same static model
+    -- not the same rows scored two ways -- so this is a two-sample
+    bootstrap on the difference, not a McNemar paired test. Replaces the
+    earlier fixed "+/-3pt noise band" heuristic with an actual computed
+    interval on the gap.
+    """
+    if not RF_PRIMARY_999_PATH.exists():
+        return None
+    primary = json.loads(RF_PRIMARY_999_PATH.read_text())
+    train_rows = primary.get("per_alert_results")
+    if not train_rows:
+        return None
+
+    y_true_test = [r["ground_truth"] for r in test_scores["per_alert_results"]]
+    y_pred_test = [r["rf_predicted"] for r in test_scores["per_alert_results"]]
+    y_true_train = [r["ground_truth"] for r in train_rows]
+    y_pred_train = [r["predicted"] for r in train_rows]
+
+    return bootstrap_two_sample_diff_ci(
+        y_true_test, y_pred_test, y_true_train, y_pred_train,
+        metric_fn=lambda t, p: accuracy_score(t, p),
+    )
+
+
+def compute_interpretation(comparison: dict, gap_significance: dict | None) -> str:
     """State, from the actual numbers, whether test-holdout accuracy held up."""
     test_acc = comparison["test_holdout_999"]["accuracy"]
     reference = comparison.get("train_sampled_999_rf_primary_pipeline") or comparison.get(
@@ -237,21 +277,15 @@ def compute_interpretation(comparison: dict) -> str:
 
     train_acc = reference["accuracy"]
     gap = round(test_acc - train_acc, 4)
-    stability_band = 0.03
-    if abs(gap) <= stability_band:
-        verdict = "held up"
-    elif gap < 0:
-        verdict = "dropped"
-    else:
-        verdict = "improved"
-    return (
+    verdict = "held up" if abs(gap) < 1e-9 else ("improved" if gap > 0 else "dropped")
+
+    base = (
         f"Accuracy on the held-out GUIDE_Test.csv sample ({test_acc}) {verdict} "
-        f"relative to the GUIDE_train-sampled run ({train_acc}), a gap of "
-        f"{gap:+.4f}. Gaps within +/-{stability_band} are treated as noise at "
-        f"n={comparison['test_holdout_999']['n']}; anything larger is a real "
-        "generalisation effect, not sampling variance, and should be treated "
-        "as the new headline number rather than a footnote."
+        f"relative to the GUIDE_train-sampled run ({train_acc}), a gap of {gap:+.4f}."
     )
+    if gap_significance is None:
+        return base + " (No per-alert train-sampled results were available to test this gap for significance.)"
+    return base + " " + gap_significance["interpretation"]
 
 
 def run_live_smoke(sample: pd.DataFrame, n: int = 60) -> dict:
@@ -316,7 +350,8 @@ def main() -> None:
     test_scores = score_holdout(sample)
 
     comparison = train_vs_test_comparison(test_scores)
-    interpretation = compute_interpretation(comparison)
+    gap_significance = compute_gap_significance(test_scores)
+    interpretation = compute_interpretation(comparison, gap_significance)
 
     output = {
         "experiment": "RandomForest evaluated on datasets/GUIDE_Test.csv (the never-touched held-out split)",
@@ -334,6 +369,7 @@ def main() -> None:
             CACHE_DIR / f"guide_test_balanced_{args.sample_size // 3}_per_class_seed_{SAMPLE_SEED}.csv"
         ),
         "train_vs_test_comparison": comparison,
+        "gap_significance": gap_significance,
         "interpretation": interpretation,
         "test_holdout": test_scores,
     }
@@ -348,7 +384,11 @@ def main() -> None:
     print("\n" + "=" * 68)
     print("GUIDE_Test.csv HOLDOUT EVALUATION")
     print("=" * 68)
-    print(f"  accuracy: {test_scores['accuracy']}   macro F1: {test_scores['macro_f1']}")
+    acc_ci = test_scores["accuracy_bootstrap_ci"]
+    print(
+        f"  accuracy: {test_scores['accuracy']} (95% CI [{acc_ci['ci_lower']}, {acc_ci['ci_upper']}])"
+        f"   macro F1: {test_scores['macro_f1']}"
+    )
     print(f"  macro AUC: {test_scores['roc_auc']['macro_auc']}")
     print(f"  unknown-category alert rate: {test_scores['unknown_category_diagnostic']['unknown_category_alert_rate']}")
     print(f"\n  {interpretation}")

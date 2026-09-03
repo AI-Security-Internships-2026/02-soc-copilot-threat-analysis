@@ -1,8 +1,8 @@
 {
   "experiment": "RandomForest evaluated on datasets/GUIDE_Test.csv (the never-touched held-out split)",
   "question": "Every reported accuracy figure so far samples GUIDE_train.csv, the file the RF is trained on -- with a small, disclosed, judged-immaterial training-row overlap (rf_vs_llm_control.json). This asks whether accuracy holds on rows the RF has never had any chance to see.",
-  "generated_at_utc": "2026-09-01T10:27:47.353294+00:00",
-  "git_sha": "2322337",
+  "generated_at_utc": "2026-09-03T10:12:21.137280+00:00",
+  "git_sha": "8739ed3",
   "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
   "test_data_path": "datasets/GUIDE_Test.csv",
   "test_sample_path": "experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.csv",
@@ -23,11 +23,43 @@
       "n": 999
     }
   },
-  "interpretation": "Accuracy on the held-out GUIDE_Test.csv sample (0.7047) held up relative to the GUIDE_train-sampled run (0.7347), a gap of -0.0300. Gaps within +/-0.03 are treated as noise at n=999; anything larger is a real generalisation effect, not sampling variance, and should be treated as the new headline number rather than a footnote.",
+  "gap_significance": {
+    "point_a": 0.7047,
+    "point_b": 0.7347,
+    "point_diff": -0.03,
+    "ci_lower": -0.0701,
+    "ci_upper": 0.01,
+    "confidence": 0.95,
+    "n_a": 999,
+    "n_b": 999,
+    "n_resamples": 10000,
+    "significant_at_confidence": false,
+    "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+    "interpretation": "metric(a)-metric(b) = -0.0300, 95% CI [-0.0701, +0.0100]. This includes 0, so the gap is not distinguishable from sampling noise at this sample size."
+  },
+  "interpretation": "Accuracy on the held-out GUIDE_Test.csv sample (0.7047) dropped relative to the GUIDE_train-sampled run (0.7347), a gap of -0.0300. metric(a)-metric(b) = -0.0300, 95% CI [-0.0701, +0.0100]. This includes 0, so the gap is not distinguishable from sampling noise at this sample size.",
   "test_holdout": {
     "n": 999,
     "accuracy": 0.7047,
+    "accuracy_bootstrap_ci": {
+      "point": 0.7047,
+      "ci_lower": 0.6757,
+      "ci_upper": 0.7327,
+      "confidence": 0.95,
+      "n": 999,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
     "macro_f1": 0.7001,
+    "macro_f1_bootstrap_ci": {
+      "point": 0.7001,
+      "ci_lower": 0.6706,
+      "ci_upper": 0.7277,
+      "confidence": 0.95,
+      "n": 999,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
     "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.637     0.826     0.719       333\n FalsePositive      0.812     0.532     0.642       333\n  TruePositive      0.722     0.757     0.739       333\n\n      accuracy                          0.705       999\n     macro avg      0.724     0.705     0.700       999\n  weighted avg      0.724     0.705     0.700       999\n",
     "roc_auc": {
       "classes": [
@@ -268,7 +300,6 @@
             0.515,
             0.521,
             0.5255,
-            0.5285,
             0.5315,
             0.5375,
             0.5405,
@@ -523,7 +554,6 @@
             0.979,
             0.979,
             0.979,
-            0.979,
             0.982,
             0.982,
             0.982,
@@ -592,6 +622,7 @@
             0.0285,
             0.0285,
             0.0285,
+            0.0285,
             0.0315,
             0.0315,
             0.0345,
@@ -601,8 +632,7 @@
             0.0375,
             0.0375,
             0.0405,
-            0.0405,
-            0.0435,
+            0.042,
             0.0465,
             0.0465,
             0.0465,
@@ -670,7 +700,6 @@
             0.1547,
             0.1607,
             0.1607,
-            0.1667,
             0.1667,
             0.1682,
             0.1757,
@@ -814,6 +843,7 @@
             0.4234,
             0.4264,
             0.4294,
+            0.4354,
             0.4414,
             0.4414,
             0.4474,
@@ -824,7 +854,6 @@
             0.4685,
             0.4805,
             0.4805,
-            0.4835,
             0.4835,
             0.4835,
             0.4865,
@@ -894,7 +923,6 @@
             0.7357,
             0.7387,
             0.7447,
-            0.7477,
             0.7477,
             0.7477,
             0.7508,
@@ -1048,6 +1076,7 @@
             0.024,
             0.024,
             0.027,
+            0.027,
             0.0285,
             0.0285,
             0.0315,
@@ -1064,6 +1093,7 @@
             0.042,
             0.048,
             0.048,
+            0.0495,
             0.0571,
             0.0586,
             0.0586,
@@ -1117,10 +1147,10 @@
             0.1471,
             0.1486,
             0.1547,
+            0.1562,
             0.1592,
             0.1622,
-            0.1667,
-            0.1667,
+            0.1682,
             0.1682,
             0.1712,
             0.1727,
@@ -1280,11 +1310,12 @@
             0.5405,
             0.5495,
             0.5616,
-            0.5646,
+            0.5676,
             0.5676,
             0.5736,
             0.5766,
             0.5766,
+            0.5796,
             0.5796,
             0.5826,
             0.5916,
@@ -1300,6 +1331,7 @@
             0.6276,
             0.6336,
             0.6336,
+            0.6396,
             0.6426,
             0.6426,
             0.6517,
@@ -1355,9 +1387,9 @@
             0.7868,
             0.7868,
             0.7868,
+            0.7868,
             0.7898,
             0.7898,
-            0.7928,
             0.7928,
             0.7928,
             0.7928,
@@ -1471,7 +1503,17 @@
           "n_negative": 666
         }
       },
-      "note": "Macro one-vs-rest AUC over the RandomForest's predict_proba output. No LLM AUC is reported: the LLM's self-reported confidence (high/medium/low) is not a calibrated probability, so ROC/AUC is not defined for it. See llm_confidence_calibration in rf_vs_llm_control.py for its honest analog."
+      "note": "Macro one-vs-rest AUC over the RandomForest's predict_proba output. No LLM AUC is reported: the LLM's self-reported confidence (high/medium/low) is not a calibrated probability, so ROC/AUC is not defined for it. See llm_confidence_calibration in rf_vs_llm_control.py for its honest analog.",
+      "macro_auc_bootstrap_ci": {
+        "point": 0.8866,
+        "ci_lower": 0.8703,
+        "ci_upper": 0.903,
+        "confidence": 0.95,
+        "n": 999,
+        "n_resamples": 2000,
+        "resamples_skipped": 0,
+        "method": "percentile bootstrap, resampling rows (with their full probability vectors) with replacement"
+      }
     },
     "unknown_category_diagnostic": {
       "unknown_category_alert_rate": 0.004,
@@ -8473,15 +8515,5 @@
         "unknown_category_fields": 0
       }
     ]
-  },
-  "live_smoke_subset": {
-    "n": 60,
-    "crash_count": 0,
-    "errors": [],
-    "rationale_status_distribution": {
-      "generated": 60
-    },
-    "verdict_mismatches": [],
-    "verdict_matches_offline_prediction": true
   }
 }

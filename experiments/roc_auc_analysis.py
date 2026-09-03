@@ -42,6 +42,7 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score, roc_curve
 
 from src.agent.fallback_classifier import _load_model, _to_feature_frame, should_use_fallback
+from experiments.stats_utils import bootstrap_auc_ci
 
 CACHE_PATH = Path(
     "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv"
@@ -139,6 +140,7 @@ def rescore_control_209() -> dict:
 
     proba_matrix = np.array(proba_rows)
     roc = compute_ovr_roc_auc(y_true, proba_matrix, classes=classes)
+    roc["macro_auc_bootstrap_ci"] = bootstrap_auc_ci(y_true, proba_matrix, classes=classes)
     return {
         "n": len(y_true),
         "evaluation_sample": str(CACHE_PATH),
@@ -169,7 +171,8 @@ def main() -> None:
         }
         OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
         OUTPUT_PATH.write_text(json.dumps(output, indent=2))
-        print(f"macro AUC: {result['roc_auc']['macro_auc']}")
+        ci = result["roc_auc"]["macro_auc_bootstrap_ci"]
+        print(f"macro AUC: {result['roc_auc']['macro_auc']} (95% CI [{ci['ci_lower']}, {ci['ci_upper']}])")
         for cls, block in result["roc_auc"]["per_class"].items():
             print(f"  {cls}: AUC {block['auc']} (n+={block['n_positive']}, n-={block['n_negative']})")
         print(f"\nsaved to {OUTPUT_PATH}")

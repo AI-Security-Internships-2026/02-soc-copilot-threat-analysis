@@ -1,7 +1,7 @@
 {
   "experiment": "RandomForest ROC/AUC on the 209-alert control set",
-  "generated_at_utc": "2026-09-01T08:18:51.584093+00:00",
-  "git_sha": "2322337",
+  "generated_at_utc": "2026-09-03T10:13:02.533325+00:00",
+  "git_sha": "8739ed3",
   "finding": "Macro one-vs-rest AUC 0.7636 over 209 alerts (the same LLM-eligible subset scored in rf_vs_llm_control.json). No LLM AUC is reported -- see the note field for why.",
   "n": 209,
   "evaluation_sample": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
@@ -575,6 +575,16 @@
         "n_negative": 148
       }
     },
-    "note": "Macro one-vs-rest AUC over the RandomForest's predict_proba output. No LLM AUC is reported: the LLM's self-reported confidence (high/medium/low) is not a calibrated probability, so ROC/AUC is not defined for it. See llm_confidence_calibration in rf_vs_llm_control.py for its honest analog."
+    "note": "Macro one-vs-rest AUC over the RandomForest's predict_proba output. No LLM AUC is reported: the LLM's self-reported confidence (high/medium/low) is not a calibrated probability, so ROC/AUC is not defined for it. See llm_confidence_calibration in rf_vs_llm_control.py for its honest analog.",
+    "macro_auc_bootstrap_ci": {
+      "point": 0.7636,
+      "ci_lower": 0.708,
+      "ci_upper": 0.8174,
+      "confidence": 0.95,
+      "n": 209,
+      "n_resamples": 2000,
+      "resamples_skipped": 0,
+      "method": "percentile bootstrap, resampling rows (with their full probability vectors) with replacement"
+    }
   }
 }
