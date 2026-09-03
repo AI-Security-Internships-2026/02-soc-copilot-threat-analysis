@@ -74,3 +74,4 @@ experiments/results/evaluation_samples/
 
 # paper draft kept out of the public repo per supervisor guidance
 docs/paper/
+experiments/results/.control_node_ablation_checkpoints/

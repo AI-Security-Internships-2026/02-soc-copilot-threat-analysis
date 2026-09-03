@@ -25,7 +25,7 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from src.agent.evaluate import load_balanced_evaluation_sample
 from src.agent.fallback_classifier import predict_with_fallback
-from src.agent.graph import triage_graph
+from src.agent.graph import build_triage_graph, triage_graph
 from src.agent.guardrails import inspect_alert
 from src.agent.nodes import build_context, classify_with_llm, fetch_mitre_context, parse_verdict
 
@@ -68,14 +68,30 @@ def _llm_only(alert: dict[str, Any]) -> dict[str, Any]:
     return state
 
 
-def _hybrid(alert: dict[str, Any]) -> dict[str, Any]:
+def _rf_primary(alert: dict[str, Any]) -> dict[str, Any]:
+    # triage_graph is built at import time from build_triage_graph()'s
+    # default, which has been "rf_primary" since week 15.
     return dict(triage_graph.invoke({"raw_alert": alert}))
+
+
+_llm_primary_graph = build_triage_graph(mode="llm_primary")
+
+
+def _llm_primary(alert: dict[str, Any]) -> dict[str, Any]:
+    return dict(_llm_primary_graph.invoke({"raw_alert": alert}))
 
 
 RUNNERS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
     "rf": _rf_only,
     "llm": _llm_only,
-    "hybrid": _hybrid,
+    "rf_primary": _rf_primary,
+    "llm_primary": _llm_primary,
+    # deprecated: "hybrid" meant the Weeks 6-14 routed pipeline before week
+    # 15's restructure, but this key has called the *current* default graph
+    # (rf_primary) since then. Kept only so old invocations and the
+    # already-committed week7_scalability_benchmark.json (mode: "hybrid")
+    # aren't reinterpreted. Use "rf_primary" for anything new.
+    "hybrid": _rf_primary,
 }
 
 

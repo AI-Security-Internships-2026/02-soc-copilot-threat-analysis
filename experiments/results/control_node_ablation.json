@@ -1,0 +1,343 @@
+{
+  "experiment": "Control-node ablation: which node decides, and what happens as evidence gets sparser",
+  "generated_at_utc": "2026-09-02T13:31:44.942269+00:00",
+  "git_sha": "2322337",
+  "evaluation_sample": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
+  "sample_design": "reduced_299",
+  "sample_design_note": "Reduced from the originally-planned full 999-alert design to a stratified ~299-alert subsample because Groq's openai/gpt-oss-20b daily token quota (200,000) supports roughly 300-320 live calls at this pipeline's actual per-call cost, not the ~2,200 the full design needs; see REDUCED_BIN_TARGETS in this script.",
+  "evidence_bin_distribution": {
+    "0": 126,
+    "1": 94,
+    "2": 50,
+    "3": 29
+  },
+  "arms": {
+    "a": {
+      "config": {
+        "mode": "rf_primary",
+        "skip_explanation": false,
+        "label": "rf_primary, explanation on"
+      },
+      "metrics": {
+        "overall": {
+          "n_total": 299,
+          "n_scored": 299,
+          "n_unscored": 0,
+          "accuracy": 0.7492,
+          "macro_f1": 0.7453,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.627     0.859     0.725        92\n FalsePositive      0.841     0.580     0.686       100\n  TruePositive      0.837     0.813     0.825       107\n\n      accuracy                          0.749       299\n     macro avg      0.768     0.751     0.745       299\n  weighted avg      0.773     0.749     0.748       299\n"
+        },
+        "by_evidence_bin": {
+          "0": {
+            "n": 126,
+            "accuracy": 0.7698,
+            "macro_f1": 0.7615,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.591     0.788     0.675        33\n FalsePositive      0.853     0.630     0.725        46\n  TruePositive      0.875     0.894     0.884        47\n\n      accuracy                          0.770       126\n     macro avg      0.773     0.771     0.762       126\n  weighted avg      0.793     0.770     0.771       126\n"
+          },
+          "1": {
+            "n": 94,
+            "accuracy": 0.766,
+            "macro_f1": 0.7552,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.618     1.000     0.764        21\n FalsePositive      0.900     0.529     0.667        34\n  TruePositive      0.825     0.846     0.835        39\n\n      accuracy                          0.766        94\n     macro avg      0.781     0.792     0.755        94\n  weighted avg      0.806     0.766     0.758        94\n"
+          },
+          "2": {
+            "n": 50,
+            "accuracy": 0.66,
+            "macro_f1": 0.6003,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.690     0.769     0.727        26\n FalsePositive      0.429     0.429     0.429         7\n  TruePositive      0.714     0.588     0.645        17\n\n      accuracy                          0.660        50\n     macro avg      0.611     0.595     0.600        50\n  weighted avg      0.661     0.660     0.658        50\n"
+          },
+          "3": {
+            "n": 29,
+            "accuracy": 0.7586,
+            "macro_f1": 0.7343,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.632     1.000     0.774        12\n FalsePositive      1.000     0.615     0.762        13\n  TruePositive      1.000     0.500     0.667         4\n\n      accuracy                          0.759        29\n     macro avg      0.877     0.705     0.734        29\n  weighted avg      0.848     0.759     0.754        29\n",
+            "caveat": "n=29 in the full 999-alert sample -- per-class recall/precision at this support is not reliable and should not be read as a stable estimate."
+          }
+        },
+        "latency": {
+          "mean_latency_seconds": 14.2944,
+          "total_wall_seconds": 4274.02,
+          "throughput_alerts_per_second": 0.07
+        }
+      }
+    },
+    "b": {
+      "config": {
+        "mode": "rf_primary",
+        "skip_explanation": true,
+        "label": "rf_primary, explanation off"
+      },
+      "metrics": {
+        "overall": {
+          "n_total": 299,
+          "n_scored": 299,
+          "n_unscored": 0,
+          "accuracy": 0.7492,
+          "macro_f1": 0.7453,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.627     0.859     0.725        92\n FalsePositive      0.841     0.580     0.686       100\n  TruePositive      0.837     0.813     0.825       107\n\n      accuracy                          0.749       299\n     macro avg      0.768     0.751     0.745       299\n  weighted avg      0.773     0.749     0.748       299\n"
+        },
+        "by_evidence_bin": {
+          "0": {
+            "n": 126,
+            "accuracy": 0.7698,
+            "macro_f1": 0.7615,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.591     0.788     0.675        33\n FalsePositive      0.853     0.630     0.725        46\n  TruePositive      0.875     0.894     0.884        47\n\n      accuracy                          0.770       126\n     macro avg      0.773     0.771     0.762       126\n  weighted avg      0.793     0.770     0.771       126\n"
+          },
+          "1": {
+            "n": 94,
+            "accuracy": 0.766,
+            "macro_f1": 0.7552,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.618     1.000     0.764        21\n FalsePositive      0.900     0.529     0.667        34\n  TruePositive      0.825     0.846     0.835        39\n\n      accuracy                          0.766        94\n     macro avg      0.781     0.792     0.755        94\n  weighted avg      0.806     0.766     0.758        94\n"
+          },
+          "2": {
+            "n": 50,
+            "accuracy": 0.66,
+            "macro_f1": 0.6003,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.690     0.769     0.727        26\n FalsePositive      0.429     0.429     0.429         7\n  TruePositive      0.714     0.588     0.645        17\n\n      accuracy                          0.660        50\n     macro avg      0.611     0.595     0.600        50\n  weighted avg      0.661     0.660     0.658        50\n"
+          },
+          "3": {
+            "n": 29,
+            "accuracy": 0.7586,
+            "macro_f1": 0.7343,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.632     1.000     0.774        12\n FalsePositive      1.000     0.615     0.762        13\n  TruePositive      1.000     0.500     0.667         4\n\n      accuracy                          0.759        29\n     macro avg      0.877     0.705     0.734        29\n  weighted avg      0.848     0.759     0.754        29\n",
+            "caveat": "n=29 in the full 999-alert sample -- per-class recall/precision at this support is not reliable and should not be read as a stable estimate."
+          }
+        },
+        "latency": {
+          "mean_latency_seconds": 0.0223,
+          "total_wall_seconds": 6.66,
+          "throughput_alerts_per_second": 44.9192
+        }
+      }
+    },
+    "c": {
+      "config": {
+        "mode": "legacy_hybrid",
+        "skip_explanation": false,
+        "label": "legacy_hybrid (evidence-routed)"
+      },
+      "metrics": {
+        "overall": {
+          "n_total": 299,
+          "n_scored": 262,
+          "n_unscored": 37,
+          "accuracy": 0.6947,
+          "macro_f1": 0.6867,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.631     0.654     0.642        81\n FalsePositive      0.855     0.540     0.662        87\n  TruePositive      0.667     0.872     0.756        94\n\n      accuracy                          0.695       262\n     macro avg      0.717     0.689     0.687       262\n  weighted avg      0.718     0.695     0.690       262\n"
+        },
+        "by_evidence_bin": {
+          "0": {
+            "n": 126,
+            "accuracy": 0.7698,
+            "macro_f1": 0.7615,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.591     0.788     0.675        33\n FalsePositive      0.853     0.630     0.725        46\n  TruePositive      0.875     0.894     0.884        47\n\n      accuracy                          0.770       126\n     macro avg      0.773     0.771     0.762       126\n  weighted avg      0.793     0.770     0.771       126\n"
+          },
+          "1": {
+            "n": 94,
+            "accuracy": 0.766,
+            "macro_f1": 0.7552,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.618     1.000     0.764        21\n FalsePositive      0.900     0.529     0.667        34\n  TruePositive      0.825     0.846     0.835        39\n\n      accuracy                          0.766        94\n     macro avg      0.781     0.792     0.755        94\n  weighted avg      0.806     0.766     0.758        94\n"
+          },
+          "2": {
+            "n": 29,
+            "accuracy": 0.3793,
+            "macro_f1": 0.2729,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      1.000     0.300     0.462        20\n FalsePositive      0.000     0.000     0.000         3\n  TruePositive      0.227     0.833     0.357         6\n\n      accuracy                          0.379        29\n     macro avg      0.409     0.378     0.273        29\n  weighted avg      0.737     0.379     0.392        29\n"
+          },
+          "3": {
+            "n": 13,
+            "accuracy": 0.1538,
+            "macro_f1": 0.0889,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         7\n FalsePositive      0.000     0.000     0.000         4\n  TruePositive      0.154     1.000     0.267         2\n\n      accuracy                          0.154        13\n     macro avg      0.051     0.333     0.089        13\n  weighted avg      0.024     0.154     0.041        13\n",
+            "caveat": "n=29 in the full 999-alert sample -- per-class recall/precision at this support is not reliable and should not be read as a stable estimate."
+          }
+        },
+        "latency": {
+          "mean_latency_seconds": 2.7875,
+          "total_wall_seconds": 833.47,
+          "throughput_alerts_per_second": 0.3587
+        }
+      }
+    },
+    "d": {
+      "config": {
+        "mode": "llm_primary",
+        "skip_explanation": false,
+        "label": "llm_primary (LLM decides every alert)"
+      },
+      "metrics": {
+        "overall": {
+          "n_total": 299,
+          "n_scored": 42,
+          "n_unscored": 257,
+          "accuracy": 0.2857,
+          "macro_f1": 0.2286,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000        12\n FalsePositive      0.240     0.600     0.343        10\n  TruePositive      0.400     0.300     0.343        20\n\n      accuracy                          0.286        42\n     macro avg      0.213     0.300     0.229        42\n  weighted avg      0.248     0.286     0.245        42\n"
+        },
+        "by_evidence_bin": {
+          "0": {
+            "n": 25,
+            "accuracy": 0.24,
+            "macro_f1": 0.129,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         7\n FalsePositive      0.240     1.000     0.387         6\n  TruePositive      0.000     0.000     0.000        12\n\n      accuracy                          0.240        25\n     macro avg      0.080     0.333     0.129        25\n  weighted avg      0.058     0.240     0.093        25\n"
+          },
+          "1": {
+            "n": 9,
+            "accuracy": 0.5556,
+            "macro_f1": 0.3571,
+            "classification_report": "               precision    recall  f1-score   support\n\nFalsePositive      0.000     0.000     0.000         4\n TruePositive      0.556     1.000     0.714         5\n\n     accuracy                          0.556         9\n    macro avg      0.278     0.500     0.357         9\n weighted avg      0.309     0.556     0.397         9\n"
+          },
+          "2": {
+            "n": 7,
+            "accuracy": 0.0,
+            "macro_f1": 0.0,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000       5.0\n  TruePositive      0.000     0.000     0.000       2.0\n\n      accuracy                          0.000       7.0\n     macro avg      0.000     0.000     0.000       7.0\n  weighted avg      0.000     0.000     0.000       7.0\n"
+          },
+          "3": {
+            "n": 1,
+            "accuracy": 1.0,
+            "macro_f1": 1.0,
+            "classification_report": "              precision    recall  f1-score   support\n\nTruePositive      1.000     1.000     1.000         1\n\n    accuracy                          1.000         1\n   macro avg      1.000     1.000     1.000         1\nweighted avg      1.000     1.000     1.000         1\n",
+            "caveat": "n=29 in the full 999-alert sample -- per-class recall/precision at this support is not reliable and should not be read as a stable estimate."
+          }
+        },
+        "latency": {
+          "mean_latency_seconds": 11.0535,
+          "total_wall_seconds": 3305.01,
+          "throughput_alerts_per_second": 0.0905
+        }
+      }
+    }
+  },
+  "arm_b_full_999_reference": {
+    "config": {
+      "mode": "rf_primary",
+      "skip_explanation": true,
+      "label": "rf_primary, explanation off"
+    },
+    "metrics": {
+      "overall": {
+        "n_total": 999,
+        "n_scored": 999,
+        "n_unscored": 0,
+        "accuracy": 0.7347,
+        "macro_f1": 0.7307,
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.645     0.877     0.743       333\n FalsePositive      0.849     0.556     0.672       333\n  TruePositive      0.784     0.772     0.778       333\n\n      accuracy                          0.735       999\n     macro avg      0.759     0.735     0.731       999\n  weighted avg      0.759     0.735     0.731       999\n"
+      },
+      "by_evidence_bin": {
+        "0": {
+          "n": 453,
+          "accuracy": 0.7704,
+          "macro_f1": 0.771,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.662     0.881     0.756       160\n FalsePositive      0.856     0.567     0.682       157\n  TruePositive      0.875     0.875     0.875       136\n\n      accuracy                          0.770       453\n     macro avg      0.798     0.774     0.771       453\n  weighted avg      0.793     0.770     0.766       453\n"
+        },
+        "1": {
+          "n": 337,
+          "accuracy": 0.7359,
+          "macro_f1": 0.7295,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.621     0.843     0.715        70\n FalsePositive      0.864     0.580     0.694       131\n  TruePositive      0.734     0.831     0.779       136\n\n      accuracy                          0.736       337\n     macro avg      0.739     0.751     0.730       337\n  weighted avg      0.761     0.736     0.733       337\n"
+        },
+        "2": {
+          "n": 180,
+          "accuracy": 0.6389,
+          "macro_f1": 0.5707,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.635     0.879     0.737        91\n FalsePositive      0.667     0.375     0.480        32\n  TruePositive      0.639     0.404     0.495        57\n\n      accuracy                          0.639       180\n     macro avg      0.647     0.553     0.571       180\n  weighted avg      0.642     0.639     0.615       180\n"
+        },
+        "3": {
+          "n": 29,
+          "accuracy": 0.7586,
+          "macro_f1": 0.7343,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.632     1.000     0.774        12\n FalsePositive      1.000     0.615     0.762        13\n  TruePositive      1.000     0.500     0.667         4\n\n      accuracy                          0.759        29\n     macro avg      0.877     0.705     0.734        29\n  weighted avg      0.848     0.759     0.754        29\n",
+          "caveat": "n=29 in the full 999-alert sample -- per-class recall/precision at this support is not reliable and should not be read as a stable estimate."
+        }
+      },
+      "latency": {
+        "mean_latency_seconds": 0.0259,
+        "total_wall_seconds": 25.88,
+        "throughput_alerts_per_second": 38.5987
+      }
+    }
+  },
+  "arm_a_vs_arm_b_verification": {
+    "checked_n": 299,
+    "mismatches": 0,
+    "verdict": "explanation never changed a verdict, as designed"
+  },
+  "arm_d_calibration": {
+    "by_band": {
+      "high": {
+        "n": 19,
+        "correct": 3,
+        "accuracy": 0.1579
+      },
+      "low": {
+        "n": 2,
+        "correct": 0,
+        "accuracy": 0.0
+      },
+      "medium": {
+        "n": 21,
+        "correct": 9,
+        "accuracy": 0.4286
+      },
+      "none": {
+        "n": 257,
+        "correct": 0,
+        "accuracy": 0.0
+      }
+    },
+    "gate_behaviour": {
+      "auto_accepted_n": 19,
+      "auto_accepted_accuracy": 0.1579,
+      "escalated_to_human_n": 280,
+      "escalated_accuracy": 0.0321,
+      "gate_is_inverted": false
+    }
+  },
+  "cross_arm_summary": {
+    "a": {
+      "label": "rf_primary, explanation on",
+      "accuracy": 0.7492,
+      "macro_f1": 0.7453,
+      "by_evidence_bin_accuracy": {
+        "0": 0.7698,
+        "1": 0.766,
+        "2": 0.66,
+        "3": 0.7586
+      }
+    },
+    "b": {
+      "label": "rf_primary, explanation off",
+      "accuracy": 0.7492,
+      "macro_f1": 0.7453,
+      "by_evidence_bin_accuracy": {
+        "0": 0.7698,
+        "1": 0.766,
+        "2": 0.66,
+        "3": 0.7586
+      }
+    },
+    "c": {
+      "label": "legacy_hybrid (evidence-routed)",
+      "accuracy": 0.6947,
+      "macro_f1": 0.6867,
+      "by_evidence_bin_accuracy": {
+        "0": 0.7698,
+        "1": 0.766,
+        "2": 0.3793,
+        "3": 0.1538
+      }
+    },
+    "d": {
+      "label": "llm_primary (LLM decides every alert)",
+      "accuracy": 0.2857,
+      "macro_f1": 0.2286,
+      "by_evidence_bin_accuracy": {
+        "0": 0.24,
+        "1": 0.5556,
+        "2": 0.0,
+        "3": 1.0
+      }
+    }
+  }
+}

@@ -33,10 +33,11 @@ reliable predictions. We restructured the pipeline so the Random Forest assigns
 every verdict and the LLM produces only analyst-facing explanations, gating
 review on the classifier's decision margin. Whole-pipeline accuracy rose from
 0.6456 to 0.7347 on the same 999 alerts, and prompt injection can no longer
-alter a triage outcome. For structured security telemetry, an LLM is a capable
-explainer and a poor classifier, and the distinction is measurable.
-
-*(246 words — within the 150–250 range required by the target venue.)*
+alter a triage outcome. Scored instead on Microsoft's held-out test split
+rather than a sample of the training file, accuracy is 0.7047 — a small drop
+within this report's own noise band. For structured security telemetry, an
+LLM is a capable explainer and a poor classifier, and the distinction is
+measurable.
 
 ---
 
@@ -359,6 +360,83 @@ resistance — and the attacker, judge, and target were the same model. At n=12
 the confidence interval around 0% extends past 30%. The supportable claim is
 "not obviously broken", not "robust".
 
+### 5.8 Held-out evaluation on `GUIDE_Test.csv`
+
+`experiments/guide_test_holdout_eval.py`. Every figure above is measured on a
+sample of `GUIDE_train.csv` — the file the Random Forest trains on — with a
+small, disclosed, judged-immaterial training-row overlap (1.91%, Section
+5.2). `GUIDE_Test.csv`, Microsoft's own held-out split (4.1M alerts), had
+never been read by any code in this repository before this section.
+
+We drew a fresh, class-balanced 999-alert sample from `GUIDE_Test.csv` and
+scored the existing `baseline_model.joblib` against it without retraining:
+
+| Sample | Accuracy | Macro F1 | n |
+|---|---|---|---|
+| `GUIDE_train`-sampled, evidence-rich (5.2) | 0.6555 | 0.6035 | 209 |
+| `GUIDE_train`-sampled, full pipeline (5.4) | **0.7347** | **0.7307** | 999 |
+| **`GUIDE_Test.csv`, held-out** | **0.7047** | **0.7001** | 999 |
+
+The gap (−0.0300) sits right at the edge of the ±3-point noise band this
+report already uses for single 999-alert runs — a close call, not a clean
+pass. Per-class recall shows where it concentrates: FalsePositive recall
+falls to 0.532 against BenignPositive's 0.826 and TruePositive's 0.757, so
+the drop is not uniform across classes. Unseen-category encoding failure
+(`transform_with_encoders()` maps unseen values to −1 rather than crashing)
+was checked directly and ruled out as the cause: it fired on only 0.4% of
+alerts. A 60-alert live smoke run through the full `rf_primary` graph,
+including the LLM explanation call, produced zero crashes and predicted
+labels that matched the offline prediction on every row — the
+explanation-cannot-alter-a-verdict property holds on data the model has
+never had any chance to see.
+
+The classifier's one-vs-rest ROC/AUC on this sample is macro 0.887
+(per-class: BenignPositive 0.882, FalsePositive 0.873, TruePositive 0.905) —
+see `experiments/results/guide_test_holdout_eval.json`.
+
+### 5.9 The control-node ablation and the effect of incomplete context
+
+`experiments/control_node_ablation.py`. Two questions this report had left as
+inference: does the LLM's explanation role genuinely never touch the verdict,
+and what happens to accuracy as evidence gets sparser, measured directly
+rather than inferred from routing behaviour. Both are answered on a fresh
+299-alert stratified sample (bin targets 126/94/50/29 across 0–3 populated
+evidence fields) — reduced from the originally-planned full 999-alert design
+after Groq's daily token quota (200,000) turned out to support roughly
+300–320 live calls, not the ~2,200 the full design needed.
+
+**Architecture verification.** Running `rf_primary` with the LLM explanation
+call on and off across the identical 299 alerts produced **zero mismatched
+verdicts or confidences**, both scoring 0.7492 accuracy / 0.7453 macro F1.
+This directly confirms, rather than assumes, that `explain_with_llm` cannot
+alter a verdict — under live conditions, including real API failures.
+
+**What happens when the LLM decides.** `legacy_hybrid` routes the same 299
+alerts by evidence count, RF for bins 0–1 and LLM for bins 2–3:
+
+| Evidence bins | RF | LLM (`legacy_hybrid`) |
+|---|---|---|
+| 0 (n=126) | 0.7698 | 0.7698 *(RF-decided)* |
+| 1 (n=94) | 0.7660 | 0.7660 *(RF-decided)* |
+| 2 (n=50, 29 scored) | 0.6600 | **0.3793** |
+| 3 (n=29, 13 scored) | 0.7586 | **0.1538** |
+
+The RF holds its accuracy across evidence density; the LLM's collapses from
+parity at bins 0–1 to roughly a third to a fifth of the RF's accuracy at the
+evidence-rich bins it is specifically routed to decide. This reproduces
+Section 5.2's finding through an independent measurement path (live per-bin
+routing rather than a reconstructed paired subset).
+
+**Data-quality caveat, disclosed rather than hidden.** The `llm_primary`
+arm (LLM decides every alert, unconditionally) lost most of its data to the
+same quota exhaustion: only 42 of 299 alerts scored. Reported by bin only
+where support exceeds 5 rows — bin 0 (n=25, 0.24), bin 1 (n=9, 0.5556), bin 2
+(n=7, 0.00); bin 3 scored a single alert and is not reported. Its calibration
+table is not reported as a finding: 257 of 280 "escalated" rows are unscored
+alerts, not real low-confidence predictions, so the number would measure
+data loss, not calibration. The `legacy_hybrid` comparison above is the
+better-supported result for exactly this reason.
+
 ---
 
 ## 6. Discussion and Limitations
@@ -379,10 +457,11 @@ and the pipeline was silently auto-accepting its least reliable predictions.
 
 ### 6.2 Limitations
 
-1. **The official test split is unused.** `GUIDE_Test.csv` (4.1M alerts) is
-   untouched; all samples are drawn from the training file. Overlap with the
-   training slice is measured at 1.91%, but using the provided split is the
-   correct approach and is our first priority.
+1. **The `GUIDE_Test.csv` evaluation (5.8) is a 999-alert sample, not the
+   full 4.1M-alert file.** The measured gap against the train-sampled figure
+   (0.7047 vs. 0.7347) sits right at the edge of the ±3-point noise band this
+   report uses for single runs at this size — a close call, not a settled
+   estimate. A larger held-out run or repeated trials would sharpen it.
 2. **Training rows are the first 100,000, not a random sample.** Their class
    distribution matches the global one, which is reassuring but not conclusive.
 3. **High-cardinality identifier columns remain features** (`IpAddress`,
@@ -398,14 +477,23 @@ and the pipeline was silently auto-accepting its least reliable predictions.
    self-consistency rather than generalisation. It bounds how poor the regex
    filter is; it does not estimate production performance.
 8. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
+9. **The control-node ablation's live arms (5.9) lost most of their data to
+   an external API quota, not by design.** `llm_primary` scored only 42 of
+   299 alerts; its bin-level breakdown is reported only where support
+   exceeds 5 rows, and its calibration table is withheld as a finding since
+   its "escalated" bucket is 92% unscored data. The section's conclusion
+   rests on the better-supported `legacy_hybrid` comparison (n=29, n=13 at
+   the evidence-rich bins) for exactly this reason.
 
 ---
 
 ## 7. Future Work
 
-In priority order: evaluate on `GUIDE_Test.csv`; ablate the high-cardinality
-identifier features to quantify leakage; adopt incident-level splits; run
-repeated trials for confidence intervals. Then: fine-tune an LLM on GUIDE to
+In priority order: ablate the high-cardinality identifier features to quantify
+leakage; adopt incident-level splits; run repeated trials for confidence
+intervals, including a larger `GUIDE_Test.csv` run to sharpen the close-call
+gap in Section 5.8, and a full-scale rerun of the `llm_primary` control-node
+ablation (5.9) once Groq quota allows. Then: fine-tune an LLM on GUIDE to
 test whether the structural limit can be overcome; red-team with an independent
 judge model at a sample size that can bound an attack success rate; and evaluate
 explanation quality directly with analysts, which is the capability this work
@@ -451,6 +539,9 @@ supervisor's direction.
 | `soc_domain_eval_results.json` | TF-IDF guardrail negative result |
 | `week7_scalability_benchmark.json` | Throughput and latency |
 | `deepteam_redteam_*.json` | Adversarial evaluation |
+| `guide_test_holdout_eval.json` | Held-out `GUIDE_Test.csv` evaluation + RF ROC/AUC |
+| `roc_auc_control_209.json` | RF ROC/AUC on the 209-alert control set |
+| `control_node_ablation.json` | Control-node ablation, evidence-count breakdown |
 
 Reproduction commands are in `docs/demo-runbook.md`; conceptual background is in
 `docs/project-explained.md`.
