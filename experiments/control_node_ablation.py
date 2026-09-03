@@ -211,8 +211,15 @@ def _load_checkpoint(arm_key: str) -> dict[int, dict[str, Any]]:
     return done
 
 
-def run_arm(mode: str, sample: pd.DataFrame, skip_explanation: bool, arm_key: str, sleep_seconds: float = 0.3) -> list[dict[str, Any]]:
-    """Run one graph mode over the full sample, returning a row per alert.
+def run_arm(
+    mode: str,
+    sample: pd.DataFrame,
+    skip_explanation: bool,
+    arm_key: str,
+    sleep_seconds: float = 0.3,
+    call_budget: dict[str, int] | None = None,
+) -> tuple[list[dict[str, Any]], bool]:
+    """Run one graph mode over the full sample, returning (rows, completed).
 
     Latency is timed inline (per-invoke wall time) rather than via a second
     pass through src/agent/benchmark.py's run_case() -- a second pass would
@@ -221,6 +228,19 @@ def run_arm(mode: str, sample: pd.DataFrame, skip_explanation: bool, arm_key: st
     Resumable: rows already present in this arm's checkpoint file are
     skipped rather than re-run, so a killed process only loses the row it
     was mid-invoke on, not the whole arm.
+
+    call_budget, if given, is a shared mutable counter (`{"remaining": N}`)
+    spent across every arm in this invocation -- Groq's rate limit is a
+    single per-key daily budget, not one per arm. When it hits zero, the
+    loop stops BEFORE attempting the next row rather than letting the call
+    fail: an unattempted row is simply absent from the checkpoint, so the
+    next day's invocation resumes it cleanly. This is deliberately different
+    from a quota error hit mid-call, which the checkpoint DOES record as
+    "attempted, no verdict" -- because that row really was attempted and
+    failed, whereas a budget-paused row was never attempted at all and
+    should not be conflated with a real failure.
+    Returns `completed=False` if the budget ran out before every row in
+    `sample` was processed.
     """
     if skip_explanation:
         os.environ["SOC_COPILOT_SKIP_EXPLANATION"] = "1"
@@ -236,12 +256,22 @@ def run_arm(mode: str, sample: pd.DataFrame, skip_explanation: bool, arm_key: st
     graph = build_triage_graph(mode=mode)
     rows: list[dict[str, Any]] = []
     total = len(sample)
+    completed = True
 
     with open(checkpoint_path, "a") as checkpoint_file:
         for i, (row_index, row) in enumerate(sample.iterrows()):
             if int(row_index) in done:
                 rows.append(done[int(row_index)])
                 continue
+
+            if not skip_explanation and call_budget is not None and call_budget["remaining"] <= 0:
+                print(
+                    f"    daily call budget exhausted at row {i}/{total} -- stopping cleanly here; "
+                    "unattempted rows are not in the checkpoint, so the next invocation resumes them",
+                    flush=True,
+                )
+                completed = False
+                break
 
             alert = row.to_dict()
             ground_truth = alert.pop("IncidentGrade")
@@ -282,13 +312,16 @@ def run_arm(mode: str, sample: pd.DataFrame, skip_explanation: bool, arm_key: st
                 "generated",
                 "unavailable",
             )
-            if made_live_call and sleep_seconds:
-                time.sleep(sleep_seconds)
+            if made_live_call:
+                if call_budget is not None:
+                    call_budget["remaining"] -= 1
+                if sleep_seconds:
+                    time.sleep(sleep_seconds)
 
             if (i + 1) % 100 == 0:
                 print(f"    {i + 1}/{total}...", flush=True)
 
-    return rows
+    return rows, completed
 
 
 def compute_arm_metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -398,8 +431,17 @@ def main() -> None:
         help="stratified ~299-alert subsample for live arms, sized to fit a realistic Groq daily "
              "quota budget instead of the full 999 (see REDUCED_BIN_TARGETS)",
     )
+    parser.add_argument(
+        "--daily-call-budget", type=int, default=None,
+        help="stop cleanly (not mid-call) once this many live calls have been made THIS invocation, "
+             "shared across every arm run in it. Rows not yet attempted are left out of the "
+             "checkpoint so a later invocation resumes them -- run this daily, sized safely under "
+             "the key's actual daily request quota, to pace a full-999 live run across multiple "
+             "days without spending the budget on calls that would just fail.",
+    )
     args = parser.parse_args()
     arms = ["b"] if args.skip_live else args.arms
+    call_budget = {"remaining": args.daily_call_budget} if args.daily_call_budget is not None else None
 
     # Load any previously-committed output up front. A partial run (--arms,
     # --skip-live) must not silently drop live-arm data it isn't
@@ -429,16 +471,30 @@ def main() -> None:
 
     results: dict[str, Any] = {}
     raw_rows: dict[str, list[dict]] = {}
+    arm_completed: dict[str, bool] = {}
     for arm in arms:
         config = ARM_CONFIG[arm]
         print(f"\n=== arm ({arm}): {config['label']} ===")
-        rows = run_arm(config["mode"], sample, config["skip_explanation"], arm_key=arm)
+        arm_needs_live_calls = not config["skip_explanation"]
+        if arm_needs_live_calls and call_budget is not None and call_budget["remaining"] <= 0:
+            print(f"  daily call budget already spent -- skipping arm ({arm}) entirely this invocation")
+            arm_completed[arm] = False
+            continue
+        rows, completed = run_arm(
+            config["mode"], sample, config["skip_explanation"], arm_key=arm, call_budget=call_budget
+        )
+        arm_completed[arm] = completed
         raw_rows[arm] = rows
         results[arm] = {
             "config": config,
             "metrics": compute_arm_metrics(rows),
             "failure_reasons": error_histogram(rows),
+            "complete": completed,
+            "n_pending": len(sample) - len(rows) if not completed else 0,
         }
+        if not completed:
+            print(f"  arm ({arm}) incomplete this invocation: {len(rows)}/{len(sample)} rows done, "
+                  f"{len(sample) - len(rows)} pending -- resume with the same command tomorrow")
         acc = results[arm]["metrics"]["overall"]["accuracy"]
         unscored = results[arm]["failure_reasons"]["n_unscored"]
         print(f"  accuracy: {acc}  (unscored: {unscored})")
@@ -539,14 +595,22 @@ def main() -> None:
         "paired_mcnemar_tests": paired_tests,
         "arm_d_calibration": calibration,
         "cross_arm_summary": cross_arm_summary,
+        "all_arms_complete": all(arm_completed.get(arm, False) for arm in arms),
+        "arm_completion_status": arm_completed,
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(json.dumps(output, indent=2))
     print(f"\nsaved to {OUTPUT_PATH}")
 
+    if not output["all_arms_complete"]:
+        incomplete = [a for a in arms if not arm_completed.get(a, False)]
+        print(f"\nNOT all arms complete yet ({incomplete}) -- rerun the same command "
+              "(e.g. tomorrow, once the daily call budget refills) to continue.")
+
     for arm in arms:
-        _checkpoint_path(arm).unlink(missing_ok=True)
+        if arm_completed.get(arm, False):
+            _checkpoint_path(arm).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
