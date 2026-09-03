@@ -1,0 +1,66 @@
+{
+  "experiment": "Two-proportion z-tests between control-node ablation arms at full n=999 scale",
+  "note": "These arms were run in separate invocations (each single-arm, paced across the daily Groq quota), so the raw per-row predictions needed for a paired McNemar test were not retained across invocations -- only aggregate accuracy/n survived. A two-proportion z-test on the aggregates is a valid, standard significance test, though less statistically powerful than a paired test would have been on the same n. control_node_ablation.py has been fixed to persist per-row predictions going forward so a future rerun can support a proper paired test.",
+  "comparisons": {
+    "a_vs_c": {
+      "n1": 999,
+      "x1": 734,
+      "p1": 0.7347,
+      "n2": 999,
+      "x2": 754,
+      "p2": 0.7548,
+      "diff": -0.02,
+      "ci95": [
+        -0.0582,
+        0.0182
+      ],
+      "z": -1.0262,
+      "p_value": 0.3047871060082321
+    },
+    "a_vs_d": {
+      "n1": 999,
+      "x1": 734,
+      "p1": 0.7347,
+      "n2": 999,
+      "x2": 394,
+      "p2": 0.3944,
+      "diff": 0.3403,
+      "ci95": [
+        0.2995,
+        0.3812
+      ],
+      "z": 15.3413,
+      "p_value": 0.0
+    },
+    "c_vs_d": {
+      "n1": 999,
+      "x1": 754,
+      "p1": 0.7548,
+      "n2": 999,
+      "x2": 394,
+      "p2": 0.3944,
+      "diff": 0.3604,
+      "ci95": [
+        0.32,
+        0.4007
+      ],
+      "z": 16.29,
+      "p_value": 0.0
+    },
+    "b_vs_d": {
+      "n1": 999,
+      "x1": 734,
+      "p1": 0.7347,
+      "n2": 999,
+      "x2": 394,
+      "p2": 0.3944,
+      "diff": 0.3403,
+      "ci95": [
+        0.2995,
+        0.3812
+      ],
+      "z": 15.3413,
+      "p_value": 0.0
+    }
+  }
+}

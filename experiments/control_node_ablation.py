@@ -125,6 +125,37 @@ def _checkpoint_path(arm_key: str) -> Path:
     return CHECKPOINT_DIR / f"arm_{arm_key}.jsonl"
 
 
+ROWS_DIR = Path("experiments/results/control_node_ablation_rows")
+
+
+def _rows_path(arm_key: str) -> Path:
+    return ROWS_DIR / f"arm_{arm_key}.json"
+
+
+def _persist_rows(arm_key: str, rows: list[dict[str, Any]], complete: bool) -> None:
+    """Persist an arm's per-row predictions, unlike the checkpoint (which is
+    deleted on success). Verification/paired-McNemar/calibration need actual
+    per-row (ground_truth, predicted_label) pairs, not just aggregate
+    metrics -- and each arm here can be run in its own invocation, days
+    apart, paced by --daily-call-budget. Without this, a cross-arm
+    comparison is only possible if two arms happen to be scored in the same
+    invocation, which a multi-day paced run may never do."""
+    ROWS_DIR.mkdir(parents=True, exist_ok=True)
+    _rows_path(arm_key).write_text(json.dumps({"complete": complete, "rows": rows}, indent=2))
+
+
+def _load_persisted_rows(arm_key: str) -> list[dict[str, Any]] | None:
+    """Rows persisted by a previous invocation for this arm, if fully complete."""
+    path = _rows_path(arm_key)
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return None
+    return data["rows"] if data.get("complete") else None
+
+
 # Error strings this pipeline has actually seen from the Groq API when the
 # daily token quota is exhausted (openai/gpt-oss-20b, 200,000 tokens/day --
 # see the module docstring). Retrying these is pointless: the quota doesn't
@@ -485,6 +516,7 @@ def main() -> None:
         )
         arm_completed[arm] = completed
         raw_rows[arm] = rows
+        _persist_rows(arm, rows, completed)
         results[arm] = {
             "config": config,
             "metrics": compute_arm_metrics(rows),
@@ -523,6 +555,21 @@ def main() -> None:
     )
     if carried_forward:
         print(f"\ncarried forward arms not run this invocation (not overwritten): {carried_forward}")
+
+    # Fill in raw_rows for arms not run THIS invocation but persisted complete
+    # from a previous one at the same sample_design -- lets verification/
+    # paired-McNemar/calibration work across a multi-day paced run where no
+    # single invocation ever scores more than one live arm at a time.
+    for arm_key in ARM_CONFIG:
+        if arm_key in raw_rows:
+            continue
+        if arm_key not in results or not results[arm_key].get("complete"):
+            continue
+        if results[arm_key].get("_carried_forward_from_sample_design", sample_design) != sample_design:
+            continue
+        persisted = _load_persisted_rows(arm_key)
+        if persisted is not None:
+            raw_rows[arm_key] = persisted
 
     verification = None
     if "a" in raw_rows and "b" in raw_rows:
