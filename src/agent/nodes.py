@@ -38,6 +38,16 @@ llm = ChatGroq(
     model="openai/gpt-oss-20b",
     temperature=0,
     max_tokens=1024,
+    # No timeout was set here before -- confirmed via ChatGroq.model_fields
+    # that `timeout` defaults to None, meaning a stalled connection (Groq
+    # accepts the request but the response never arrives, as opposed to a
+    # fast 429) blocks llm.invoke() indefinitely. That's what happened during
+    # a Week 16 large-scale live run: one call hung for 84+ minutes with no
+    # exception raised, so classify_with_llm/explain_with_llm's own retry
+    # loops below (which only catch actual exceptions) never even got a
+    # chance to run. 60s is generous for this pipeline's normal per-call
+    # latency (~1-15s observed) while still bounding the worst case.
+    timeout=60,
 )
 
 MAX_LLM_RETRIES = 5
