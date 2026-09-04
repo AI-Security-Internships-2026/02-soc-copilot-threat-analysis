@@ -228,7 +228,7 @@ SAME 209 ALERTS, TWO MODELS
 ```bash
 venv/bin/python -c "
 import json
-old = json.load(open('experiments/results/agent_metrics_week12_999_current.json'))
+old = json.load(open('experiments/results/archive/agent_metrics_week12_999_current.json'))
 new = json.load(open('experiments/results/agent_metrics_week15_rf_primary.json'))
 print(f\"  old hybrid      : accuracy {old['accuracy']}  macro F1 {old['macro_f1']}\")
 print(f\"  RF decides      : accuracy {new['accuracy']}  macro F1 {new['macro_f1']}\")
