@@ -48,7 +48,23 @@ def test_missing_or_none_fields_are_not_flagged():
 
 
 def test_full_20v20_synthetic_set_scores_100_percent():
-    """Reproduces the exact accuracy claim from the Week 9 log."""
+    """Reproduces the exact accuracy claim from the Week 9 log.
+
+    This 100% is true BY CONSTRUCTION, not empirically discovered, and the
+    distinction matters wherever the figure is cited. The check is
+    `int(value)`: no English sentence parses as an integer, so no prose
+    payload can pass it, and no numeric ID can fail it. The test therefore
+    confirms the guardrail is wired up and its corpus is well-formed -- it
+    cannot fail for any rephrasing of an attack, and so it is not evidence
+    that the guardrail generalises to attackers.
+
+    What it does establish is the property the design actually claims: a
+    type constraint cannot be evaded by rewording, because the rewording is
+    still not an integer. The real limit is scope, not accuracy -- the
+    guardrail only protects fields the schema genuinely constrains, which is
+    why experiments/schema_guardrail_eval.py separately measures the false-
+    positive rate against 5,000 real GUIDE AlertTitle values.
+    """
     benign = REALISTIC_NUMERIC_IDS[:20]
     injection = _load_injection_strings()
     assert len(benign) == 20
