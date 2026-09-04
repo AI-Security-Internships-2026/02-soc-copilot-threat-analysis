@@ -1,0 +1,157 @@
+{
+  "benchmark": "week7_scalability",
+  "generated_at_utc": "2026-08-31T15:43:04.671176+00:00",
+  "measurement_notes": {
+    "llm": "Includes remote Groq inference and network latency; request concurrency is controlled by workers.",
+    "cpu": "Process CPU time divided by wall time; it is not whole-system CPU load.",
+    "memory": "Peak RSS for this Python process. The maximum is process-lifetime high-water mark.",
+    "guardrail": "Regex gate runs before automated processing; blocked inputs are routed to human review and excluded from accuracy/F1."
+  },
+  "regex_guardrail_microbenchmark": {
+    "iterations_per_case": 10000,
+    "wall_time_seconds": 0.05166,
+    "mean_check_time_microseconds": 2.583,
+    "benign_alerts_blocked": 0,
+    "injection_alerts_blocked": 10000
+  },
+  "results": [
+    {
+      "mode": "rf",
+      "prompt_count": 30,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 1.4043,
+      "throughput_alerts_per_second": 21.363,
+      "mean_latency_seconds": 0.0468,
+      "process_cpu_seconds": 1.21,
+      "mean_process_cpu_utilization_percent": 86.16,
+      "mean_machine_core_utilization_percent": 10.77,
+      "peak_rss_bytes": 711442432,
+      "peak_rss_mib": 678.48,
+      "peak_rss_growth_mib": 480.8,
+      "completed_predictions": 30,
+      "accuracy_scored_only": 0.6333,
+      "macro_f1_scored_only": 0.6232,
+      "routing_counts": {
+        "rf": 30
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "rf",
+      "prompt_count": 30,
+      "workers": 4,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 0.4618,
+      "throughput_alerts_per_second": 64.9605,
+      "mean_latency_seconds": 0.0154,
+      "process_cpu_seconds": 0.4906,
+      "mean_process_cpu_utilization_percent": 106.23,
+      "mean_machine_core_utilization_percent": 13.28,
+      "peak_rss_bytes": 711442432,
+      "peak_rss_mib": 678.48,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 30,
+      "accuracy_scored_only": 0.6333,
+      "macro_f1_scored_only": 0.6232,
+      "routing_counts": {
+        "rf": 30
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "rf",
+      "prompt_count": 60,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 1.1358,
+      "throughput_alerts_per_second": 52.8243,
+      "mean_latency_seconds": 0.0189,
+      "process_cpu_seconds": 1.0606,
+      "mean_process_cpu_utilization_percent": 93.37,
+      "mean_machine_core_utilization_percent": 11.67,
+      "peak_rss_bytes": 711442432,
+      "peak_rss_mib": 678.48,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 60,
+      "accuracy_scored_only": 0.6833,
+      "macro_f1_scored_only": 0.6772,
+      "routing_counts": {
+        "rf": 60
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "rf",
+      "prompt_count": 60,
+      "workers": 4,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 1.0025,
+      "throughput_alerts_per_second": 59.8509,
+      "mean_latency_seconds": 0.0167,
+      "process_cpu_seconds": 1.065,
+      "mean_process_cpu_utilization_percent": 106.23,
+      "mean_machine_core_utilization_percent": 13.28,
+      "peak_rss_bytes": 711442432,
+      "peak_rss_mib": 678.48,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 60,
+      "accuracy_scored_only": 0.6833,
+      "macro_f1_scored_only": 0.6772,
+      "routing_counts": {
+        "rf": 60
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "rf",
+      "prompt_count": 120,
+      "workers": 1,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 2.2906,
+      "throughput_alerts_per_second": 52.3888,
+      "mean_latency_seconds": 0.0191,
+      "process_cpu_seconds": 2.0471,
+      "mean_process_cpu_utilization_percent": 89.37,
+      "mean_machine_core_utilization_percent": 11.17,
+      "peak_rss_bytes": 711442432,
+      "peak_rss_mib": 678.48,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 120,
+      "accuracy_scored_only": 0.675,
+      "macro_f1_scored_only": 0.6727,
+      "routing_counts": {
+        "rf": 120
+      },
+      "errors": 0,
+      "error_messages": {}
+    },
+    {
+      "mode": "rf",
+      "prompt_count": 120,
+      "workers": 4,
+      "logical_cpu_cores": 8,
+      "wall_time_seconds": 1.8107,
+      "throughput_alerts_per_second": 66.273,
+      "mean_latency_seconds": 0.0151,
+      "process_cpu_seconds": 1.9813,
+      "mean_process_cpu_utilization_percent": 109.42,
+      "mean_machine_core_utilization_percent": 13.68,
+      "peak_rss_bytes": 711442432,
+      "peak_rss_mib": 678.48,
+      "peak_rss_growth_mib": 0.0,
+      "completed_predictions": 120,
+      "accuracy_scored_only": 0.675,
+      "macro_f1_scored_only": 0.6727,
+      "routing_counts": {
+        "rf": 120
+      },
+      "errors": 0,
+      "error_messages": {}
+    }
+  ]
+}

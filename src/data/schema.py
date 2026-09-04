@@ -36,6 +36,19 @@ CATEGORICAL_COLUMNS = [
     "City",
 ]
 
+# Analyst-derived evidence fields. Sparsely populated in real GUIDE data
+# (SuspicionLevel ~14%, LastVerdict ~22% non-null), and load-bearing for
+# routing: src/agent/fallback_classifier.py counts how many of
+# EVIDENCE_FIELDS an alert has and sends the sparse ones to the classifier.
+# They are listed here so load_alerts() rejects a file that lacks them --
+# datasets/sample/guide_sample.csv did, which silently pinned
+# evidence_field_count at a maximum of 1 and made the LLM branch unreachable
+# on every no-Kaggle-credentials run.
+EVIDENCE_COLUMNS = [
+    "SuspicionLevel",
+    "LastVerdict",
+]
+
 # Raw timestamp column -- decomposed into engineered features at preprocess time.
 TIMESTAMP_COLUMN = "Timestamp"
 
@@ -47,5 +60,5 @@ TARGET_CLASSES = ["TruePositive", "BenignPositive", "FalsePositive"]
 ENGINEERED_COLUMNS = ["Hour", "DayOfWeek", "Month"]
 
 ALL_RAW_COLUMNS = (
-    ID_COLUMNS + CATEGORICAL_COLUMNS + [TIMESTAMP_COLUMN, TARGET_COLUMN]
+    ID_COLUMNS + CATEGORICAL_COLUMNS + EVIDENCE_COLUMNS + [TIMESTAMP_COLUMN, TARGET_COLUMN]
 )

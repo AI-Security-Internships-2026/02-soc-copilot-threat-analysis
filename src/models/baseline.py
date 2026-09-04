@@ -139,6 +139,8 @@ def train_and_evaluate(
     report = classification_report(y_test, y_pred, output_dict=True)
     macro_f1 = f1_score(y_test, y_pred, average="macro")
 
+    data_path = _active_data_path()
+    is_synthetic = data_path == SAMPLE_DATA_PATH
     metrics = {
         "macro_f1": macro_f1,
         "n_train": len(X_train),
@@ -146,6 +148,25 @@ def train_and_evaluate(
         "classification_report": report,
         "max_rows": max_rows,
         "random_state": random_state,
+        # Which file produced this. Without it, a run against the synthetic
+        # sample is indistinguishable from a real one by the artifact alone.
+        "data_source": {**_file_signature(data_path), "is_synthetic": is_synthetic},
+        # The split rule, stated in the artifact rather than only in code.
+        # This is a row-level split; GUIDE labels are incident-level, so
+        # sibling rows of one incident land on both sides of the boundary.
+        # experiments/grouped_split_baseline.py measures what that is worth.
+        "split": {
+            "method": "train_test_split, stratified by IncidentGrade",
+            "grouping": None,
+            "leakage_note": (
+                "Row-level split. Alerts sharing an (OrgId, IncidentId) with a "
+                "training row appear in this holdout, and GUIDE's label is "
+                "constant within an incident, so this score is not a clean "
+                "estimate of generalisation to unseen incidents. See "
+                "experiments/results/grouped_split_baseline.json and "
+                "experiments/results/incident_leakage_audit.json."
+            ),
+        },
     }
 
     # Keep the fitted encoders with the classifier. The RF expects numeric

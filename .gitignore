@@ -69,4 +69,18 @@ experiments/results/*.png
 experiments/results/*.pdf
 datasets/mitre_technique_cache.json
 experiments/results/baseline_model.joblib
-experiments/results/evaluation_samples/
+# The evaluation-sample caches are committed, not ignored: every 209- and
+# 999-alert result in the paper is computed from them, and without them a
+# reader needs the 2.4GB Kaggle download plus a full retrain to reproduce
+# anything. GUIDE is CDLA-Permissive-2.0, which permits redistribution.
+# Larger caches (the n=15,000 runs) stay out -- regenerate those from the
+# seed, which is fixed at 42 and deterministic.
+experiments/results/evaluation_samples/*
+!experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv
+!experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.json
+!experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.csv
+!experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.json
+
+# paper draft kept out of the public repo per supervisor guidance
+docs/paper/
+experiments/results/.control_node_ablation_checkpoints/

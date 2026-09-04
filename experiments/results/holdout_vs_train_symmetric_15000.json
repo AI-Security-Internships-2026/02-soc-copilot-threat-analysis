@@ -1,0 +1,36 @@
+{
+  "experiment": "Symmetric (n=15000 vs n=15000) held-out vs train-sampled RF generalisation gap",
+  "question": "The earlier held-out-vs-train comparison used mismatched sample sizes (n=999 or n=15000 held-out vs n=999 train-sampled). This repeats it at matched n=15000 on both sides for a fully symmetric significance test.",
+  "generated_at_utc": "2026-09-03T11:54:15.069507+00:00",
+  "git_sha": "1bbf073",
+  "held_out_source": "experiments/results/guide_test_holdout_eval.json (n=15000)",
+  "train_sampled_source": "experiments/results/large_train_sampled_rf_eval.json (n=15000)",
+  "accuracy_gap": {
+    "point_a": 0.6998,
+    "point_b": 0.7357,
+    "point_diff": -0.0359,
+    "ci_lower": -0.0461,
+    "ci_upper": -0.0257,
+    "confidence": 0.95,
+    "n_a": 15000,
+    "n_b": 15000,
+    "n_resamples": 10000,
+    "significant_at_confidence": true,
+    "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+    "interpretation": "metric(a)-metric(b) = -0.0359, 95% CI [-0.0461, -0.0257]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+  },
+  "macro_f1_gap": {
+    "point_a": 0.6949,
+    "point_b": 0.7331,
+    "point_diff": -0.0383,
+    "ci_lower": -0.0486,
+    "ci_upper": -0.028,
+    "confidence": 0.95,
+    "n_a": 15000,
+    "n_b": 15000,
+    "n_resamples": 10000,
+    "significant_at_confidence": true,
+    "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+    "interpretation": "metric(a)-metric(b) = -0.0383, 95% CI [-0.0486, -0.0280]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+  }
+}
