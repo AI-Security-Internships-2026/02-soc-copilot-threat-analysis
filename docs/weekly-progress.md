@@ -1697,6 +1697,126 @@ sample" this week: not a different answer, a truer one the smaller sample couldn
 
 ---
 
+## Week 17 — a verification pass, and the leakage the exact-row check could not see
+
+**Branch:** `asma-week-17-verification` (based on `asma-week-16`)
+
+A full audit of the repository for claims that were asserted rather than measured. Three
+things came out of it: one genuine methodological finding, three numbers that no code in
+this repository computed, and a set of artifacts that could be mistaken for current results.
+
+### The finding: incident-level label leakage
+
+Since Week 15 every train-sampled figure has carried the same disclosure — exact-row overlap
+with the RF's training slice is ~2%, judged immaterial. That measurement is correct and it
+answers the wrong question. GUIDE rows are evidence records, several per incident, and
+`IncidentGrade` attaches to the incident. Verified in the training slice: **52,797 of 52,797**
+incidents carry a single label value, and 55.7% of rows belong to a multi-row incident. So one
+labelled row determines every sibling's answer.
+
+`(OrgId, IncidentId)` is a genuine key rather than a colliding field: in a 20,000-row block
+taken from row 5,000,000, **11,142 of 11,142** rows whose key appears in the training slice
+carry the identical label, against a 43.3% chance floor.
+
+Measured overlap, both ways:
+
+| set | exact-row | incident-level |
+|---|---|---|
+| 999-alert train-sampled | 14/999 (1.40%) | **557/999 (55.76%)** |
+| 209-alert control subset | 4/209 (1.91%) | **82/209 (39.23%)** |
+| 999-alert `GUIDE_Test` held-out | 0/999 (0%) | **0/999 (0%)** |
+
+And what it costs, from a natural experiment on 300,000 rows drawn from *past* the training
+slice — rows the model trained on under no circumstances — split by whether their incident was
+seen and class-balanced to identical distributions:
+
+- incident seen in training: **0.8325** accuracy
+- incident never seen: **0.5893** accuracy
+- difference **+0.2432**, 95% CI [+0.2280, +0.2585], and it holds within every class
+  (TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615)
+
+This supplies the mechanism for Week 16's held-out gap, which was measured but unexplained: the
+train-sampled reference is 55.8% leaked, the held-out sample is 0% leaked. It does **not** touch
+Week 15's paired comparison, which scores both models on identical alerts.
+
+### Numbers that were reported but never computed
+- [x] `guardrail_layer_eval.py` hardcoded the regex cost as `3.616` µs — a July constant restated
+  unchanged after Week 15 re-measured the same operation at 2.583. Now timed with `timeit` in the
+  run that reports it: **1.93 µs** on the short alert `benchmark.py` also times (so the two
+  artifacts are finally comparable) and 5.56 µs on a full injection payload.
+- [x] The same file asserted **"AUC 0.46"** in two places and in its own output JSON. No code in
+  this repository computed an AUC. Computed with `roc_auc_score` it is **0.46** — so the claim was
+  accurate and untraceable rather than wrong, and it is now derived.
+- [x] `round(p_value, 6)` collapsed the paper's headline significance figure to `0.0`. The
+  `4.66e-12` survived only inside a prose string. Full precision now stored: **4.657e-12**.
+- [x] Per-layer `finding` prose restated its own counts as literals; now generated from the
+  measurements so text and numbers cannot drift apart.
+
+### Correctness fixes
+- [x] `evaluate.py`'s routing summary counted only `rf_fallback`/`llm`, but `classify_with_rf`
+  writes `rf_primary` — so every rf_primary run reported all-zero routing counts. Visible in
+  `agent_metrics_week15_rf_primary.json`: 999 alerts, `rf_fallback_count: 0`, `llm_count: 0`.
+- [x] `benchmark.py`'s LLM arm ran `build_context` before `fetch_mitre_context`, so every
+  benchmarked prompt was un-enriched while appearing to include the retrieval stage — the same
+  ordering defect `rf_primary` fixed in Week 15, surviving because the benchmark builds its state
+  by hand instead of going through the graph.
+- [x] `benchmark.py` hardcoded `"benchmark": "week7_scalability"`, so `week15_rf_benchmark.json`
+  self-identified as a Week-7 artifact.
+- [x] The evaluation-sample cache compared source files by **mtime**, which changes on any copy or
+  re-download. The 999-alert cache underpinning every 209-alert result was in exactly that state —
+  byte-identical source, later mtime — so it was treated as stale and forced a needless re-stream
+  of all 9.5M rows. Now compares by path and size.
+- [x] Reported accuracy is now labelled as **ungated** and reported alongside the auto-accepted and
+  escalated figures. Roughly a fifth of alerts route to human review but were still scored into the
+  headline number, which overstates what the system acts on unattended.
+
+### The synthetic path never worked
+Two defects together made the documented no-Kaggle-credentials route useless:
+- [x] the generated sample still had non-numeric `AlertTitle` values, which the schema guardrail
+  rejects — 100% of alerts held for human review with no verdict, scored as roughly chance. The
+  generator was fixed in Week 15; the generated file was never refreshed.
+- [x] `SuspicionLevel` and `LastVerdict` were missing from the generator entirely. They are two of
+  three `EVIDENCE_FIELDS` that routing depends on, so `evidence_field_count` could never exceed 1
+  and the LLM branch was unreachable. Now emitted at real GUIDE sparsity (~14% / ~22%) and added to
+  `ALL_RAW_COLUMNS` so `load_alerts()` rejects a file lacking them. A regenerated sample blocks
+  0/5,000 at the guardrail and routes 1,716/5,000 to the LLM branch.
+- [x] `experiments/results/agent_metrics.json` was a **synthetic-data run** (0.375 accuracy)
+  sitting alongside the real results with nothing marking it. Every artifact now carries a
+  `data_source` block with an `is_synthetic` flag, and both the loader and the evaluator shout
+  when they fall back.
+
+### Hygiene
+- [x] Fourteen superseded result files moved to `experiments/results/archive/` with a lineage
+  README giving each one's date, numbers, and what replaced it. Nothing deleted; no code reads them.
+- [x] First tests for the data path (`tests/test_data_pipeline.py`) — `preprocess`, the encoder
+  round-trip and its `-1` unseen-category sentinel, `load_alerts`'s column contract, and the
+  routing predicate. That path had **zero** coverage despite every reported accuracy depending on it.
+- [x] `tests/test_leakage_guard.py` pins the held-out sample at zero incident overlap, so a future
+  change that re-pointed it at `GUIDE_train.csv` would fail loudly instead of silently inflating
+  the headline by ~24 points.
+- [x] `datasets/README.md`: corrected two stale claims (`GUIDE_Test.csv` is no longer "never read
+  by any code"; the download-date provenance cited the wrong cache file) and documented the
+  leakage measurement.
+
+### Branch audit
+All week branches verified: every file on `asma-week-01` through `asma-week-16` is present in
+`asma-week-16`, and nothing is missing from `dev`. Weeks 01–10 read as "not an ancestor" of later
+branches purely because they were squash-merged (e.g. week-08's `76543c4` landed as `cc53b52 (#14)`).
+No work was lost anywhere.
+
+### Carried forward, still open
+1. **Paper declarations** — funding, ORCID and co-authorship remain blocked on issue #16.
+2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since Week 10.
+3. **PRs #25, #26, #27 are all open and unreviewed.** They stack (week-14 ⊂ week-15 ⊂ week-16), so
+   merging #27 alone would deliver all three.
+4. Three commits on `main` carry AI co-authorship trailers, conflicting with the attribution
+   policy. Rewriting shared history needs an explicit decision.
+5. **The grouped-split baseline is diagnostic only.** The deployed model still uses a row-level
+   split; only the measurement of what that costs is new.
+
+
+---
+
 ## Notes for Week 15 — reasoning behind the implementations
 
 *The checklist above is the summary. This section records **why** each change was made and what

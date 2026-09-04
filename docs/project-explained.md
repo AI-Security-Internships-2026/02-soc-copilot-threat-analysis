@@ -473,8 +473,15 @@ Three things follow, and they are not close calls:
 Random Forest was the correct one on **105**. If the models were equally good
 this split would be a coin flip; McNemar's exact test gives **p = 4.66e-12**.
 
-**Not contamination.** Only 4 of the 209 alerts (1.91%) also appear in the
-Random Forest's training slice, so its win is not memorisation.
+**Contamination, measured properly.** Only 4 of the 209 alerts (1.91%) appear
+*verbatim* in the Random Forest's training slice — but that is the wrong thing
+to count. GUIDE labels attach to incidents, not rows, and **82 of the 209
+(39.23%)** belong to an incident the model saw a labelled row from. The
+comparison above still holds, because it is paired: both models are scored on
+the identical alerts, so any advantage contamination gives the forest is
+present for the LLM too and cannot produce a 0.6555-vs-0.2823 split. What it
+does mean is that the forest's *absolute* 0.6555 here is optimistic. See
+"Incident-level label leakage" below.
 
 ### The second finding: confidence pointing the wrong way
 
@@ -628,10 +635,17 @@ throughout — that is the argument to make.
 
 Never let a reviewer find these first. Raise them yourself.
 
-1. **The official test split is unused.** `GUIDE_Test.csv` (4.1M alerts) sits on
-   disk untouched; all evaluation samples come from the training file. Sampling
-   is disjoint from the training slice (1.91% overlap measured), but using the
-   provided split would be cleaner. **This is the first thing I would fix.**
+1. **Incident-level label leakage in the train-sampled figures.** This was
+   the first thing to fix, and it now is. `GUIDE_Test.csv` is no longer
+   untouched: the headline accuracy (0.6998, n=15,000) comes from Microsoft's
+   held-out split, which shares **zero** incidents with the training slice.
+   The train-sampled figures remain in the report as an in-distribution
+   reference, and they are contaminated — 55.8% of the 999-alert sample
+   belongs to an incident the model saw a labelled row from. Measured effect:
+   on rows the model never trained on, accuracy is **0.8325** when a labelled
+   sibling was available versus **0.5893** when none was, a 24.3-point gap
+   (95% CI [+0.228, +0.259]). The previously-reported "1.91% overlap" was an
+   exact-row count and understated this by roughly 20x.
 
 2. **The Random Forest trains on the first 100,000 rows**, not a random sample.
    If the file has any ordering, that slice is biased. Its class distribution

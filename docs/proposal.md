@@ -97,8 +97,9 @@ description of the current system.
 **RQ1 — accuracy of LLM triage vs. a classical baseline. Answered, in the negative.**
 On an identical 209-alert subset — the alerts the router selected as *most* favourable to the LLM —
 the Random Forest scored 0.6555 accuracy against the LLM's 0.2823, below the 0.4928 obtained by
-always predicting the majority class. Exact McNemar p = 4.66e-12 on 132 discordant pairs; 1.91%
-training overlap. The system was restructured on that evidence so the classifier assigns every
+always predicting the majority class. Exact McNemar p = 4.66e-12 on 132 discordant pairs. The
+comparison is paired, so it is unaffected by the incident-level label leakage separately measured
+in this project (39.23% of this subset, against 1.91% exact-row). The system was restructured on that evidence so the classifier assigns every
 verdict and the LLM only explains it, which raised whole-pipeline accuracy from 0.6456 to 0.7347 on
 an identical 999-alert sample. See `docs/final-report.md` §5.2 and §5.4.
 

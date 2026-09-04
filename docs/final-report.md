@@ -25,20 +25,26 @@ reflect harder inputs. Scoring both on an identical 209-alert subset — those a
 context-based router selected as most favourable to the LLM — the Random Forest
 reached 0.6555 accuracy against the LLM's 0.2823, below the 0.4928 obtained by
 always predicting the majority class. The Random Forest was correct on 105 of
-the 132 alerts where exactly one model was (exact McNemar p = 4.66e-12), with
-1.91% training overlap. We further find the LLM's self-reported confidence is
-inversely calibrated (0.256 accuracy when reporting "high" versus 0.383 for
+the 132 alerts where exactly one model was (exact McNemar p = 4.66e-12). The
+comparison is paired, so it is unaffected by the incident-level label leakage
+we separately measure and quantify in this report (Section 5.10). We further
+find the LLM's self-reported confidence is inversely calibrated (0.256 accuracy when reporting "high" versus 0.383 for
 "medium"), so a confidence-gated review checkpoint auto-accepted its least
 reliable predictions. We restructured the pipeline so the Random Forest assigns
 every verdict and the LLM produces only analyst-facing explanations, gating
 review on the classifier's decision margin. Whole-pipeline accuracy rose from
 0.6456 to 0.7347 on the same 999 alerts, and prompt injection can no longer
-alter a triage outcome. Scored instead on Microsoft's held-out test split
-rather than a sample of the training file, accuracy is 0.6998 at n=15,000 —
-a small but, at this sample size, statistically real drop (95% CI on the gap
-against a matched-scale train-sampled reference: [−0.0461, −0.0257],
-excluding zero). For structured security telemetry, an LLM is a capable
-explainer and a poor classifier, and the distinction is measurable.
+alter a triage outcome. **On Microsoft's held-out split the restructured
+pipeline reaches 0.6998 accuracy (n=15,000), and that is the figure we lead
+with rather than the 0.7347 obtained by sampling the training file.** The
+reason is a dataset property we measure here: GUIDE's label attaches to the
+incident, not the alert, so a row-level split leaves 55.8% of a train-sampled
+evaluation set sharing an incident with training, and on rows the model never
+trained on a shared incident is worth 24.3 accuracy points (95% CI
+[+0.228, +0.259]). Correcting the baseline's own split rule to be
+incident-level costs it 2.8 points (0.7718 → 0.7435). For structured security
+telemetry, an LLM is a capable explainer and a poor classifier, and the
+distinction is measurable — provided the evaluation split is too.
 
 ---
 
@@ -247,7 +253,20 @@ FalsePositive alerts (recall 0.000).
 was correct on 105. McNemar's exact test: **p = 4.66e-12**.
 
 **Contamination.** Exact-row overlap between this subset and the Random Forest's
-training slice is **4/209 (1.91%)**, so the result is not memorisation.
+training slice is **4/209 (1.91%)**. That figure is correct and it is the wrong
+statistic: GUIDE rows are evidence records, several per incident, and
+`IncidentGrade` is constant within an incident, so what determines whether the
+answer was available in training is whether the *incident* was seen, not
+whether the row was. Measured that way, **82/209 (39.23%)** of these alerts
+belong to an incident the model saw a labelled row from (Section 5.10).
+
+This does not undermine the comparison in this section, because it is
+**paired**: the RF and the LLM are scored on identical alerts, so any
+contamination advantage the RF enjoys is present in both columns of the table
+and cannot explain a 0.6555-vs-0.2823 split or the McNemar result. It does mean
+the RF's *absolute* 0.6555 on this subset is optimistic and should not be read
+as a generalisation estimate; Section 5.8's held-out figure is what serves that
+purpose.
 
 Week 14 had already shown this is not a prompt-quality artefact: an improved
 prompt raised grounded reasoning from 16.3% to 99.0% and TruePositive recall
@@ -336,7 +355,12 @@ LLM path (`week7_scalability_benchmark.json`): 0.37–0.57 alerts/s at 1.76–2.
 per alert. Random Forest path, re-measured in Week 15 after the sampling fix
 (`week15_rf_benchmark.json`): 21.36–66.27 alerts/s at 0.015–0.047 s per alert,
 zero errors. **The classifier is roughly two orders of magnitude faster** and
-requires no network. Regex guardrail cost: 3.616 µs per check.
+requires no network. Regex guardrail cost, re-measured in Week 17 with
+`timeit` inside the run that reports it: **1.93 µs** per check on a short
+alert, 5.56 µs on a full injection payload. The 3.616 µs previously reported
+here was a July constant that `guardrail_layer_eval.py` restated without
+re-measuring; the cost is payload- and machine-dependent and should be read as
+an order of magnitude, not a constant.
 
 Two caveats on the older file. **Its n=30 and n=60 accuracy rows are invalid**
 and are not reported: the benchmark sliced a prefix of an unshuffled,
@@ -365,8 +389,10 @@ the confidence interval around 0% extends past 30%. The supportable claim is
 
 `experiments/guide_test_holdout_eval.py`. Every figure above is measured on a
 sample of `GUIDE_train.csv` — the file the Random Forest trains on — with a
-small, disclosed, judged-immaterial training-row overlap (1.91%, Section
-5.2). `GUIDE_Test.csv`, Microsoft's own held-out split (4.1M alerts), had
+training-row overlap disclosed as small and judged immaterial (1.91%, Section
+5.2). Section 5.10 shows that judgement rested on the wrong measurement: the
+incident-level overlap on the same samples is 39–56%, and it is worth a
+measured 24.3 accuracy points. `GUIDE_Test.csv`, Microsoft's own held-out split (4.1M alerts), had
 never been read by any code in this repository before this section.
 
 We drew a fresh, class-balanced sample from `GUIDE_Test.csv` and scored the
@@ -524,6 +550,99 @@ sample.
 
 ---
 
+### 5.10 Incident-level label leakage in GUIDE
+
+`experiments/incident_leakage_audit.py`. Every train-sampled figure in this
+report has carried the same disclosure since Week 15: exact-row overlap with
+the Random Forest's training slice is ~2%, judged immaterial. This section
+shows that measurement was answering the wrong question, and quantifies what
+the right one costs.
+
+**The label is a property of the incident, not the alert.** GUIDE rows are
+evidence records and several belong to one incident. In the model's own
+100,000-row training slice, all **52,797 of 52,797** incidents carry a single
+`IncidentGrade` value, and **55.7%** of rows belong to an incident with more
+than one row. So one labelled row fixes the label of every sibling.
+
+**`(OrgId, IncidentId)` is a real incident key, not a colliding field.** In a
+20,000-row block taken from row 5,000,000 — far from the training slice —
+**11,142 of 11,142** rows whose key also appears in the training slice carry
+the identical label, against a 43.3% majority-class chance floor. Agreement is
+exactly 1.0, so the key identifies a genuine incident and the label is
+recoverable from it.
+
+**The evaluation samples are contaminated at the incident level, and the
+held-out split is not:**
+
+| Evaluation set | Exact-row overlap | Incident-level overlap |
+|---|---|---|
+| 999-alert `GUIDE_train`-sampled | 14/999 (1.40%) | **557/999 (55.76%)** |
+| 209-alert control subset (5.2) | 4/209 (1.91%) | **82/209 (39.23%)** |
+| 999-alert `GUIDE_Test.csv` held-out (5.8) | 0/999 (0%) | **0/999 (0%)** |
+
+**What it is worth: 24.3 accuracy points.** Overlap alone shows the leak
+exists, not that it changes anything. To measure that, we drew 300,000 rows
+from *past* the training slice — rows the model trained on under no
+circumstances — and split them by whether their incident appears in the
+training slice. Both buckets were then class-balanced to identical per-class
+counts, so the majority-class floor is the same on both sides and cannot
+explain a difference. The only thing that varies is whether a labelled sibling
+was available:
+
+| Bucket | Accuracy | Macro F1 | n |
+|---|---|---|---|
+| Incident seen in training ("leaked") | **0.8325** | 0.8312 | 6,000 |
+| Incident never seen ("clean") | **0.5893** | 0.5789 | 6,000 |
+| **Difference** | **+0.2432** | +0.2523 | 95% CI [+0.2280, +0.2585] |
+
+The interval excludes zero by a wide margin. The advantage also holds *within
+every class* — TruePositive +0.4045, FalsePositive +0.2635, BenignPositive
++0.0615 — so no residual class-mix artefact explains it.
+
+**The baseline's own split rule, corrected.** Section 5.1's 0.7718 comes from a
+row-level stratified split of the same 100,000-row slice the model trains on;
+53.3% of that holdout shares an incident with training.
+`experiments/grouped_split_baseline.py` trains the same estimator twice on the
+same rows with the same hyperparameters, changing only the split rule:
+
+| Split rule | Accuracy | Macro F1 | Holdout incident leakage | n |
+|---|---|---|---|---|
+| Row-level (`train_test_split`, deployed) | 0.7718 | 0.7505 | 53.3% | 19,895 |
+| Incident-level (`GroupShuffleSplit`) | **0.7435** | **0.7118** | 0.0% | 19,934 |
+| **Difference** | **+0.0283** | +0.0388 | | 95% CI [+0.0199, +0.0368] |
+
+The row-level arm reproduces the published 0.7718/0.7505 exactly, which is the
+check that this is a faithful re-run and not a differently-configured one. The
+difference's CI excludes zero, so the reported baseline is inflated by about
+2.8 points, concentrated in FalsePositive (F1 0.656 → 0.587) — the same class
+the held-out evaluation found weakest. This is **diagnostic**: the deployed
+`baseline_model.joblib` is unchanged, so every pipeline figure in this report
+was produced by the same model as before.
+
+**Why 2.8 and not 24.3.** The two numbers answer different questions and it
+would overstate the result to conflate them. The 24.3-point gap holds one model
+fixed and varies the row population, on class-balanced buckets (majority floor
+0.333). The 2.8-point gap varies the split rule, so the grouped model is
+*retrained* without those incidents and partly recovers by learning features
+that generalise across them; its holdout also follows GUIDE's natural class
+distribution (majority floor ≈0.45), so absolute accuracies are not comparable
+across the two experiments. "How much signal does a shared incident carry" and
+"how inflated is the published baseline" have different answers.
+
+**What this changes.** It supplies the mechanism for Section 5.8's held-out
+gap, which that section could measure but not explain: the train-sampled
+reference is 55.8% leaked and the held-out sample is 0% leaked, and leakage is
+worth 24.3 points on otherwise-comparable rows. It does **not** invalidate
+Section 5.2's paired comparison, which scores both models on identical alerts,
+so contamination sits in both columns. It does mean every absolute
+`GUIDE_train`-sampled accuracy in this report is optimistic, and that the
+held-out 0.6998 (Section 5.8) is the only figure here that estimates
+generalisation to unseen incidents.
+
+The honest summary is that the project's own disclosure was accurate as an
+exact-row measurement and misleading as a contamination claim, and the error
+was not conservative.
+
 ## 6. Discussion and Limitations
 
 ### 6.1 Interpretation
@@ -557,19 +676,33 @@ and the pipeline was silently auto-accepting its least reliable predictions.
 2. **Training rows are the first 100,000, not a random sample.** Their class
    distribution matches the global one, which is reassuring but not conclusive.
 3. **High-cardinality identifier columns remain features** (`IpAddress`,
-   `Sha256`, `AccountName`), which may inflate the baseline.
+   `Sha256`, `AccountName`). These are near-unique per incident and are the
+   most likely channel for the leakage measured in Section 5.10; a feature
+   ablation isolating their contribution is still outstanding.
 4. **`LastVerdict` and `SuspicionLevel` are analyst-derived** and partly
    downstream of the target — target-adjacent leakage. They also drove routing.
-5. **Splits are row-level, not incident-level**, so alerts from one incident can
-   straddle the boundary.
-6. **Single runs without confidence intervals.** The 999-alert figures are
+5. **The deployed model still uses a row-level split.** Section 5.10 measures
+   what that costs (about 2.8 accuracy points against a `GroupShuffleSplit`
+   on `(OrgId, IncidentId)`) but the corrected split is diagnostic only: the
+   deployed `baseline_model.joblib` was deliberately left unchanged so that
+   every pipeline result in this report remains attributable to one model.
+   Retraining on an incident-level split, and re-running the pipeline
+   evaluations against it, is the natural next step and is not done here.
+6. **The leaked-vs-clean comparison is observational, not randomised.**
+   Section 5.10 compares rows whose incident was seen in training against rows
+   whose incident was not, and those two populations were not assigned at
+   random — incidents that recur near the training slice may differ
+   systematically from those that do not. Class balancing and the
+   within-every-class consistency of the gap rule out the most obvious
+   confound, but not every one.
+7. **Single runs without confidence intervals.** The 999-alert figures are
    stable to roughly ±3 points; the 209-alert figures to roughly ±6. The paired
    McNemar result does not depend on this.
-7. **The injection corpus is 40 self-authored examples**, measuring
+8. **The injection corpus is 40 self-authored examples**, measuring
    self-consistency rather than generalisation. It bounds how poor the regex
    filter is; it does not estimate production performance.
-8. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
-9. **The control-node ablation's live arms (5.9) lost most of their data to
+9. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
+10. **The control-node ablation's live arms (5.9) lost most of their data to
    an external API quota, not by design — confirmed to be a hard 200,000
    tokens/day limit on the model, not the more generous per-minute figure
    its response headers advertise.** Re-running at the originally-planned
@@ -632,18 +765,29 @@ supervisor's direction.
 
 | File | Contents |
 |---|---|
-| `baseline_metrics.json` | Random Forest baseline, 19,895 held-out alerts |
-| `rf_vs_llm_control.json` | **Paired comparison, calibration, margin sweep** |
+| `baseline_metrics.json` | Random Forest baseline, 19,895 held-out alerts (row-level split) |
+| `grouped_split_baseline.json` | **The same baseline under an incident-level split** |
+| `incident_leakage_audit.json` | **Incident-level label leakage and its measured effect** |
+| `rf_vs_llm_control.json` | **Paired comparison, calibration, margin sweep, both overlap measures** |
 | `agent_metrics_week15_rf_primary.json` | Current pipeline, 999 alerts |
-| `agent_metrics_week12_999_current.json` | Prior hybrid, same 999 alerts |
-| `guardrail_layer_eval.json` | Per-layer guardrail measurements |
+| `guardrail_layer_eval.json` | Per-layer guardrail measurements (cost and AUC now computed) |
 | `llm_subset_eval_improved_full209.json` | LLM on the 209-alert subset |
 | `soc_domain_eval_results.json` | TF-IDF guardrail negative result |
-| `week7_scalability_benchmark.json` | Throughput and latency |
-| `deepteam_redteam_*.json` | Adversarial evaluation |
+| `week7_scalability_benchmark.json` | LLM throughput and latency |
+| `week15_rf_benchmark.json` | Random Forest throughput |
+| `deepteam_redteam_fullgraph_llm_reached.json` | Adversarial evaluation |
 | `guide_test_holdout_eval.json` | Held-out `GUIDE_Test.csv` evaluation + RF ROC/AUC |
+| `large_train_sampled_rf_eval.json` | Matched-scale train-sampled reference |
+| `holdout_vs_train_symmetric_15000.json` | The held-out-vs-train gap and its CI |
 | `roc_auc_control_209.json` | RF ROC/AUC on the 209-alert control set |
 | `control_node_ablation.json` | Control-node ablation, evidence-count breakdown |
+| `control_node_ablation_two_proportion_tests.json` | Significance tests between ablation arms |
+
+Superseded artefacts — including `agent_metrics_week12_999_current.json` (the
+"before" side of the architecture change) and `agent_metrics.json` (a
+**synthetic-data** run whose labels are random noise) — now live in
+`experiments/results/archive/`, with a README recording each file's numbers and
+what replaced it.
 
 Reproduction commands are in `docs/demo-runbook.md`; conceptual background is in
 `docs/project-explained.md`.

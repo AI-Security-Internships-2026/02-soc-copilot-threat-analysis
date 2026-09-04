@@ -211,8 +211,11 @@ SAME 209 ALERTS, TWO MODELS
    right on 105. McNemar's paired test gives **p = 4.66e-12**. Paired because
    both models saw identical inputs.
 
-5. **It is not contamination.** Only 1.91% of these alerts appear in the
-   forest's training data.
+5. **Contamination does not explain it — but it is bigger than we reported.**
+   Only 1.91% of these alerts appear verbatim in the forest's training data,
+   though 39.23% belong to an incident it saw a labelled row from. The
+   comparison survives that because it is paired: both models saw the same
+   alerts. The forest's absolute score on this subset does not.
 
 6. **The safety net was backwards.** The gate auto-accepted 160 alerts at 25.6%
    accuracy and escalated 49 at 36.7%. It was sending the *better* predictions
