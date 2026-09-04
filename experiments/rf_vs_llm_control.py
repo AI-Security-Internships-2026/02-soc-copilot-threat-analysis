@@ -140,7 +140,14 @@ def mcnemar(rf_correct: list[bool], llm_correct: list[bool]) -> dict:
         "llm_correct_rf_wrong": llm_only,
         "both_wrong": both_wrong,
         "discordant_pairs": discordant,
-        "p_value": round(float(p_value), 6),
+        # round(p, 6) collapsed every p-value below 5e-7 to 0.0. This test
+        # routinely produces them (p=4.66e-12 on the 209-alert control set),
+        # so the headline significance figure survived only inside the prose
+        # `interpretation` string below and could not be read back
+        # programmatically. Keep the full float, and a scientific-notation
+        # string beside it for anything that formats the JSON directly.
+        "p_value": float(p_value),
+        "p_value_scientific": f"{float(p_value):.3e}",
         "interpretation": (
             f"Of the {discordant} alerts where the two models disagreed in "
             f"correctness, the RF was the correct one in {rf_only}. Under the "
@@ -219,11 +226,27 @@ def margin_gate_analysis(margins: list[float], rf_correct: list[bool]) -> dict:
 
 
 def training_overlap(subset: pd.DataFrame) -> dict:
-    """How many evaluation rows also appear in the RF's training slice.
+    """How much of this evaluation set the RF has already been shown.
 
     Reported rather than assumed: the RF trains on the first 100k rows of
     GUIDE_train.csv, and this evaluation samples the whole file, so overlap is
     possible in principle and would inflate the RF's score if large.
+
+    Measured two ways, because the first one alone is misleading:
+
+      exact-row     -- the row appears verbatim in the training slice. This
+                       is the 1.91% figure this project has published since
+                       Week 15 and judged immaterial.
+      incident-level -- the row's (OrgId, IncidentId) appears in the training
+                       slice, so a sibling evidence row carrying the SAME
+                       label was available during training. GUIDE labels are
+                       incident-level and constant within an incident
+                       (verified in experiments/incident_leakage_audit.py),
+                       so this, not exact-row equality, is what determines
+                       whether the answer was recoverable from training data.
+
+    The two differ by roughly an order of magnitude, which is why reporting
+    only the first understates the contamination.
     """
     columns = [c for c in subset.columns if c != "IncidentGrade"]
     train_head = pd.read_csv(
@@ -232,11 +255,28 @@ def training_overlap(subset: pd.DataFrame) -> dict:
     train_keys = set(map(tuple, train_head.astype(str).values))
     subset_keys = list(map(tuple, subset[columns].astype(str).values))
     overlap = sum(k in train_keys for k in subset_keys)
+
+    train_incidents = set(zip(train_head["OrgId"], train_head["IncidentId"]))
+    subset_incidents = list(zip(subset["OrgId"], subset["IncidentId"]))
+    incident_overlap = sum(k in train_incidents for k in subset_incidents)
+
     return {
         "rf_training_rows_checked": RF_TRAIN_ROWS,
         "evaluation_rows": len(subset_keys),
         "exact_row_overlap": overlap,
         "overlap_rate": round(overlap / len(subset_keys), 4),
+        "incident_level_overlap": incident_overlap,
+        "incident_level_overlap_rate": round(incident_overlap / len(subset_incidents), 4),
+        "interpretation": (
+            f"{overlap}/{len(subset_keys)} "
+            f"({overlap / len(subset_keys):.2%}) of these alerts appear verbatim in "
+            f"the training slice, but {incident_overlap}/{len(subset_incidents)} "
+            f"({incident_overlap / len(subset_incidents):.2%}) belong to an incident "
+            f"the model saw a labelled row from. The RF's score on this set should "
+            f"be read with the second figure, not the first. See "
+            f"experiments/incident_leakage_audit.py for the effect this has on "
+            f"accuracy."
+        ),
     }
 
 
@@ -295,7 +335,7 @@ def main() -> None:
     llm_scores = score(y_true, llm_pred)
     baselines = reference_baselines(y_true)
 
-    print("\ncomputing exact-row overlap with the RF training slice...")
+    print("\ncomputing exact-row and incident-level overlap with the RF training slice...")
     overlap = training_overlap(eligible)
 
     output = {
@@ -341,8 +381,10 @@ def main() -> None:
     print(f"                   escalates {cal['escalated_to_human_n']} at "
           f"{cal['escalated_accuracy']} accuracy.")
     print(f"                   inverted: {cal['gate_is_inverted']}")
-    print(f"\n  RF training overlap: {overlap['exact_row_overlap']}/{overlap['evaluation_rows']} "
-          f"rows ({overlap['overlap_rate']:.2%})")
+    print(f"\n  RF training overlap, exact-row    : {overlap['exact_row_overlap']}/{overlap['evaluation_rows']} "
+          f"({overlap['overlap_rate']:.2%})")
+    print(f"  RF training overlap, incident-lvl: {overlap['incident_level_overlap']}/{overlap['evaluation_rows']} "
+          f"({overlap['incident_level_overlap_rate']:.2%})  <- the figure that matters")
     print(f"\nsaved to {OUTPUT_PATH}")
 
 

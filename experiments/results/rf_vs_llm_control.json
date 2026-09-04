@@ -1,8 +1,8 @@
 {
   "experiment": "RandomForest vs LLM on the identical LLM-routed alert subset",
   "question": "Prior comparisons scored the two models on different alerts, so a lower LLM score could have meant the LLM-routed alerts were harder. This scores both models on the same rows to remove that confound.",
-  "generated_at_utc": "2026-08-31T15:33:47.091256+00:00",
-  "git_sha": "2a8c43f",
+  "generated_at_utc": "2026-09-04T13:26:09.375525+00:00",
+  "git_sha": "6ad48c8",
   "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
   "llm_model": "openai/gpt-oss-20b (Groq), improved prompt",
   "llm_results_source": "experiments/results/llm_subset_eval_improved_full209.json",
@@ -36,7 +36,8 @@
     "llm_correct_rf_wrong": 27,
     "both_wrong": 45,
     "discordant_pairs": 132,
-    "p_value": 0.0,
+    "p_value": 4.656868638370482e-12,
+    "p_value_scientific": "4.657e-12",
     "interpretation": "Of the 132 alerts where the two models disagreed in correctness, the RF was the correct one in 105. Under the null hypothesis that both models are equally accurate this split has p = 4.66e-12."
   },
   "llm_confidence_calibration": {
@@ -129,7 +130,10 @@
     "rf_training_rows_checked": 100000,
     "evaluation_rows": 209,
     "exact_row_overlap": 4,
-    "overlap_rate": 0.0191
+    "overlap_rate": 0.0191,
+    "incident_level_overlap": 82,
+    "incident_level_overlap_rate": 0.3923,
+    "interpretation": "4/209 (1.91%) of these alerts appear verbatim in the training slice, but 82/209 (39.23%) belong to an incident the model saw a labelled row from. The RF's score on this set should be read with the second figure, not the first. See experiments/incident_leakage_audit.py for the effect this has on accuracy."
   },
   "per_alert_results": [
     {

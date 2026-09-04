@@ -56,9 +56,16 @@ def _llm_only(alert: dict[str, Any]) -> dict[str, Any]:
     if reasons:
         return {"triage_path": "guardrail_blocked", "guardrail_reasons": reasons}
     state: dict[str, Any] = {"raw_alert": alert}
-    state.update(build_context(state))
+    # fetch_mitre_context must run BEFORE build_context: build_context only
+    # appends ATT&CK enrichment if state["mitre_context"] is already set, so
+    # the previous order left every benchmarked LLM prompt un-enriched while
+    # appearing to include the retrieval stage. This is the same ordering
+    # defect the rf_primary graph fixed in Week 15 (src/agent/graph.py);
+    # it survived here because the benchmark builds its state by hand
+    # instead of going through the graph.
     # fetch_mitre_context mutates its input, so preserve the explicit update.
     state = dict(fetch_mitre_context(state))
+    state.update(build_context(state))
     update = classify_with_llm(state)
     state.update(update)
     if state.get("error"):
@@ -202,7 +209,10 @@ def run_benchmark(
                 print(f"Benchmarking mode={mode}, prompts={prompt_count}, workers={worker_count}...", flush=True)
                 results.append(run_case(mode, sample[:prompt_count], worker_count))
     output = {
-        "benchmark": "week7_scalability",
+        # Was hardcoded to "week7_scalability", so week15_rf_benchmark.json
+        # self-identified as a Week-7 artifact. Derive it from the output
+        # filename instead, which is what actually distinguishes the runs.
+        "benchmark": Path(output_path).stem,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "measurement_notes": {
             "llm": "Includes remote Groq inference and network latency; request concurrency is controlled by workers.",
