@@ -5,6 +5,7 @@
 
 import json
 import time
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -37,6 +38,58 @@ def _data_signature(path: Path) -> dict:
     return {"path": str(path), "size_bytes": stat.st_size, "modified_ns": stat.st_mtime_ns}
 
 
+def _cache_matches(recorded: dict, expected: dict) -> bool:
+    """Is a cached evaluation sample still valid for the current source file?
+
+    Compares the source file by path and size, plus the sample parameters --
+    deliberately NOT by mtime. mtime changes whenever the dataset is copied,
+    restored from a backup, or re-downloaded, none of which change a byte of
+    its contents, and a mismatch forces a needless re-stream of all 9.5M rows.
+    The 999-alert cache every 209-alert result depends on was in exactly that
+    state: byte-identical source (size 2,425,409,087) but a recorded mtime
+    from a later copy, so it was treated as stale.
+
+    Size is a sound identity here because GUIDE is a fixed published release;
+    a differently-sized file is a different dataset, and a same-sized file
+    with different contents is not a failure mode this project has.
+    """
+    rec_data = (recorded or {}).get("data") or {}
+    exp_data = expected["data"]
+    return (
+        rec_data.get("path") == exp_data["path"]
+        and rec_data.get("size_bytes") == exp_data["size_bytes"]
+        and recorded.get("sample_per_class") == expected["sample_per_class"]
+        and recorded.get("seed") == expected["seed"]
+    )
+
+
+def _data_provenance() -> dict:
+    """Record which dataset a result came from, inside the result itself.
+
+    src/data/generate_sample.py assigns IncidentGrade with random.choices()
+    independently of every feature, so a run against the synthetic sample has
+    no learnable signal and lands near the class-prior floor. Such a run used
+    to be indistinguishable from a real one by its output JSON alone -- the
+    committed experiments/results/agent_metrics.json (accuracy 0.375) is
+    exactly that, and nothing in the file says so. Stamping the source into
+    every artifact is what makes that legible without having to reconstruct
+    which files existed on disk at the time.
+    """
+    path = _active_data_path()
+    is_synthetic = path == SAMPLE_DATA_PATH
+    return {
+        **_data_signature(path),
+        "is_synthetic": is_synthetic,
+        "warning": (
+            "SYNTHETIC DATA: labels in this sample are drawn at random and are "
+            "independent of the features. Accuracy from this run measures "
+            "nothing about model quality and must not be reported as a result."
+            if is_synthetic
+            else None
+        ),
+    }
+
+
 def load_balanced_evaluation_sample(sample_size: int, seed: int = SAMPLE_SEED) -> pd.DataFrame:
     """Return a cached, reproducible class-balanced sample without loading all data.
 
@@ -46,6 +99,14 @@ def load_balanced_evaluation_sample(sample_size: int, seed: int = SAMPLE_SEED) -
     """
     sample_per_class = sample_size // 3
     path = _active_data_path()
+    if path == SAMPLE_DATA_PATH:
+        print(
+            "\n" + "!" * 72
+            + f"\nWARNING: {REAL_DATA_PATH} is missing, falling back to {SAMPLE_DATA_PATH}."
+            "\nThat sample is SYNTHETIC and its labels are random noise, independent of"
+            "\nevery feature. Any accuracy this run reports is meaningless as a result."
+            "\n" + "!" * 72 + "\n"
+        )
     SAMPLE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     cache_path = SAMPLE_CACHE_DIR / f"guide_balanced_{sample_per_class}_per_class_seed_{seed}.csv"
     metadata_path = cache_path.with_suffix(".json")
@@ -57,7 +118,7 @@ def load_balanced_evaluation_sample(sample_size: int, seed: int = SAMPLE_SEED) -
 
     if cache_path.exists() and metadata_path.exists():
         with open(metadata_path) as file:
-            if json.load(file) == expected_metadata:
+            if _cache_matches(json.load(file), expected_metadata):
                 cached = pd.read_csv(cache_path)
                 if len(cached) == sample_per_class * len(LABEL_MAP):
                     print(f"Reusing cached evaluation sample: {cache_path}")
@@ -93,10 +154,13 @@ def load_balanced_evaluation_sample(sample_size: int, seed: int = SAMPLE_SEED) -
     return sample
 
 
-def run_evaluation(sample_size: int = 50, output_path: str = "experiments/results/agent_metrics.json"):
+def run_evaluation(sample_size: int = 50, output_path: str = "experiments/results/agent_metrics_latest.json"):
     """
     runs the LLM agent on `sample_size` rows from the dataset.
-    saves results to agent_metrics.json alongside baseline_metrics.json.
+    saves results to agent_metrics_latest.json alongside baseline_metrics.json.
+    (The bare name agent_metrics.json belongs to an archived synthetic-data
+    run -- see experiments/results/archive/README.md -- so new runs do not
+    reuse it.)
 
     we keep sample_size small (default 50) because each row = one LLM API call.
     with gpt-4o-mini at ~$0.00015/1K input tokens this costs < $0.10 for 50 rows.
@@ -137,6 +201,9 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             triage_path = "error"
             context_signal_count = None
             fallback_probability = None
+            # A crash is not a routing decision; it is neither auto-accepted
+            # nor escalated, and it is excluded from both gated figures.
+            needs_human_review = None
             error_count += 1
             print(f"  [ERROR] row {i} crashed and was excluded from metrics: {e}")
         else:
@@ -172,6 +239,7 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             triage_path = result.get("triage_path", "llm")
             context_signal_count = result.get("context_signal_count", None)
             fallback_probability = result.get("fallback_probability", None)
+            needs_human_review = bool(result.get("needs_human_review", False))
 
         if predicted is not None:
             y_true.append(ground_truth)
@@ -185,6 +253,7 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
             "reasoning": reasoning,
             "error": error,
             "triage_path": triage_path,
+            "needs_human_review": needs_human_review,
             "context_signal_count": context_signal_count,
             "fallback_probability": fallback_probability,
         })
@@ -227,8 +296,14 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
     report = classification_report(y_true, y_pred, zero_division=0)
 
     print(f"\n=== agent evaluation results ===")
-    print(f"accuracy:  {accuracy:.4f}")
+    print(f"accuracy:  {accuracy:.4f}  (ungated -- includes alerts flagged for review)")
     print(f"macro f1:  {macro_f1:.4f}")
+    _auto = [i for i in results_log if i["predicted"] is not None and i["needs_human_review"] is False]
+    _esc = [i for i in results_log if i["predicted"] is not None and i["needs_human_review"] is True]
+    for _name, _rows in (("auto-accepted", _auto), ("escalated", _esc)):
+        if _rows:
+            _acc = accuracy_score([r["ground_truth"] for r in _rows], [r["predicted"] for r in _rows])
+            print(f"  {_name:14s} n={len(_rows):<5d} accuracy {_acc:.4f}")
     print(f"\nclassification report:\n{report}")
 
     # load baseline metrics for comparison
@@ -244,24 +319,77 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
         print(f"baseline macro f1: {baseline_f1}  →  agent macro f1: {macro_f1:.4f}")
         baseline_note = f"RF baseline: acc={baseline_acc}, f1={baseline_f1}"
 
+    # The headline accuracy above is UNGATED: it scores every alert that
+    # produced a verdict, including the ones the pipeline flagged for human
+    # review. That is not what the system would auto-action. Splitting the
+    # two is the difference between "how good are its predictions" and "how
+    # good are the predictions it acts on without asking anyone".
+    auto = [
+        item for item in results_log
+        if item["predicted"] is not None and item["needs_human_review"] is False
+    ]
+    escalated = [
+        item for item in results_log
+        if item["predicted"] is not None and item["needs_human_review"] is True
+    ]
+
+    def _scored(rows: list[dict]) -> dict:
+        if not rows:
+            return {"n": 0, "accuracy": None, "macro_f1": None}
+        truths = [r["ground_truth"] for r in rows]
+        preds = [r["predicted"] for r in rows]
+        return {
+            "n": len(rows),
+            "accuracy": round(accuracy_score(truths, preds), 4),
+            "macro_f1": round(f1_score(truths, preds, average="macro", zero_division=0), 4),
+        }
+
+    gated = {
+        "auto_accepted": _scored(auto),
+        "escalated_to_human_review": _scored(escalated),
+        "explanation": (
+            "auto_accepted covers alerts the pipeline resolved without flagging "
+            "human review; escalated_to_human_review covers alerts it did flag "
+            "but for which a verdict still exists. The top-level accuracy is the "
+            "union of both and so overstates what the system acts on unattended "
+            "whenever the review gate is doing useful work."
+        ),
+    }
+
     # save results
     output = {
         "sample_size": len(sample_df),
         "accuracy": round(accuracy, 4),
         "macro_f1": round(macro_f1, 4),
+        "accuracy_is_ungated": (
+            "True -- computed over every scorable alert, including those routed "
+            "to human review. See gated_accuracy for the split."
+        ),
+        "gated_accuracy": gated,
+        "data_source": _data_provenance(),
         "baseline_comparison": baseline_note,
         "per_alert_results": results_log,
     }
 
-    fallback_count = sum(item["triage_path"] == "rf_fallback" for item in results_log)
+    # Counts are derived from the triage_path values actually observed rather
+    # than from a hardcoded list of the ones expected. The previous version
+    # tested for "rf_fallback"/"llm" only, but classify_with_rf writes
+    # "rf_primary" (src/agent/nodes.py), so every rf_primary run reported a
+    # routing summary of all zeros regardless of what it did.
+    path_counts = Counter(item["triage_path"] for item in results_log)
+    fallback_count = path_counts.get("rf_fallback", 0)
     output["routing_summary"] = {
+        "by_triage_path": dict(sorted(path_counts.items())),
         "rf_fallback_count": fallback_count,
-        "llm_count": sum(item["triage_path"] == "llm" for item in results_log),
+        "llm_count": path_counts.get("llm", 0),
+        "rf_primary_count": path_counts.get("rf_primary", 0),
         "error_count": error_count,
         "error_rate": round(error_count / len(results_log), 4) if results_log else 0.0,
         "no_verdict_count": no_verdict_count,
         "fallback_rate": round(fallback_count / len(results_log), 4) if results_log else 0.0,
         "scored_count": len(y_true),
+        "auto_accepted_count": len(auto),
+        "escalated_count": len(escalated),
     }
 
     out_path = Path(output_path)
@@ -278,7 +406,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="evaluate the SOC Co-pilot agent on GUIDE alerts")
     parser.add_argument("--sample-size", type=int, default=50, help="total alerts to sample (split evenly across 3 classes)")
-    parser.add_argument("--output", type=str, default="experiments/results/agent_metrics.json", help="path to save results json")
+    parser.add_argument("--output", type=str, default="experiments/results/agent_metrics_latest.json", help="path to save results json")
     args = parser.parse_args()
 
     run_evaluation(sample_size=args.sample_size, output_path=args.output)

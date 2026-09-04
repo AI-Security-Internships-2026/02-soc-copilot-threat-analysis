@@ -25,6 +25,21 @@ def load_alerts(path: Path | None = None, nrows: int | None = None) -> pd.DataFr
     """
     if path is None:
         path = REAL_DATA_PATH if REAL_DATA_PATH.exists() else SAMPLE_DATA_PATH
+        if path == SAMPLE_DATA_PATH:
+            # This fallback used to be silent, which is how
+            # experiments/results/agent_metrics.json came to sit alongside
+            # the real results at 0.375 accuracy with nothing recording that
+            # its labels were random noise. generate_sample.py assigns
+            # IncidentGrade with random.choices() independently of every
+            # feature, so nothing trained or evaluated on it means anything.
+            print(
+                "\n" + "!" * 72
+                + f"\nWARNING: {REAL_DATA_PATH} not found -- falling back to {SAMPLE_DATA_PATH}."
+                "\nThat file is SYNTHETIC: its labels are assigned at random and carry no"
+                "\nrelationship to any feature. It exists to exercise the code path, not to"
+                "\nproduce results. Do not report any metric derived from it."
+                "\n" + "!" * 72 + "\n"
+            )
 
     if not path.exists():
         raise FileNotFoundError(
