@@ -45,6 +45,7 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score
 from src.agent.fallback_classifier import _load_model, _to_feature_frame
 from src.agent.graph import build_triage_graph
 from src.data.schema import TARGET_COLUMN, TARGET_CLASSES
+from src.models.decision import resolve_label
 from experiments.roc_auc_analysis import compute_ovr_roc_auc
 from experiments.stats_utils import (
     bootstrap_auc_ci,
@@ -170,7 +171,7 @@ def score_holdout(sample: pd.DataFrame) -> dict:
 
         proba = model.predict_proba(features)[0]
         order = np.argsort(proba)[::-1]
-        label = str(model.classes_[order[0]])
+        label = resolve_label(model.classes_, proba)
 
         y_true.append(ground_truth)
         y_pred.append(label)
@@ -311,7 +312,11 @@ def run_live_smoke(sample: pd.DataFrame, n: int = 60) -> dict:
         alert.pop(TARGET_COLUMN, None)
         offline_features = _to_feature_frame(alert, model, encoders)
         offline_proba = model.predict_proba(offline_features)[0]
-        offline_label = str(model.classes_[np.argmax(offline_proba)])
+        # Must use the same tie-break as the graph does, or an exactly-tied
+        # alert reads as a wiring mismatch when both paths are behaving
+        # correctly. np.argmax resolves a tie toward BenignPositive while the
+        # deployed path resolves it toward TruePositive.
+        offline_label = resolve_label(model.classes_, offline_proba)
 
         try:
             result = graph.invoke({"raw_alert": alert})

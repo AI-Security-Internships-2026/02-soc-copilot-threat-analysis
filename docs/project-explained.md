@@ -642,8 +642,8 @@ Never let a reviewer find these first. Raise them yourself.
    The train-sampled figures remain in the report as an in-distribution
    reference, and they are contaminated — 55.8% of the 999-alert sample
    belongs to an incident the model saw a labelled row from. Measured effect:
-   on rows the model never trained on, accuracy is **0.8325** when a labelled
-   sibling was available versus **0.5893** when none was, a 24.3-point gap
+   on rows the model never trained on, accuracy is **0.8332** when a labelled
+   sibling was available versus **0.5898** when none was, a 24.3-point gap
    (95% CI [+0.228, +0.259]). The previously-reported "1.91% overlap" was an
    exact-row count and understated this by roughly 20x.
 

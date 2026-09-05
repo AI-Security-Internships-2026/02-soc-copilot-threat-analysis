@@ -591,9 +591,9 @@ was available:
 
 | Bucket | Accuracy | Macro F1 | n |
 |---|---|---|---|
-| Incident seen in training ("leaked") | **0.8325** | 0.8312 | 6,000 |
-| Incident never seen ("clean") | **0.5893** | 0.5789 | 6,000 |
-| **Difference** | **+0.2432** | +0.2523 | 95% CI [+0.2280, +0.2585] |
+| Incident seen in training ("leaked") | **0.8332** | 0.8319 | 6,000 |
+| Incident never seen ("clean") | **0.5898** | 0.5795 | 6,000 |
+| **Difference** | **+0.2433** | +0.2524 | 95% CI [+0.2282, +0.2587] |
 
 The interval excludes zero by a wide margin. The advantage also holds *within
 every class* — TruePositive +0.4045, FalsePositive +0.2635, BenignPositive
@@ -643,6 +643,108 @@ The honest summary is that the project's own disclosure was accurate as an
 exact-row measurement and misleading as a contamination claim, and the error
 was not conservative.
 
+### 5.11 What the classifier configuration leaves on the table
+
+Section 5.10 established that the *evaluation* was optimistic. This section asks
+the complementary question about the *model*: the classifier every result in this
+report depends on is trained on the first 100,000 rows of a 9,516,838-row file,
+with library-default hyperparameters and no class weighting. Nothing had measured
+what that choice costs.
+
+`experiments/classifier_improvement_study.py` measures it. Every candidate is
+scored on the same class-balanced `GUIDE_Test.csv` sample used in Section 5.8
+(n=15,000, 0% incident overlap), and every internal split is incident-level
+`GroupShuffleSplit` on `(OrgId, IncidentId)` rather than row-level, on this
+report's own evidence that a row-level split is worth an inflated 24.3 points.
+Candidates are selected on the internal grouped holdout; `GUIDE_Test.csv` is
+reported but never optimised against.
+
+| configuration | rows | held-out accuracy | macro F1 | FalsePositive recall |
+|---|---|---|---|---|
+| RF-200 (deployed configuration) | 100k | 0.6969 | 0.6920 | 0.514 |
+| RF-200 | 250k | 0.7127 | 0.7082 | 0.534 |
+| RF-200 | 500k | 0.7213 | 0.7174 | 0.548 |
+| RF-200, `min_samples_leaf=5` | 2M | 0.7341 | 0.7286 | 0.521 |
+| HistGradientBoosting | 2M | 0.7101 | 0.7038 | 0.489 |
+| HistGradientBoosting, `class_weight="balanced"` | 2M | 0.7341 | 0.7343 | 0.659 |
+| **RF-200, `min_samples_leaf=5`, `class_weight="balanced"`** | **1M** | **0.7355** | **0.7338** | **0.607** |
+
+Against the deployed model's 0.6998 / 0.6949 (Section 5.8), the best configuration
+is worth **+3.6 accuracy points and +3.9 macro F1**, and raises `FalsePositive`
+recall — the weakness Sections 5.8 and 6.2 both single out — from 0.514 to 0.607.
+It trains in 87 seconds.
+
+Three observations matter more than the headline:
+
+1. **Data volume dominates model sophistication.** At a matched 500,000 rows,
+   plain Random Forest (0.7213) beats both gradient boosting (0.7076) and a
+   regularised forest (0.7067). Every "better algorithm" lever tested is worth
+   less than reading more of the file.
+2. **Class weighting is the second lever and is nearly free.** At 1,000,000 rows,
+   adding `class_weight="balanced"` alone moves 0.7199 to 0.7355, almost entirely
+   by repairing `FalsePositive` recall (0.487 to 0.607).
+3. **An incident-grouped internal holdout still does not substitute for the
+   dataset's own held-out split.** Selection on internal grouped macro F1 picks
+   the 2M-row unweighted forest; the held-out best is the 1M-row weighted one.
+   The gap is small (0.7341 against 0.7355), but it is in the direction that
+   matters: an internal split drawn from the training file, even a grouped one,
+   ranks models differently from genuinely unseen data.
+
+A fully-grown 200-tree forest costs roughly 0.42 tree nodes per training row per
+tree — the deployed 100,000-row model is already a 563 MB artefact — so it fits
+only to about 500,000 rows in 8 GB. The scaling curve is therefore run twice: once
+in the deployed configuration up to that ceiling, and once with
+`min_samples_leaf=5`, which reaches 2,000,000. The loader that makes the large
+slices tractable (`experiments/streaming_encode.py`, two streaming passes emitting
+`int32`/`float32` columns) was verified to reproduce the published baseline
+exactly (0.7718 accuracy / 0.7505 macro F1) before being used for anything.
+
+**None of this is deployed.** `baseline_model.joblib` is unchanged and every
+figure elsewhere in this report remains attributable to one model, for the reason
+given in Limitation 5: adopting a new classifier would move Table 3, the paired
+comparison, the McNemar result, the pipeline figures and the leakage audit at
+once. This section is a measurement of the headroom, not a change to the system.
+
+#### 5.11.1 The identifier feature-inflation ablation
+
+Section 6.2's Limitation 3 recorded that the high-cardinality identifier columns
+surviving the ID filter are "the most likely channel for the leakage measured in
+Section 5.10", and that an ablation isolating them was outstanding. It is no
+longer outstanding, and the hypothesis it was built to test does not survive it.
+
+`src/data/schema.py` drops six ID columns before modelling. Twelve
+identifier-like columns survive that filter and are label-encoded into the
+feature matrix; `AccountUpn` alone takes 49,761 distinct values across 199k rows.
+Each tier below is trained twice — once on a row-level split and once on an
+incident-level split — because only the contrast between the two separates
+memorisation from signal (RF-200 `min_samples_leaf=5`, 500,000 rows):
+
+| tier | features | row-level split | incident-grouped | held-out `GUIDE_Test` |
+|---|---|---|---|---|
+| all features | 40 | 0.7924 | 0.7628 | 0.7067 |
+| − account identifiers | 36 | 0.7714 | 0.7459 | 0.6871 |
+| − account + artefact identifiers | 28 | 0.7513 | 0.7245 | 0.6627 |
+| low-cardinality fields only | 16 | 0.6639 | 0.6455 | 0.5805 |
+
+Removing the twelve identifiers costs **0.0411 accuracy on the leaky row-level
+split, 0.0383 on the incident-grouped split, and 0.0440 on the held-out split**
+(95% CI [+0.0335, +0.0546], excluding zero).
+
+If these features were memorisation crutches, their value would be greatest where
+labelled sibling rows are available to memorise — the row-level split — and would
+fall towards zero on a held-out split sharing no incidents with training. The
+measured ordering is the reverse: they are worth **most** on the cleanest
+evaluation. The feature-inflation hypothesis is therefore not supported, and the
+answer is a negative result: these identifiers carry generalisable signal, and
+removing them is a straight loss rather than the removal of an artefact.
+
+This does not weaken Section 5.10. That result concerns *which rows* are scored;
+this one concerns *which columns* are used. They are independent, and both are
+measured on the same held-out split. Dropping the mid-cardinality descriptive
+fields as well (`AlertTitle`, `MitreTechniques`, `City`, `State`) costs a further
+8.2 points held-out, which puts a floor under how much of this task is learnable
+from low-cardinality metadata alone.
+
 ## 6. Discussion and Limitations
 
 ### 6.1 Interpretation
@@ -675,10 +777,19 @@ and the pipeline was silently auto-accepting its least reliable predictions.
    substitute for repeated data-collection trials.
 2. **Training rows are the first 100,000, not a random sample.** Their class
    distribution matches the global one, which is reassuring but not conclusive.
+   Section 5.11 measures what the remaining 99% of the file is worth: a
+   configuration trained on 1,000,000 rows scores 0.7355 on the held-out split
+   against the deployed 0.6998. The 100,000-row default is a resource choice, and
+   it is not free.
 3. **High-cardinality identifier columns remain features** (`IpAddress`,
-   `Sha256`, `AccountName`). These are near-unique per incident and are the
-   most likely channel for the leakage measured in Section 5.10; a feature
-   ablation isolating their contribution is still outstanding.
+   `Sha256`, `AccountName`). These are near-unique per incident, and they were
+   the suspected channel for the leakage measured in Section 5.10. The ablation
+   isolating them is now done (Section 5.11.1) and **does not support that
+   suspicion**: removing them costs 0.0411 accuracy on a leaky row-level split
+   but 0.0440 on the clean held-out split — they are worth most where there is
+   nothing to memorise. They are retained on that evidence. What remains a
+   limitation is narrower: the features are still opaque identifiers whose
+   generalisable signal has not been explained, only demonstrated.
 4. **`LastVerdict` and `SuspicionLevel` are analyst-derived** and partly
    downstream of the target — target-adjacent leakage. They also drove routing.
 5. **The deployed model still uses a row-level split.** Section 5.10 measures
@@ -724,8 +835,10 @@ and the pipeline was silently auto-accepting its least reliable predictions.
 
 ## 7. Future Work
 
-In priority order: ablate the high-cardinality identifier features to quantify
-leakage; adopt incident-level splits; run repeated trials for confidence
+In priority order: adopt the Section 5.11 configuration and re-run every
+pipeline evaluation against it, which is the largest single measured gain
+available and is deferred here only to keep this report attributable to one
+model; adopt incident-level splits; run repeated trials for confidence
 intervals, including a larger `GUIDE_Test.csv` run to sharpen the close-call
 gap in Section 5.8, and a full-scale rerun of the `llm_primary` control-node
 ablation (5.9) once Groq quota allows. Then: fine-tune an LLM on GUIDE to
@@ -782,6 +895,7 @@ supervisor's direction.
 | `roc_auc_control_209.json` | RF ROC/AUC on the 209-alert control set |
 | `control_node_ablation.json` | Control-node ablation, evidence-count breakdown |
 | `control_node_ablation_two_proportion_tests.json` | Significance tests between ablation arms |
+| `classifier_improvement_study.json` | **Data-scaling and estimator study, and the identifier feature-inflation ablation** |
 
 Superseded artefacts — including `agent_metrics_week12_999_current.json` (the
 "before" side of the architecture change) and `agent_metrics.json` (a

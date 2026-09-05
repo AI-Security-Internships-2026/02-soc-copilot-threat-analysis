@@ -1,7 +1,7 @@
 {
   "experiment": "Incident-level label leakage between the RF's training slice and the GUIDE_train-sampled evaluation sets this project reports on",
-  "generated_at_utc": "2026-09-04T13:26:15.991944+00:00",
-  "git_sha": "6ad48c8",
+  "generated_at_utc": "2026-09-05T18:49:30.800303+00:00",
+  "git_sha": "b10c9b9",
   "data_source": "datasets/GUIDE_train.csv",
   "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
   "incident_key": [
@@ -64,68 +64,68 @@
     "per_class_cap_applied": true,
     "n_per_bucket": 6000,
     "leaked": {
-      "accuracy": 0.8325,
+      "accuracy": 0.8332,
       "accuracy_bootstrap_ci": {
-        "point": 0.8325,
-        "ci_lower": 0.8232,
-        "ci_upper": 0.8418,
+        "point": 0.8332,
+        "ci_lower": 0.8238,
+        "ci_upper": 0.8425,
         "confidence": 0.95,
         "n": 6000,
         "n_resamples": 10000,
         "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
       },
-      "macro_f1": 0.8312,
+      "macro_f1": 0.8319,
       "per_class_recall": {
-        "TruePositive": 0.8825,
-        "BenignPositive": 0.914,
-        "FalsePositive": 0.701
+        "TruePositive": 0.8835,
+        "BenignPositive": 0.912,
+        "FalsePositive": 0.704
       }
     },
     "clean": {
-      "accuracy": 0.5893,
+      "accuracy": 0.5898,
       "accuracy_bootstrap_ci": {
-        "point": 0.5893,
-        "ci_lower": 0.577,
-        "ci_upper": 0.6017,
+        "point": 0.5898,
+        "ci_lower": 0.5775,
+        "ci_upper": 0.602,
         "confidence": 0.95,
         "n": 6000,
         "n_resamples": 10000,
         "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
       },
-      "macro_f1": 0.5789,
+      "macro_f1": 0.5795,
       "per_class_recall": {
-        "TruePositive": 0.478,
-        "BenignPositive": 0.8525,
-        "FalsePositive": 0.4375
+        "TruePositive": 0.48,
+        "BenignPositive": 0.8515,
+        "FalsePositive": 0.438
       }
     },
     "accuracy_gap_leaked_minus_clean": {
-      "point_a": 0.8325,
-      "point_b": 0.5893,
-      "point_diff": 0.2432,
-      "ci_lower": 0.228,
-      "ci_upper": 0.2585,
+      "point_a": 0.8332,
+      "point_b": 0.5898,
+      "point_diff": 0.2433,
+      "ci_lower": 0.2282,
+      "ci_upper": 0.2587,
       "confidence": 0.95,
       "n_a": 6000,
       "n_b": 6000,
       "n_resamples": 10000,
       "significant_at_confidence": true,
       "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
-      "interpretation": "metric(a)-metric(b) = +0.2432, 95% CI [+0.2280, +0.2585]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+      "interpretation": "metric(a)-metric(b) = +0.2433, 95% CI [+0.2282, +0.2587]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
     },
     "macro_f1_gap_leaked_minus_clean": {
-      "point_a": 0.8312,
-      "point_b": 0.5789,
-      "point_diff": 0.2523,
-      "ci_lower": 0.2367,
-      "ci_upper": 0.2678,
+      "point_a": 0.8319,
+      "point_b": 0.5795,
+      "point_diff": 0.2524,
+      "ci_lower": 0.2369,
+      "ci_upper": 0.2681,
       "confidence": 0.95,
       "n_a": 6000,
       "n_b": 6000,
       "n_resamples": 10000,
       "significant_at_confidence": true,
       "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
-      "interpretation": "metric(a)-metric(b) = +0.2523, 95% CI [+0.2367, +0.2678]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+      "interpretation": "metric(a)-metric(b) = +0.2524, 95% CI [+0.2369, +0.2681]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
     }
   }
 }

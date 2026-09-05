@@ -74,6 +74,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from src.agent.fallback_classifier import _load_model, _to_feature_frame
 from src.data.load_data import REAL_DATA_PATH
 from src.data.schema import TARGET_COLUMN, TARGET_CLASSES
+from src.models.decision import resolve_label
 from experiments.stats_utils import bootstrap_metric_ci, bootstrap_two_sample_diff_ci
 
 # Mirrors src/models/baseline.py: the deployed model trains on the first
@@ -266,7 +267,10 @@ def _score_rows(sample: pd.DataFrame) -> tuple[list, list]:
         y_true.append(alert.pop(TARGET_COLUMN))
         features = _to_feature_frame(alert, model, encoders)
         proba = model.predict_proba(features)[0]
-        y_pred.append(str(model.classes_[int(np.argmax(proba))]))
+        # Same tie-break as the deployed path and every figure these numbers are
+        # compared against. This file previously used np.argmax, which resolves
+        # a tie in the opposite direction -- see src/models/decision.py.
+        y_pred.append(resolve_label(model.classes_, proba))
     return y_true, y_pred
 
 

@@ -37,6 +37,28 @@ an incident with training. Details in [`docs/final-report.md`](docs/final-report
 venv/bin/python experiments/rf_vs_llm_control.py
 ```
 
+### What the classifier leaves on the table
+
+The deployed classifier is trained on 100,000 of `GUIDE_train.csv`'s **9,516,838** rows. Week 17
+measured what the rest is worth, scoring every candidate on the same 0%-leaked held-out split with
+incident-level splits throughout: the best configuration (RF-200, `min_samples_leaf=5`,
+`class_weight="balanced"`, 1M rows) reaches **0.7355 accuracy / 0.7338 macro F1 against the deployed
+0.6998 / 0.6949**, and lifts `FalsePositive` recall from 0.514 to 0.607. Data volume beats model
+sophistication: at a matched 500k rows, plain Random Forest beats gradient boosting.
+
+The same study closes the identifier feature-inflation ablation carried from Week 15, with a
+negative result — removing the twelve identifier-like features that survive the ID filter costs
+0.0411 accuracy on a leaky row-level split but **0.0440 on the clean held-out split**, the opposite
+of the ordering memorisation would produce, so those features carry generalisable signal.
+
+**The deployed model is deliberately unchanged** — adopting a new classifier would move every
+published number days before submission. See `experiments/results/classifier_improvement_study.json`
+and `docs/weekly-progress.md` Week 17.
+
+```bash
+venv/bin/python experiments/classifier_improvement_study.py --max-rows-cap 500000
+```
+
 ---
 
 ## Research Problem
