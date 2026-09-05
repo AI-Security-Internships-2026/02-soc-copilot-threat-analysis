@@ -1425,16 +1425,26 @@ classes — and the direction matters for security risk, not just the macro F1 n
 |---|---|---|
 | Prediction distribution | 187/209 FalsePositive (89.5%) | 147/209 TruePositive (70.3%) |
 | TruePositive recall (real attacks caught) | **0.07** | **0.54** |
-| FalsePositive recall (false alarms caught) | 0.89 | **0.01** |
+| FalsePositive recall (false alarms caught) | 0.89 | **0.00** |
+
+> **Provenance of the baseline column.** The improved-prompt column is computed from
+> `experiments/results/llm_subset_eval_improved_full209.json`, which is committed. The baseline
+> column is not: the only committed baseline artifact is the 60-alert pilot in
+> `experiments/results/archive/llm_subset_eval_baseline.json`, and no 209-alert baseline run was
+> ever saved. Its figures are internally consistent (187/209 = 89.5%, 57 of 61 missed = 93%,
+> 4/61 = 0.07) but cannot be recomputed from this repository, and reproducing them would need a
+> fresh 209-alert live run of the retired baseline prompt. Recorded here rather than left for a
+> reader to discover, in the same spirit as the three "reported but never computed" numbers in the
+> Week 17 audit below.
 
 The baseline prompt's near-total collapse into "FalsePositive" means it misses 93% of actual
 attacks (57 of 61 TruePositive-ground-truth alerts predicted as something else) — the single worst
 failure mode a SOC triage tool can have, since a missed attack is not a workload problem, it is a
 security incident that goes unflagged. The improved prompt inverts this: it now catches 54% of real
 attacks (up from 7%), a large, operationally significant gain, but at the cost of collapsing the
-opposite direction — only 2 of 45 FalsePositive-ground-truth alerts are correctly labeled, with 38
-mislabeled TruePositive and 7 BenignPositive. Standard SOC risk framing weights missed detections
-far above excess false alarms (an over-triggered detector costs analyst minutes; a missed attack
+opposite direction — **none of the 45** FalsePositive-ground-truth alerts is correctly labeled
+(recall 0.000): 38 are mislabeled TruePositive and 7 BenignPositive. Standard SOC risk framing
+weights missed detections far above excess false alarms (an over-triggered detector costs analyst minutes; a missed attack
 does not get a second chance), so on this specific, more operationally important axis than macro
 F1, the improved prompt is a clear net improvement, not just a numerically larger number.
 
@@ -1730,9 +1740,9 @@ And what it costs, from a natural experiment on 300,000 rows drawn from *past* t
 slice — rows the model trained on under no circumstances — split by whether their incident was
 seen and class-balanced to identical distributions:
 
-- incident seen in training: **0.8325** accuracy
-- incident never seen: **0.5893** accuracy
-- difference **+0.2432**, 95% CI [+0.2280, +0.2585], and it holds within every class
+- incident seen in training: **0.8332** accuracy
+- incident never seen: **0.5898** accuracy
+- difference **+0.2433**, 95% CI [+0.2282, +0.2587], and it holds within every class
   (TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615)
 
 This supplies the mechanism for Week 16's held-out gap, which was measured but unexplained: the
@@ -1798,6 +1808,155 @@ Two defects together made the documented no-Kaggle-credentials route useless:
   by any code"; the download-date provenance cited the wrong cache file) and documented the
   leakage measurement.
 
+### One decision rule, two implementations
+
+Turning `predict_proba` output into a verdict has two obvious implementations, they disagree
+whenever the top two classes tie exactly, and this repository shipped both:
+
+| expression | resolves a tie toward | used by |
+|---|---|---|
+| `np.argsort(p)[::-1][0]` | the **last** class — `TruePositive` | `fallback_classifier.py` (the deployed path), `rf_vs_llm_control.py`, `guide_test_holdout_eval.py` scoring loop |
+| `np.argmax(p)` | the **first** class — `BenignPositive` | `incident_leakage_audit.py`, `guide_test_holdout_eval.py` live-smoke check |
+
+Ties are not hypothetical: a 200-tree forest voting over three classes produces exact ties on
+**32 of the 15,000** held-out alerts (0.21%), and 2 of 999 on the train-sampled set. Measured:
+
+| evaluation set | `argmax` | `argsort` (published) |
+|---|---|---|
+| held-out `GUIDE_Test`, n=15,000 | 0.6993 | **0.6998** |
+| train-sampled, n=999 | 0.7337 | **0.7347** |
+
+Two things follow. First, **every published figure is reproducible and internally consistent** —
+they were all computed under the `argsort` rule, and re-running `rf_vs_llm_control.py` after this
+week's refactor reproduces its JSON byte-for-byte. The rule is worth 0.0005 on the headline, which
+is why nobody noticed. Second, `guide_test_holdout_eval.py`'s live-smoke check was **comparing the
+two rules against each other** — computing an offline label with `argmax` and calling any
+disagreement with the graph's `argsort` verdict a wiring mismatch. On a tied alert it would report a
+defect while both paths were behaving correctly.
+
+- [x] The rule now lives once, in `src/models/decision.py`, with the reasoning written down and 16
+  regression tests pinning it (`tests/test_decision.py`). One of those tests asserts that the rule
+  still *differs* from `argmax` on a tie, so the discrepancy cannot quietly disappear.
+- [x] All five call sites use it. The three that already used `argsort` are unchanged numerically —
+  verified by diffing regenerated JSON against the committed artifacts.
+- [x] The rule preserved is "prefer the later class in `classes_` order". That is an accident of
+  alphabetical ordering, not a designed severity preference, and it is documented as such: it is
+  kept because it is what the deployed system actually does and what every published number was
+  computed under, not because it is principled.
+- [x] `incident_leakage_audit.py` was the one file whose *published* numbers moved when it was
+  aligned, so it was re-run rather than edited and left. The effect is at the fourth decimal:
+  leaked accuracy 0.8325 → **0.8332**, clean 0.5893 → **0.5898**, and the headline gap
+  0.2432 → **0.2433** with its CI [+0.2280, +0.2585] → [+0.2282, +0.2587]. **The paper's "24.3
+  accuracy points" and its rounded CI [+0.228, +0.259] are unchanged** — the correction does not
+  reach the precision either is quoted at. The exact four-decimal figures were updated in
+  `final-report.md`, `project-explained.md`, `draft.md` and both LaTeX drafts anyway, so no
+  document quotes a number that the committed JSON no longer contains.
+
+### The classifier is trained on 1% of the available data
+
+`src/models/baseline.py` defaults to `max_rows=100_000`. `GUIDE_train.csv` has **9,516,838** rows.
+Nothing had ever measured what the other 99% was worth, so `experiments/classifier_improvement_study.py`
+does — every arm scored on the same 0%-leaked held-out `GUIDE_Test` sample (n=15,000), and split
+incident-level (`GroupShuffleSplit` on `(OrgId, IncidentId)`) rather than row-level throughout, on
+this week's own evidence that a row-level split is worth an inflated 24.3 points.
+
+| configuration | rows | held-out accuracy | macro F1 | FP recall |
+|---|---|---|---|---|
+| RF-200 (deployed config) | 100k | 0.6969 | 0.6920 | 0.514 |
+| RF-200 | 250k | 0.7127 | 0.7082 | 0.534 |
+| RF-200 | 500k | 0.7213 | 0.7174 | 0.548 |
+| RF-200 `leaf5` | 1M | 0.7199 | 0.7122 | 0.487 |
+| RF-200 `leaf5` | 2M | 0.7341 | 0.7286 | 0.521 |
+| HistGradientBoosting | 2M | 0.7101 | 0.7038 | 0.489 |
+| HistGB `deep` | 2M | 0.7213 | 0.7155 | 0.511 |
+| HistGB `balanced` | 2M | 0.7341 | 0.7343 | 0.659 |
+| **RF-200 `leaf5` + `class_weight="balanced"`** | **1M** | **0.7355** | **0.7338** | **0.607** |
+
+**Deployed reference: 0.6998 / 0.6949, FP recall 0.514.** The best candidate is worth **+3.6
+accuracy points and +3.9 macro F1**, and lifts `FalsePositive` — the class the report has called out
+as weak since Week 15 — from 0.514 to 0.607 recall. It trains in 87 seconds.
+
+Three things worth recording beyond the headline:
+
+- **Data volume dominates model sophistication.** At a matched 500k rows, plain RF-200 (0.7213)
+  beats both gradient boosting (0.7076) and a regularised forest (0.7067). Every "better model"
+  lever tested is worth less than simply reading more of the file.
+- **Class weighting is the second lever, and it is nearly free.** At 1M rows, adding
+  `class_weight="balanced"` moves 0.7199 → 0.7355 on its own, almost entirely by fixing
+  `FalsePositive` recall (0.487 → 0.607).
+- **The internal holdout ranks models differently from the held-out split.** Selection on internal
+  grouped macro F1 picks `rf200_leaf5@2M`; the held-out best is `rf200_leaf5_balanced@1M`. The gap
+  is small (0.7341 vs 0.7355) but it is a live reminder that even an incident-grouped split drawn
+  from the training file is not a substitute for the dataset's own held-out split.
+
+A fully-grown RF-200 costs ~0.42 tree nodes per training row per tree — the deployed 100k model is
+already a 563 MB artifact — so it fits only to about 500k rows on an 8 GB machine. That is why the
+scaling curve is run twice, once in the deployed configuration up to that ceiling and once with
+`min_samples_leaf=5`, which reaches 2M. `experiments/streaming_encode.py` is the loader that makes
+the large slices possible at all: two streaming passes producing `int32`/`float32` columns, verified
+to reproduce the published baseline exactly (0.7718 / 0.7505) before being used for anything.
+
+**Nothing was adopted.** `baseline_model.joblib` is untouched and every published figure stands.
+This is reported as a measurement of what the current configuration leaves on the table, not as a
+change to the system, three days before submission.
+
+### The identifier feature-inflation ablation — closed, and the hypothesis does not hold
+
+Carried outstanding from Week 15. `src/data/schema.py` drops six ID columns before modelling, on the
+stated grounds that identifiers "don't generalise to unseen orgs/devices and cause data leakage if
+kept" — but **twelve identifier-like columns survive that filter** and are label-encoded straight
+into the feature matrix. `AccountUpn` alone takes 49,761 distinct values across 199k rows. The
+concern was that the forest keys on those values and the reported accuracy is inflated.
+
+Each tier trained twice, on a row-level split and an incident-level split, because only the contrast
+between them separates memorisation from signal (RF-200 `leaf5`, 500k rows):
+
+| tier | features | row-level split | incident-grouped | held-out `GUIDE_Test` |
+|---|---|---|---|---|
+| all features | 40 | 0.7924 | 0.7628 | 0.7067 |
+| − account identifiers | 36 | 0.7714 | 0.7459 | 0.6871 |
+| − account + artifact identifiers | 28 | 0.7513 | 0.7245 | 0.6627 |
+| low-cardinality fields only | 16 | 0.6639 | 0.6455 | 0.5805 |
+
+**Cost of removing the twelve identifiers: 0.0411 on the leaky row-level split, 0.0383 on the
+incident-grouped split, 0.0440 on the held-out split** (95% CI [+0.0335, +0.0546], excludes zero).
+
+If those features were memorisation crutches, their value would be largest where sibling rows are
+available to memorise — the row-level split — and would collapse to roughly nothing on a held-out
+split sharing no incidents with training. The observed ordering is the **reverse**: they are worth
+*most* on the cleanest evaluation. So the feature-inflation hypothesis is not supported, and the
+answer to the Week 15 question is a negative result: these identifiers carry generalisable signal
+and removing them is a straight loss. Dropping the mid-cardinality descriptive fields as well
+(`AlertTitle`, `MitreTechniques`, `City`, `State`, …) costs a further 8.2 points held-out, which
+puts a floor under how much of this task is genuinely learnable from low-cardinality metadata alone.
+
+This does not contradict the incident-leakage finding above. That result is about *which rows* are
+scored; this one is about *which columns* are used. Both are measured on the same held-out split and
+they are independent.
+
+### Review feedback on PR #25, addressed
+
+Raised by @engranaabubakar on PR #25, verified against the raw JSON before changing anything, and
+correct:
+
+- [x] The Week 12 table and its surrounding paragraph claimed **"only 2 of 45 FalsePositive-ground-truth
+  alerts are correctly labeled (recall 0.01)"**. Recomputed from
+  `llm_subset_eval_improved_full209.json`: the improved prompt labels **0 of 45** correctly, recall
+  **0.000**. The reviewer's diagnosis of the cause is also exactly right — the improved prompt emits
+  `FalsePositive` on only 2 of the 209 alerts, and both belong to *other* ground-truth classes
+  (1 TruePositive, 1 BenignPositive), so neither was ever a correct FalsePositive call. The old
+  sentence did not even add up on its own terms: 2 correct + 38 + 7 mislabeled is 47 of 45.
+  Corrected in both the table (`0.01` → `0.00`) and the prose.
+- [x] Confirmed the review's note that the claim was carried forward unchanged into the #26 log.
+  Both PRs read the same `docs/weekly-progress.md` on the stacked branches, so this single
+  correction fixes it for #25, #26 and #27 together — there is no second copy to edit.
+- [x] Checked the rest of the passage rather than only the flagged sentence. Everything else in it
+  holds: 42 of the 45 wrong calls are `high` confidence (93%), TruePositive recall is 0.541 ("54%"),
+  and the missed-TruePositive confidence split is 23 medium / 4 high / 1 low, all as written.
+- [x] Checked every other document for the same error. `docs/final-report.md` and **both** LaTeX
+  drafts already stated it correctly ("identified **none** of the 45 FalsePositive alerts, recall
+  0.000"), so the paper needed no change and no Overleaf re-sync was required for this.
+
 ### Branch audit
 All week branches verified: every file on `asma-week-01` through `asma-week-16` is present in
 `asma-week-16`, and nothing is missing from `dev`. Weeks 01–10 read as "not an ancestor" of later
@@ -1813,6 +1972,18 @@ No work was lost anywhere.
    policy. Rewriting shared history needs an explicit decision.
 5. **The grouped-split baseline is diagnostic only.** The deployed model still uses a row-level
    split; only the measurement of what that costs is new.
+6. **The improvement study is diagnostic only, by decision.** `baseline_model.joblib` is still the
+   100,000-row model. A configuration worth +3.6 accuracy points on the held-out split is measured
+   and committed, but adopting it would move every published number — Table 3, the 209-alert
+   control, the McNemar result, the hybrid pipeline figure, the leakage audit — three days before
+   submission. Deliberately deferred, not overlooked. `experiments/classifier_improvement_study.json`
+   holds the evidence for whenever that call is made.
+7. **Analyst-rated evaluation of explanation quality** — still the one gap none of this closes,
+   unchanged since Week 16.
+
+**Closed this week:** the high-cardinality identifier feature-inflation ablation (carried from
+Week 15) — run, and the hypothesis it was checking turned out not to hold. Incident-level splits,
+also carried from Week 15, are now the default in every new experiment.
 
 
 ---
