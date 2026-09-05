@@ -45,6 +45,7 @@ from src.agent.fallback_classifier import (
     _to_feature_frame,
     should_use_fallback,
 )
+from src.models.decision import resolve_label
 
 CACHE_PATH = Path(
     "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv"
@@ -80,7 +81,7 @@ def rf_predict_with_margin(alert: dict, model, encoders: dict) -> tuple[str, flo
     features = _to_feature_frame(alert, model, encoders)
     probabilities = model.predict_proba(features)[0]
     order = np.argsort(probabilities)[::-1]
-    label = str(model.classes_[order[0]])
+    label = resolve_label(model.classes_, probabilities)
     top1 = float(probabilities[order[0]])
     top2 = float(probabilities[order[1]]) if len(probabilities) > 1 else 0.0
     return label, top1, top1 - top2
