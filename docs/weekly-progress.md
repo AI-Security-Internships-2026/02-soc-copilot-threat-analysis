@@ -1425,16 +1425,16 @@ classes — and the direction matters for security risk, not just the macro F1 n
 |---|---|---|
 | Prediction distribution | 187/209 FalsePositive (89.5%) | 147/209 TruePositive (70.3%) |
 | TruePositive recall (real attacks caught) | **0.07** | **0.54** |
-| FalsePositive recall (false alarms caught) | 0.89 | **0.01** |
+| FalsePositive recall (false alarms caught) | 0.89 | **0.00** |
 
 The baseline prompt's near-total collapse into "FalsePositive" means it misses 93% of actual
 attacks (57 of 61 TruePositive-ground-truth alerts predicted as something else) — the single worst
 failure mode a SOC triage tool can have, since a missed attack is not a workload problem, it is a
 security incident that goes unflagged. The improved prompt inverts this: it now catches 54% of real
 attacks (up from 7%), a large, operationally significant gain, but at the cost of collapsing the
-opposite direction — only 2 of 45 FalsePositive-ground-truth alerts are correctly labeled, with 38
-mislabeled TruePositive and 7 BenignPositive. Standard SOC risk framing weights missed detections
-far above excess false alarms (an over-triggered detector costs analyst minutes; a missed attack
+opposite direction — **none of the 45** FalsePositive-ground-truth alerts is correctly labeled
+(recall 0.000): 38 are mislabeled TruePositive and 7 BenignPositive. Standard SOC risk framing
+weights missed detections far above excess false alarms (an over-triggered detector costs analyst minutes; a missed attack
 does not get a second chance), so on this specific, more operationally important axis than macro
 F1, the improved prompt is a clear net improvement, not just a numerically larger number.
 
