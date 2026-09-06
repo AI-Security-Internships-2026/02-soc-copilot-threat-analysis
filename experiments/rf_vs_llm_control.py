@@ -109,7 +109,11 @@ def reference_baselines(y_true: list[str]) -> dict:
     n = len(y_true)
     majority_class, majority_n = counts.most_common(1)[0]
     # Expected accuracy of guessing uniformly at random over the 3 labels.
-    uniform_random = round(sum((c / n) * (1 / 3) for c in counts.values()), 4)
+    # Exactly 1/3 by construction: a uniform guesser is right with probability
+    # 1/3 on every class, so the class-weighted sum collapses regardless of
+    # balance. Written as the constant it is rather than as a loop that
+    # always returns it.
+    uniform_random = round(1 / 3, 4)
     return {
         "class_distribution": dict(counts),
         "majority_class": majority_class,
@@ -249,9 +253,27 @@ def training_overlap(subset: pd.DataFrame) -> dict:
     The two differ by roughly an order of magnitude, which is why reporting
     only the first understates the contamination.
     """
+    # This is the one block in the script that needs the 2.4GB
+    # datasets/GUIDE_train.csv, which is gitignored. Everything else runs from
+    # the committed 999-alert cache and the saved model, so a reader without
+    # the Kaggle download gets every headline number and loses only the
+    # overlap diagnostic -- rather than a FileNotFoundError, which is what
+    # this did until Week 17 while the README advertised the run as offline.
+    train_path = Path("datasets/GUIDE_train.csv")
+    if not train_path.exists():
+        return {
+            "measured": False,
+            "reason": (
+                f"{train_path} is not present, so training overlap was not "
+                f"recomputed. It is gitignored (2.4GB); see datasets/README.md "
+                f"for the download. The committed figures are 4/209 exact-row "
+                f"(1.91%) and 82/209 incident-level (39.23%)."
+            ),
+        }
+
     columns = [c for c in subset.columns if c != "IncidentGrade"]
     train_head = pd.read_csv(
-        "datasets/GUIDE_train.csv", nrows=RF_TRAIN_ROWS, usecols=columns, low_memory=False
+        train_path, nrows=RF_TRAIN_ROWS, usecols=columns, low_memory=False
     )
     train_keys = set(map(tuple, train_head.astype(str).values))
     subset_keys = list(map(tuple, subset[columns].astype(str).values))
@@ -262,6 +284,7 @@ def training_overlap(subset: pd.DataFrame) -> dict:
     incident_overlap = sum(k in train_incidents for k in subset_incidents)
 
     return {
+        "measured": True,
         "rf_training_rows_checked": RF_TRAIN_ROWS,
         "evaluation_rows": len(subset_keys),
         "exact_row_overlap": overlap,
@@ -382,10 +405,13 @@ def main() -> None:
     print(f"                   escalates {cal['escalated_to_human_n']} at "
           f"{cal['escalated_accuracy']} accuracy.")
     print(f"                   inverted: {cal['gate_is_inverted']}")
-    print(f"\n  RF training overlap, exact-row    : {overlap['exact_row_overlap']}/{overlap['evaluation_rows']} "
-          f"({overlap['overlap_rate']:.2%})")
-    print(f"  RF training overlap, incident-lvl: {overlap['incident_level_overlap']}/{overlap['evaluation_rows']} "
-          f"({overlap['incident_level_overlap_rate']:.2%})  <- the figure that matters")
+    if overlap.get("measured"):
+        print(f"\n  RF training overlap, exact-row    : {overlap['exact_row_overlap']}/{overlap['evaluation_rows']} "
+              f"({overlap['overlap_rate']:.2%})")
+        print(f"  RF training overlap, incident-lvl: {overlap['incident_level_overlap']}/{overlap['evaluation_rows']} "
+              f"({overlap['incident_level_overlap_rate']:.2%})  <- the figure that matters")
+    else:
+        print(f"\n  RF training overlap: not recomputed -- {overlap['reason']}")
     print(f"\nsaved to {OUTPUT_PATH}")
 
 

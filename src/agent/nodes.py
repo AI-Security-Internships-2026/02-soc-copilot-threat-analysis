@@ -11,6 +11,7 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 import re
 import time
+from config.config import HITL_AUTO_ACCEPT_MARGIN
 from src.agent.state import AlertState
 from src.agent.fallback_classifier import (
     EVIDENCE_FIELDS,
@@ -452,12 +453,11 @@ def route_after_verdict(state: AlertState) -> str:
 # read -- and is structurally prevented from influencing the verdict.
 # ---------------------------------------------------------------------------
 
-# Chosen from the margin sweep in experiments/results/rf_vs_llm_control.json
-# rather than by feel. At 0.20 the auto-accepted alerts score 0.6905 (up from
-# 0.6555 ungated) while 19.6% of alerts go to a human -- roughly one in five,
-# which is affordable review load. The next step up (0.30) buys only another
-# 2 accuracy points but escalates 35.4%, which is not.
-RF_REVIEW_MARGIN_THRESHOLD = 0.20
+# The human-review threshold now lives in config/config.py, which carries the
+# full margin sweep it was chosen from and the reconciliation against the 0.12
+# figure issue #30 raises. Imported rather than restated so the deployed value
+# and its justification cannot drift apart.
+RF_REVIEW_MARGIN_THRESHOLD = HITL_AUTO_ACCEPT_MARGIN
 
 
 def classify_with_rf(state: AlertState) -> dict:

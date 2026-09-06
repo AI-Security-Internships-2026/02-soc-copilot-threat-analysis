@@ -4,6 +4,7 @@
 # uses the same metrics: accuracy + macro F1.
 
 import json
+import os
 import time
 from collections import Counter
 from pathlib import Path
@@ -262,8 +263,12 @@ def run_evaluation(sample_size: int = 50, output_path: str = "experiments/result
         if len(results_log) % 10 == 0:
             print(f"  processed {len(results_log)}/{len(sample_df)} alerts...")
 
-        # small sleep to avoid rate limits — adjust if needed
-        time.sleep(0.3)
+        # Small sleep to stay inside Groq's rate limit. Skipped when no call is
+        # made: with the explanation node off, the run is pure local inference
+        # and this slept 0.3s per alert for nothing -- five wasted minutes on a
+        # 999-alert offline run, which is the run used for every ablation arm.
+        if os.getenv("SOC_COPILOT_SKIP_EXPLANATION") != "1":
+            time.sleep(0.3)
 
     if len(sample_df) and not y_true:
         # Nothing produced a scorable prediction -- either every row crashed

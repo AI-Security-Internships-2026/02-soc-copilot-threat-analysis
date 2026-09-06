@@ -458,6 +458,13 @@ def main() -> None:
     parser.add_argument("--arms", nargs="+", choices=list(ARM_CONFIG), default=list(ARM_CONFIG))
     parser.add_argument("--skip-live", action="store_true", help="run only arm (b), fully offline")
     parser.add_argument(
+        "--summarise-only",
+        action="store_true",
+        help="re-derive the summary fields from the committed arm results without "
+             "re-scoring anything. Arms a, c and d cost live Groq quota and cannot "
+             "be regenerated on demand, so this is how their summary is corrected.",
+    )
+    parser.add_argument(
         "--reduced", action="store_true",
         help="stratified ~299-alert subsample for live arms, sized to fit a realistic Groq daily "
              "quota budget instead of the full 999 (see REDUCED_BIN_TARGETS)",
@@ -503,6 +510,10 @@ def main() -> None:
     results: dict[str, Any] = {}
     raw_rows: dict[str, list[dict]] = {}
     arm_completed: dict[str, bool] = {}
+    if args.summarise_only:
+        arms = []
+        print("\nsummarise-only: no arm will be re-scored; "
+              "re-deriving summary fields from the committed results.")
     for arm in arms:
         config = ARM_CONFIG[arm]
         print(f"\n=== arm ({arm}): {config['label']} ===")
@@ -595,18 +606,53 @@ def main() -> None:
     elif same_design_previous:
         calibration = same_design_previous.get("arm_d_calibration")
 
-    cross_arm_summary = {
-        arm: {
-            "label": results[arm]["config"]["label"],
-            "accuracy": results[arm]["metrics"]["overall"]["accuracy"],
-            "macro_f1": results[arm]["metrics"]["overall"]["macro_f1"],
-            "by_evidence_bin_accuracy": {
-                b: results[arm]["metrics"]["by_evidence_bin"].get(b, {}).get("accuracy")
-                for b in ("0", "1", "2", "3")
-            },
-        }
-        for arm in results
+    # Every arm's headline accuracy is reported next to the n it was computed
+    # on, and next to how many alerts in each evidence bin it actually scored.
+    # Without that, arm (c) reads as "0.755 vs arm (a)'s 0.7347" when it was in
+    # fact scored on 796 of 999 alerts, missing 174 of 180 bin-2 alerts and all
+    # 29 bin-3 alerts -- which are precisely the evidence-rich alerts
+    # legacy_hybrid routes to the LLM, i.e. the ones the arm exists to test.
+    # The alerts went missing because Groq's daily quota ran out, and quota
+    # exhaustion correlates with position in the run, not with the alert. That
+    # is a missing-not-at-random subset, so the two accuracies are not
+    # comparable and the summary now says so per arm.
+    bin_totals = {
+        str(b): int((sample.apply(lambda r: evidence_field_count(r.to_dict()), axis=1) == b).sum())
+        for b in EVIDENCE_BINS
     }
+    cross_arm_summary = {}
+    for arm in results:
+        overall = results[arm]["metrics"]["overall"]
+        by_bin = results[arm]["metrics"]["by_evidence_bin"]
+        coverage = {
+            b: {"scored": by_bin.get(b, {}).get("n", 0), "in_sample": bin_totals.get(b, 0)}
+            for b in ("0", "1", "2", "3")
+        }
+        complete_bins = [b for b, c in coverage.items() if c["in_sample"] and c["scored"] == c["in_sample"]]
+        partial_bins = [b for b, c in coverage.items() if c["in_sample"] and c["scored"] < c["in_sample"]]
+        cross_arm_summary[arm] = {
+            "label": results[arm]["config"]["label"],
+            "accuracy": overall["accuracy"],
+            "macro_f1": overall["macro_f1"],
+            "n_scored": overall["n_scored"],
+            "n_total": overall["n_total"],
+            "n_unscored": overall["n_unscored"],
+            "by_evidence_bin_accuracy": {
+                b: by_bin.get(b, {}).get("accuracy") for b in ("0", "1", "2", "3")
+            },
+            "evidence_bin_coverage": coverage,
+            "fully_covered_bins": complete_bins,
+            "partially_covered_bins": partial_bins,
+            "comparable_to_fully_scored_arms": not partial_bins,
+            "coverage_caveat": (
+                None if not partial_bins else
+                f"Scored {overall['n_scored']}/{overall['n_total']} alerts. Evidence bins "
+                f"{', '.join(partial_bins)} are only partially covered, so this arm's overall "
+                f"accuracy is computed on a different alert mix than a fully-scored arm and the "
+                f"two headline numbers must not be compared directly. Compare on bins "
+                f"{', '.join(complete_bins) or '(none)'} instead."
+            ),
+        }
 
     full_b_reference = None
     if args.reduced and previous_output:
@@ -642,8 +688,20 @@ def main() -> None:
         "paired_mcnemar_tests": paired_tests,
         "arm_d_calibration": calibration,
         "cross_arm_summary": cross_arm_summary,
-        "all_arms_complete": all(arm_completed.get(arm, False) for arm in arms),
-        "arm_completion_status": arm_completed,
+        # Quantified over every arm in the design, not just the arms this
+        # invocation happened to request. It read `for arm in arms`, so a run
+        # of arm (b) alone reported all_arms_complete: true while a, c and d
+        # had never finished -- which is the state the committed artifact was
+        # in, alongside a null arm_a_vs_arm_b_verification.
+        "all_arms_complete": all(
+            (results.get(arm) or {}).get("complete", False) for arm in ARM_CONFIG
+        ),
+        "arm_completion_status": {
+            arm: (results.get(arm) or {}).get("complete", False) for arm in ARM_CONFIG
+        },
+        "incomplete_arms": [
+            arm for arm in ARM_CONFIG if not (results.get(arm) or {}).get("complete", False)
+        ],
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -651,7 +709,7 @@ def main() -> None:
     print(f"\nsaved to {OUTPUT_PATH}")
 
     if not output["all_arms_complete"]:
-        incomplete = [a for a in arms if not arm_completed.get(a, False)]
+        incomplete = output["incomplete_arms"]
         print(f"\nNOT all arms complete yet ({incomplete}) -- rerun the same command "
               "(e.g. tomorrow, once the daily call budget refills) to continue.")
 

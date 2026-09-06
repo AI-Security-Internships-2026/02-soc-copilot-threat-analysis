@@ -81,6 +81,28 @@ def _data_signature(path: Path) -> dict:
     return {"path": str(path), "size_bytes": stat.st_size, "modified_ns": stat.st_mtime_ns}
 
 
+def _cache_matches(recorded: dict, sample_per_class: int, seed: int) -> bool:
+    """Is a cached test-holdout sample still valid for the current source file?
+
+    Same rule, and the same reasoning, as _cache_matches() in
+    src/agent/evaluate.py: compare the source by path and size, never by
+    mtime. mtime changes whenever the dataset is copied, restored, or
+    re-downloaded, none of which change a byte of its contents, and a
+    mismatch forces a needless re-stream of 4.1M rows -- or, on a clone with
+    no dataset at all, makes the committed sample unusable.
+
+    Absent recorded size (or an absent source file) is treated as a match on
+    the sample parameters alone: that is the clone case, where the cached CSV
+    is the only copy of the sample and re-deriving it is impossible anyway.
+    """
+    rec_data = (recorded or {}).get("data") or {}
+    if recorded.get("sample_per_class") != sample_per_class or recorded.get("seed") != seed:
+        return False
+    if not TEST_DATA_PATH.exists():
+        return True
+    return rec_data.get("size_bytes") == TEST_DATA_PATH.stat().st_size
+
+
 def load_balanced_test_sample(sample_size: int = 999, seed: int = SAMPLE_SEED) -> pd.DataFrame:
     """Class-balanced reservoir sample of datasets/GUIDE_Test.csv, cached.
 
@@ -94,20 +116,25 @@ def load_balanced_test_sample(sample_size: int = 999, seed: int = SAMPLE_SEED) -
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     cache_path = CACHE_DIR / f"guide_test_balanced_{sample_per_class}_per_class_seed_{seed}.csv"
     metadata_path = cache_path.with_suffix(".json")
+
+    # The committed cache has to be usable on a machine that does not have the
+    # 1GB GUIDE_Test.csv, so the source file is only stat()ed once we know we
+    # actually need to re-stream it. Reading it up front -- as this did until
+    # Week 17 -- made the cache unreachable on any clone, which is precisely
+    # the reader who needs it most.
+    if cache_path.exists() and metadata_path.exists():
+        recorded = json.loads(metadata_path.read_text())
+        if _cache_matches(recorded, sample_per_class, seed):
+            cached = pd.read_csv(cache_path)
+            if len(cached) == sample_per_class * len(TARGET_CLASSES):
+                print(f"Reusing cached test-holdout sample: {cache_path}")
+                return cached
+
     expected_metadata = {
         "data": _data_signature(TEST_DATA_PATH),
         "sample_per_class": sample_per_class,
         "seed": seed,
     }
-
-    if cache_path.exists() and metadata_path.exists():
-        with open(metadata_path) as file:
-            if json.load(file) == expected_metadata:
-                cached = pd.read_csv(cache_path)
-                if len(cached) == sample_per_class * len(TARGET_CLASSES):
-                    print(f"Reusing cached test-holdout sample: {cache_path}")
-                    return cached
-
     print(f"Creating a balanced test-holdout sample by streaming {TEST_DATA_PATH}...")
     rng = np.random.default_rng(seed)
     reservoirs = {label: pd.DataFrame() for label in TARGET_CLASSES}
@@ -222,8 +249,16 @@ def score_holdout(sample: pd.DataFrame) -> dict:
 
 def train_vs_test_comparison(test_scores: dict) -> dict:
     """Lay the new test-holdout numbers next to the two existing GUIDE_train-sourced runs."""
+    # Keyed by the n it actually holds. This read "test_holdout_999" until
+    # Week 17 regardless of --sample-size, so the committed artifact labelled
+    # a 15,000-row result as a 999-row one -- and that key is what the README's
+    # headline figure is read out of.
     comparison = {
-        "test_holdout_999": {"accuracy": test_scores["accuracy"], "macro_f1": test_scores["macro_f1"], "n": test_scores["n"]},
+        f"test_holdout_{test_scores['n']}": {
+            "accuracy": test_scores["accuracy"],
+            "macro_f1": test_scores["macro_f1"],
+            "n": test_scores["n"],
+        },
     }
     if RF_CONTROL_PATH.exists():
         control = json.loads(RF_CONTROL_PATH.read_text())
@@ -242,7 +277,7 @@ def train_vs_test_comparison(test_scores: dict) -> dict:
 def compute_gap_significance(test_scores: dict) -> dict | None:
     """Bootstrap CI on (held-out accuracy) - (train-sampled accuracy).
 
-    test_holdout_999 and train_sampled_999_rf_primary_pipeline are two
+    test_holdout_<n> and train_sampled_999_rf_primary_pipeline are two
     INDEPENDENT samples of different alerts scored by the same static model
     -- not the same rows scored two ways -- so this is a two-sample
     bootstrap on the difference, not a McNemar paired test. Replaces the
@@ -269,7 +304,8 @@ def compute_gap_significance(test_scores: dict) -> dict | None:
 
 def compute_interpretation(comparison: dict, gap_significance: dict | None) -> str:
     """State, from the actual numbers, whether test-holdout accuracy held up."""
-    test_acc = comparison["test_holdout_999"]["accuracy"]
+    holdout_key = next(k for k in comparison if k.startswith("test_holdout_"))
+    test_acc = comparison[holdout_key]["accuracy"]
     reference = comparison.get("train_sampled_999_rf_primary_pipeline") or comparison.get(
         "train_sampled_209_evidence_rich"
     )

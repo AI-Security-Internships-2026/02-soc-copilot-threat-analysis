@@ -1,0 +1,112 @@
+{
+  "experiment": "Field inclusion audit: numeric-ID guardrail coverage, and target-adjacent feature ablation",
+  "generated_at_utc": "2026-09-06T17:16:54.112012+00:00",
+  "git_sha": "e126c1e",
+  "issue": "#30 (M1.2) Parts C1 and C2",
+  "part_c1_numeric_field_audit": {
+    "source": "datasets/GUIDE_train.csv",
+    "rows_scanned": 500000,
+    "fields_the_schema_guardrail_requires_to_be_numeric": [
+      "AlertTitle",
+      "DetectorId"
+    ],
+    "results": {
+      "AlertTitle": {
+        "present": true,
+        "rows_scanned": 500000,
+        "distinct_values": 33042,
+        "non_numeric_distinct_values": 0,
+        "non_numeric_rate_over_distinct": 0.0,
+        "examples_of_non_numeric": [],
+        "all_parse_as_numeric": true
+      },
+      "DetectorId": {
+        "present": true,
+        "rows_scanned": 500000,
+        "distinct_values": 4559,
+        "non_numeric_distinct_values": 0,
+        "non_numeric_rate_over_distinct": 0.0,
+        "examples_of_non_numeric": [],
+        "all_parse_as_numeric": true
+      }
+    }
+  },
+  "part_c2_feature_inclusion": {
+    "deployed_feature_count": 40,
+    "deployed_features": [
+      "AlertTitle",
+      "Category",
+      "MitreTechniques",
+      "ActionGrouped",
+      "ActionGranular",
+      "EntityType",
+      "EvidenceRole",
+      "Sha256",
+      "IpAddress",
+      "Url",
+      "AccountSid",
+      "AccountUpn",
+      "AccountObjectId",
+      "AccountName",
+      "DeviceName",
+      "NetworkMessageId",
+      "EmailClusterId",
+      "RegistryKey",
+      "RegistryValueName",
+      "RegistryValueData",
+      "ApplicationId",
+      "ApplicationName",
+      "OAuthApplicationId",
+      "ThreatFamily",
+      "FileName",
+      "FolderPath",
+      "ResourceIdName",
+      "ResourceType",
+      "Roles",
+      "OSFamily",
+      "OSVersion",
+      "AntispamDirection",
+      "SuspicionLevel",
+      "LastVerdict",
+      "CountryCode",
+      "State",
+      "City",
+      "Hour",
+      "DayOfWeek",
+      "Month"
+    ],
+    "target_adjacent_fields": [
+      "LastVerdict",
+      "SuspicionLevel"
+    ],
+    "in_feature_matrix": {
+      "LastVerdict": true,
+      "SuspicionLevel": true
+    },
+    "DetectorId_in_feature_matrix": false
+  },
+  "part_c2_ablation": {
+    "with_leaky_fields": {
+      "n_features": 40,
+      "dropped": [],
+      "accuracy": 0.7147,
+      "macro_f1": 0.71,
+      "n_test": 15000
+    },
+    "without_leaky_fields": {
+      "n_features": 38,
+      "dropped": [
+        "LastVerdict",
+        "SuspicionLevel"
+      ],
+      "accuracy": 0.7125,
+      "macro_f1": 0.708,
+      "n_test": 15000
+    },
+    "delta": {
+      "accuracy": 0.0022,
+      "macro_f1": 0.002,
+      "reading": "Positive means the target-adjacent fields are helping. Because both arms are scored on the held-out GUIDE_Test split, this is what the fields are worth on alerts from incidents the model never saw -- not an artefact of the row-level split."
+    }
+  }
+}

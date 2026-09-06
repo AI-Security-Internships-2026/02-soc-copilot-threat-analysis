@@ -1,0 +1,28 @@
+{
+  "experiment": "Verdict invariance: does any node in the deployed graph alter the classifier's label?",
+  "question": "The paper claims the explanation node cannot change a verdict. This runs the whole rf_primary graph over the committed 999-alert evaluation cache and compares every verdict against the Random Forest's own predict_proba result for the same alert.",
+  "generated_at_utc": "2026-09-06T17:37:25.758937+00:00",
+  "git_sha": "e126c1e",
+  "evaluation_sample": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
+  "graph_mode": "rf_primary",
+  "explanation_call": "skipped (SOC_COPILOT_SKIP_EXPLANATION=1) -- the node still executes",
+  "tie_break": "src/models/decision.py, shared with the deployed path",
+  "supersedes": "The 299-alert live verification previously cited in the paper. Its artifact does not exist in this repository (control_node_ablation.json records arm_a_vs_arm_b_verification: null); the run was lost to Groq quota exhaustion. This check covers 3.3x as many alerts and is reproducible offline.",
+  "scope": "This is an end-to-end check over the deployed graph, not a live-LLM check. That explain_with_llm cannot write a label under any response is a property of its return value, asserted structurally by tests/test_graph_wiring.py::test_explanation_node_cannot_set_a_verdict and ::test_verdict_is_assigned_before_the_llm_ever_runs.",
+  "n_alerts": 999,
+  "n_scored": 999,
+  "n_errors": 0,
+  "errors": [],
+  "exact_probability_ties": 2,
+  "verdict_mismatches": [],
+  "n_mismatches": 0,
+  "verdicts_identical": true,
+  "rationale_status_distribution": {
+    "skipped": 999
+  },
+  "triage_path_distribution": {
+    "rf_primary": 999
+  },
+  "flagged_for_human_review": 175,
+  "interpretation": "999/999 graph verdicts are identical to the classifier's own prediction (2 of them exact probability ties, where the shared tie-break in src/models/decision.py is what makes them agree). No node in the pipeline alters the label the classifier assigned."
+}

@@ -1,19 +1,39 @@
-langchain
-openai
-elasticsearch
-fastapi
-uvicorn
-streamlit
-pandas
-requests
-python-dotenv
+# Runtime and evaluation dependencies, verified against what the code imports.
+#
+# Week 17 reconciled this file with reality. It previously listed langchain,
+# openai, elasticsearch, fastapi, uvicorn, kaggle and sentry-sdk, none of which
+# is imported anywhere in src/, experiments/ or tests/ -- Elasticsearch, FastAPI
+# and the OpenAI backend were proposed but never built (see docs/proposal.md).
+# It also omitted numpy and scipy, which every experiment imports directly, and
+# listed requests and streamlit twice with conflicting specifiers.
+
+# --- core data / modelling -------------------------------------------------
+# numpy and scikit-learn are pinned together on purpose:
+# experiments/results/baseline_model.joblib is a pickle, and whether it loads
+# depends on the numpy/sklearn pair it was written with. Every committed result
+# is scored by that artifact, so unpinning either silently risks them.
+numpy==2.2.6
 scikit-learn==1.7.1
-joblib
-kaggle
+scipy>=1.15
+pandas>=2.2
+joblib>=1.4
+
+# --- LLM pipeline ----------------------------------------------------------
+langgraph>=1.0
+langchain-core>=1.0
 langchain-groq>=0.1.0
+python-dotenv>=1.0
 requests>=2.31.0
+
+# --- interface -------------------------------------------------------------
 streamlit>=1.35.0
-langgraph
-pytest
+
+# --- evaluation / red-teaming ---------------------------------------------
+# deepteam is pinned because its metric surface moved between releases; see
+# docs/redteam-deepteam-eval.md. deepeval is a direct import in
+# src/agent/deepteam_groq_model.py, not merely a deepteam transitive.
 deepteam==1.0.9
-sentry-sdk
+deepeval>=4.0
+
+# --- tests -----------------------------------------------------------------
+pytest>=8.0

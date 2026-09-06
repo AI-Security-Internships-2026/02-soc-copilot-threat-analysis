@@ -9,10 +9,19 @@ first run will take a few seconds to download (~30mb), after that it reads from 
 import json
 import os
 import re
+from pathlib import Path
+
 import requests
 
 MITRE_URL = "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json"
-CACHE_PATH = os.path.join("datasets", "mitre_technique_cache.json")
+# Resolved from __file__, not the working directory. As a bare relative
+# path this silently re-downloaded the 30MB ATT&CK bundle on every run
+# started from anywhere but the repo root -- and wrote the cache to a
+# datasets/ directory it had just created there. Mirrors the pattern
+# already used by src/agent/ml_guardrail.py.
+CACHE_PATH = str(
+    Path(__file__).resolve().parent.parent.parent / "datasets" / "mitre_technique_cache.json"
+)
 
 
 def _download_and_build_cache():

@@ -1,7 +1,7 @@
 {
   "experiment": "RandomForest baseline trained twice on identical rows with identical hyperparameters, varying only the split rule: row-level stratified (the deployed protocol) vs incident-level GroupShuffleSplit",
-  "generated_at_utc": "2026-09-04T13:40:31.249715+00:00",
-  "git_sha": "24cfc48",
+  "generated_at_utc": "2026-09-06T17:36:43.776017+00:00",
+  "git_sha": "e126c1e",
   "diagnostic_only": "This script does NOT write baseline_model.joblib. The deployed model and every pipeline result derived from it are unchanged.",
   "data_source": "datasets/GUIDE_train.csv",
   "max_rows": 100000,

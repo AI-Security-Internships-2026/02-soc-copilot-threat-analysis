@@ -1,10 +1,10 @@
 {
   "experiment": "Control-node ablation: which node decides, and what happens as evidence gets sparser",
-  "generated_at_utc": "2026-09-03T23:13:32.274986+00:00",
-  "git_sha": "099ff68",
+  "generated_at_utc": "2026-09-06T08:48:38.242892+00:00",
+  "git_sha": "e126c1e",
   "evaluation_sample": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
   "sample_design": "full_999",
-  "sample_design_note": "Full 999-alert balanced cache, no reduction. This run only re-scored ['b']; arms ['d', 'c', 'a'] were carried forward unchanged from a previous run and may have been scored under a different sample_design -- see each carried arm's _carried_forward_from_sample_design.",
+  "sample_design_note": "Full 999-alert balanced cache, no reduction. This run only re-scored []; arms ['b', 'd', 'c', 'a'] were carried forward unchanged from a previous run and may have been scored under a different sample_design -- see each carried arm's _carried_forward_from_sample_design.",
   "evidence_bin_distribution": {
     "0": 453,
     "1": 337,
@@ -69,7 +69,8 @@
         "other_error_messages": {}
       },
       "complete": true,
-      "n_pending": 0
+      "n_pending": 0,
+      "_carried_forward_from_sample_design": "full_999"
     },
     "d": {
       "config": {
@@ -287,49 +288,174 @@
       "label": "rf_primary, explanation off",
       "accuracy": 0.7347,
       "macro_f1": 0.7307,
+      "n_scored": 999,
+      "n_total": 999,
+      "n_unscored": 0,
       "by_evidence_bin_accuracy": {
         "0": 0.7704,
         "1": 0.7359,
         "2": 0.6389,
         "3": 0.7586
-      }
+      },
+      "evidence_bin_coverage": {
+        "0": {
+          "scored": 453,
+          "in_sample": 453
+        },
+        "1": {
+          "scored": 337,
+          "in_sample": 337
+        },
+        "2": {
+          "scored": 180,
+          "in_sample": 180
+        },
+        "3": {
+          "scored": 29,
+          "in_sample": 29
+        }
+      },
+      "fully_covered_bins": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "partially_covered_bins": [],
+      "comparable_to_fully_scored_arms": true,
+      "coverage_caveat": null
     },
     "d": {
       "label": "llm_primary (LLM decides every alert)",
       "accuracy": 0.3939,
       "macro_f1": 0.307,
+      "n_scored": 33,
+      "n_total": 999,
+      "n_unscored": 966,
       "by_evidence_bin_accuracy": {
         "0": 0.3913,
         "1": 0.6667,
         "2": 0.2857,
         "3": null
-      }
+      },
+      "evidence_bin_coverage": {
+        "0": {
+          "scored": 23,
+          "in_sample": 453
+        },
+        "1": {
+          "scored": 3,
+          "in_sample": 337
+        },
+        "2": {
+          "scored": 7,
+          "in_sample": 180
+        },
+        "3": {
+          "scored": 0,
+          "in_sample": 29
+        }
+      },
+      "fully_covered_bins": [],
+      "partially_covered_bins": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "comparable_to_fully_scored_arms": false,
+      "coverage_caveat": "Scored 33/999 alerts. Evidence bins 0, 1, 2, 3 are only partially covered, so this arm's overall accuracy is computed on a different alert mix than a fully-scored arm and the two headline numbers must not be compared directly. Compare on bins (none) instead."
     },
     "c": {
       "label": "legacy_hybrid (evidence-routed)",
       "accuracy": 0.755,
       "macro_f1": 0.7512,
+      "n_scored": 796,
+      "n_total": 999,
+      "n_unscored": 203,
       "by_evidence_bin_accuracy": {
         "0": 0.7704,
         "1": 0.7359,
         "2": 0.6667,
         "3": null
-      }
+      },
+      "evidence_bin_coverage": {
+        "0": {
+          "scored": 453,
+          "in_sample": 453
+        },
+        "1": {
+          "scored": 337,
+          "in_sample": 337
+        },
+        "2": {
+          "scored": 6,
+          "in_sample": 180
+        },
+        "3": {
+          "scored": 0,
+          "in_sample": 29
+        }
+      },
+      "fully_covered_bins": [
+        "0",
+        "1"
+      ],
+      "partially_covered_bins": [
+        "2",
+        "3"
+      ],
+      "comparable_to_fully_scored_arms": false,
+      "coverage_caveat": "Scored 796/999 alerts. Evidence bins 2, 3 are only partially covered, so this arm's overall accuracy is computed on a different alert mix than a fully-scored arm and the two headline numbers must not be compared directly. Compare on bins 0, 1 instead."
     },
     "a": {
       "label": "rf_primary, explanation on",
       "accuracy": 0.7347,
       "macro_f1": 0.7307,
+      "n_scored": 999,
+      "n_total": 999,
+      "n_unscored": 0,
       "by_evidence_bin_accuracy": {
         "0": 0.7704,
         "1": 0.7359,
         "2": 0.6389,
         "3": 0.7586
-      }
+      },
+      "evidence_bin_coverage": {
+        "0": {
+          "scored": 453,
+          "in_sample": 453
+        },
+        "1": {
+          "scored": 337,
+          "in_sample": 337
+        },
+        "2": {
+          "scored": 180,
+          "in_sample": 180
+        },
+        "3": {
+          "scored": 29,
+          "in_sample": 29
+        }
+      },
+      "fully_covered_bins": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "partially_covered_bins": [],
+      "comparable_to_fully_scored_arms": true,
+      "coverage_caveat": null
     }
   },
   "all_arms_complete": true,
   "arm_completion_status": {
-    "b": true
-  }
+    "a": true,
+    "b": true,
+    "c": true,
+    "d": true
+  },
+  "incomplete_arms": []
 }
