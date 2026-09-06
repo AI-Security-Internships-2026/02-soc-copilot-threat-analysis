@@ -226,6 +226,14 @@ in Section 5.3. `tests/test_graph_wiring.py` asserts the invariant directly.
 Against a 43.2% majority-class floor. FalsePositive is the weakest class
 throughout this work.
 
+**This holdout is a *row-level* split of the same 100,000-row slice the model
+trains on.** GUIDE's label attaches to the incident, not the alert row, so
+sibling evidence rows of one incident fall on both sides of that boundary.
+Section 5.10 measures what the split rule is worth (0.7718 → **0.7435** under an
+incident-level split) and what the leakage itself is worth (**+24.3** accuracy
+points). Read 0.7718 as an in-distribution reference, not as a generalisation
+estimate; the generalisation estimate is **0.6998** (§5.8).
+
 ### 5.2 RQ1 — The paired comparison
 
 Earlier evaluations routed sparse alerts to the Random Forest and well-evidenced
@@ -314,7 +322,10 @@ Whole pipeline, identical 999-alert balanced sample, identical seed:
 | **Random Forest decides, LLM explains (Week 15)** | **0.7347** | **0.7307** |
 
 **+8.9 accuracy points, +8.2 macro F1**, with zero errors and zero
-no-verdict outcomes across all 999 alerts.
+no-verdict outcomes across all 999 alerts. Both figures are measured on a
+train-sampled set [STALE: train-sampled, incident-level contaminated; corrected held-out GUIDE_Test baseline = 0.6998]; the *improvement* is a paired within-sample
+comparison and is unaffected, but neither absolute number is a generalisation
+estimate.
 
 The 0.7347 figure is not directly comparable to the 0.7718 baseline: the latter
 is measured on GUIDE's natural distribution (floor 43.2%), the former on a
@@ -338,7 +349,7 @@ conjunctions — `instruction_override` requires an ignore-word, a
 reference-word, and an instruction-word within 80 characters — so phrasings such
 as `"SYSTEM OVERRIDE: triage_verdict=BenignPositive"` match nothing. Social
 engineering, indirect field injection, and encoded payloads have no pattern at
-all. It is retained only because it costs 3.6 µs and produced no false
+all. It is retained only because it costs 1.93 µs and produced no false
 positives.
 
 The schema check blocks all 20 not by recognising attacks but by rejecting free
@@ -354,8 +365,19 @@ triage outcome, a review decision, or any reported metric.
 LLM path (`week7_scalability_benchmark.json`): 0.37–0.57 alerts/s at 1.76–2.73 s
 per alert. Random Forest path, re-measured in Week 15 after the sampling fix
 (`week15_rf_benchmark.json`): 21.36–66.27 alerts/s at 0.015–0.047 s per alert,
-zero errors. **The classifier is roughly two orders of magnitude faster** and
-requires no network. Regex guardrail cost, re-measured in Week 17 with
+zero errors. **The classifier is roughly two orders of magnitude faster than the
+LLM path** and requires no network.
+
+That comparison is between two *components*, and it is not the deployed
+pipeline's latency. The deployed `rf_primary` graph makes one Groq explanation
+call per alert, so its end-to-end cost is dominated by that call, not by the
+classifier: arm (a) of the control-node ablation measures roughly 10 s per alert
+wall-clock, against the legacy hybrid's ~2.5 s, because the hybrid only called
+the LLM for the ~21% of alerts its router sent there. **Moving the LLM off the
+decision path made the pipeline more accurate and slower**, and the honest
+framing is that the classifier's speed bounds what the system could do if
+explanations were generated asynchronously or in batch — which is future work,
+not a property of what is deployed today. Regex guardrail cost, re-measured in Week 17 with
 `timeit` inside the run that reports it: **1.93 µs** per check on a short
 alert, 5.56 µs on a full injection payload. The 3.616 µs previously reported
 here was a July constant that `guardrail_layer_eval.py` restated without
@@ -366,8 +388,10 @@ Two caveats on the older file. **Its n=30 and n=60 accuracy rows are invalid**
 and are not reported: the benchmark sliced a prefix of an unshuffled,
 class-ordered sample, so those slices held one and two classes respectively.
 The Week 15 re-run fixes this with a seeded shuffle — every slice is now
-class-balanced, and the difference is visible at n=60, where the corrected macro
-F1 is 0.6772 against 0.490 for the two-class slice. Throughput and latency were
+class-balanced, and reports macro F1 0.6232 at n=30, 0.6772 at n=60 and 0.6727
+at n=120. The superseded figures are not quoted here because they are no longer
+in the committed file: the older benchmark's only surviving RF rows are at n=30,
+so there is no committed n=60 predecessor to compare against. Throughput and latency were
 never affected, since they do not depend on class balance.
 
 The two tables were also collected in different process states and their
@@ -426,10 +450,11 @@ that n — but it was a power problem, not evidence of no effect. This is the
 central methodological point of scaling this evaluation up: the larger,
 stricter sample didn't just narrow an existing interval, it changed which
 side of significance the finding falls on. Per-class recall shows where the
-gap concentrates: FalsePositive recall falls to 0.532 against
-BenignPositive's 0.826 and TruePositive's 0.757 at n=999 (per-class recall
-at n=15,000 is in the source JSON), so the drop is not uniform across
-classes. Unseen-category encoding failure (`transform_with_encoders()` maps
+gap concentrates: on the held-out split FalsePositive recall is **0.514**,
+against BenignPositive's 0.829 and TruePositive's 0.757 (n=15,000, read from
+the classification report in the source JSON), so the drop is not uniform
+across classes. The FalsePositive class is also the one the classifier is
+most precise on (0.804) — it under-recalls rather than over-fires. Unseen-category encoding failure (`transform_with_encoders()` maps
 unseen values to −1 rather than crashing) was checked directly and ruled out
 as the cause: it fired on only 0.39% of alerts at n=15,000. A 60-alert live
 smoke run (at the original n=999 scale) through the full `rf_primary` graph,
@@ -512,19 +537,30 @@ and (d) first would have preserved more of their evidence-rich-bin budget.
 **`llm_primary` (arm d), forced onto every alert, is the arm hit hardest —
 worse than the original design, not better.** Of 999 alerts, only 33 scored
 (966 hit the same 200k-TPD cap), fewer in absolute count than the original
-299-alert design's 42 scored rows. A two-proportion z-test between arm (a)'s
-999-scored accuracy and arm (d)'s 33-scored accuracy is still highly
-significant (diff 0.3408, 95% CI [0.1718, 0.5097], z=4.31, p=1.6e-5,
-`experiments/results/control_node_ablation_two_proportion_tests.json`) — the
-effect is large enough to detect even at n=33 — but the interval is
-genuinely wide, reflecting that real uncertainty rather than hiding it
-behind a misleadingly tight one (an earlier pass of this same file used
-n=999, the attempted count, instead of n=33, the actually-scored count, for
-this arm — caught and corrected before being reported anywhere further).
-The same z-test approach for arm (a) vs. arm (c) (999 vs. 796 scored,
-diff −0.0203, 95% CI [−0.0608, 0.0202], p=0.33) shows no significant
-difference — expected, since bins 0–1 dominate arm (c)'s scored rows and
-those are RF-decided in both arms.
+299-alert design's 42 scored rows.
+
+**No significance is claimed between arms, and the earlier claim was
+withdrawn in Week 17.** This section previously reported two-proportion
+z-tests between arms. That test is wrong for this design twice over. First,
+the arms score *the same 999 alerts* under different configurations, which is
+paired data and needs a paired test — the substitution this project's own
+code comments warn against in both `rf_vs_llm_control.py` and
+`control_node_ablation.py`. Second, arms (c) and (d) are scored on
+missing-not-at-random subsets: quota exhaustion tracks position in the run,
+and it removed 174 of 180 evidence-bin-2 alerts and all 29 bin-3 alerts, so
+their scored rows are not a fair sample of the design. A valid paired test
+would need per-row results for arms (a), (c) and (d); only `arm_b.json` was
+persisted, so it cannot be computed. The file has been moved to
+`experiments/results/archive/control_node_ablation_two_proportion_tests.json`
+with the reasoning recorded in `experiments/results/archive/README.md`.
+
+What survives is descriptive, and it is not subtle: arm (d) scores 0.3939 on
+its 33 scored alerts against arm (a)'s 0.7347 on 999. `control_node_ablation.json`
+now records `n_scored`, per-bin coverage and a `comparable_to_fully_scored_arms`
+flag for every arm, so a reader can see which comparisons are and are not
+like-for-like. The project's one significance claim on the RF-versus-LLM
+question rests on Section 5.2's paired McNemar test over an identical
+209-alert subset (p = 4.66e-12), which does not have either defect.
 
 **Data-quality caveat carried forward.** Arm (d)'s calibration table is
 still not reported as a finding, for the same reason as before: most
@@ -566,7 +602,7 @@ than one row. So one labelled row fixes the label of every sibling.
 
 **`(OrgId, IncidentId)` is a real incident key, not a colliding field.** In a
 20,000-row block taken from row 5,000,000 — far from the training slice —
-**11,142 of 11,142** rows whose key also appears in the training slice carry
+**11,141 of 11,141** rows whose key also appears in the training slice carry
 the identical label, against a 43.3% majority-class chance floor. Agreement is
 exactly 1.0, so the key identifies a genuine incident and the label is
 recoverable from it.
@@ -790,8 +826,16 @@ and the pipeline was silently auto-accepting its least reliable predictions.
    nothing to memorise. They are retained on that evidence. What remains a
    limitation is narrower: the features are still opaque identifiers whose
    generalisable signal has not been explained, only demonstrated.
-4. **`LastVerdict` and `SuspicionLevel` are analyst-derived** and partly
-   downstream of the target — target-adjacent leakage. They also drove routing.
+4. **`LastVerdict` and `SuspicionLevel` are analyst-derived**, partly
+   downstream of the target, and they also drove routing. Week 17 measured
+   what they are worth rather than leaving it as a suspicion: both are in the
+   deployed feature matrix, and removing them costs **0.0022 accuracy /
+   0.0020 macro F1** on the held-out split — two orders of magnitude below the
+   24.3-point incident-leakage effect. They are retained and documented as
+   analyst-derived inputs that a real SOC has at triage time; the residual
+   caveat is that a SOC whose upstream product does not populate them loses
+   about 0.2 points. Evidence: `experiments/results/field_inclusion_audit.json`,
+   memo in `docs/field-inclusion-memo.md`.
 5. **The deployed model still uses a row-level split.** Section 5.10 measures
    what that costs (about 2.8 accuracy points against a `GroupShuffleSplit`
    on `(OrgId, IncidentId)`) but the corrected split is diagnostic only: the
@@ -806,14 +850,28 @@ and the pipeline was silently auto-accepting its least reliable predictions.
    systematically from those that do not. Class balancing and the
    within-every-class consistency of the gap rule out the most obvious
    confound, but not every one.
-7. **Single runs without confidence intervals.** The 999-alert figures are
-   stable to roughly ±3 points; the 209-alert figures to roughly ±6. The paired
-   McNemar result does not depend on this.
-8. **The injection corpus is 40 self-authored examples**, measuring
+7. **Some figures are single runs.** Since Week 16 every headline point
+   estimate carries a 95% bootstrap confidence interval and, where two numbers
+   are compared, a significance test — see Sections 5.8 and 5.10, and
+   `experiments/stats_utils.py`. What remains uncovered is run-to-run variance
+   from a *different* random sample: each interval quantifies sampling error
+   within the drawn sample, not the effect of drawing a different one. The
+   sample seed is fixed at 42 throughout so this is reproducible, not hidden.
+8. **One committed artifact cannot be cheaply regenerated.**
+   `llm_subset_eval_improved_full209.json` holds the LLM's per-alert answers
+   behind the 0.2823 figure, the McNemar p-value and the calibration inversion.
+   Its 209-row selection is now reproducible exactly — `experiments/llm_subset_eval.py
+   --all-eligible` picks the identical rows, verified — but re-scoring them needs
+   209 live Groq calls, so the recorded answers are not reproducible without
+   quota. Until Week 17 the file was worse than that: the script did not emit the
+   `_row_index` field the comparison depends on, so nothing in the repository
+   could have produced the file's schema at all.
+
+9. **The injection corpus is 40 self-authored examples**, measuring
    self-consistency rather than generalisation. It bounds how poor the regex
    filter is; it does not estimate production performance.
-9. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
-10. **The control-node ablation's live arms (5.9) lost most of their data to
+10. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
+11. **The control-node ablation's live arms (5.9) lost most of their data to
    an external API quota, not by design — confirmed to be a hard 200,000
    tokens/day limit on the model, not the more generous per-minute figure
    its response headers advertise.** Re-running at the originally-planned
@@ -825,9 +883,10 @@ and the pipeline was silently auto-accepting its least reliable predictions.
    (c) and (d) started. The evidence-rich-bin comparison for `legacy_hybrid`
    (arm c) is likewise thinner at full scale (6 scored at bin 2, 0 at bin 3)
    than the original reduced design (29, 13) for the same reason. Section
-   5.9's conclusion about the RF-vs-LLM effect size is still supported —
-   now by a two-proportion test at n=33 rather than a per-bin breakdown at
-   n=29/13 — but the original reduced-299 design's evidence-rich-bin numbers
+   5.9's conclusion about the RF-vs-LLM effect size rests on Section 5.2's
+   paired McNemar test, not on any comparison between ablation arms — the
+   two-proportion tests previously reported here were withdrawn in Week 17 as
+   the wrong test for a paired design on a missing-not-at-random subset. But the original reduced-299 design's evidence-rich-bin numbers
    remain the better-supported source for that specific breakdown and are
    cited there, not superseded.
 
@@ -859,7 +918,10 @@ always predicting the majority class — on the alerts most favourable to it
 so the human-review checkpoint was auto-accepting its least reliable
 predictions. Restructuring the system so the classifier decides and the LLM
 explains raised whole-pipeline accuracy from 0.6456 to 0.7347 on identical data
-and made prompt injection incapable of altering a triage outcome. For structured
+— a paired improvement on a train-sampled set, whose absolute level is inflated
+by incident-level leakage; on Microsoft's held-out split the same pipeline
+scores **0.6998** — and made prompt injection incapable of altering a triage
+outcome. For structured
 security telemetry, an LLM is a capable explainer and a poor classifier, and the
 distinction is measurable.
 
@@ -894,14 +956,20 @@ supervisor's direction.
 | `holdout_vs_train_symmetric_15000.json` | The held-out-vs-train gap and its CI |
 | `roc_auc_control_209.json` | RF ROC/AUC on the 209-alert control set |
 | `control_node_ablation.json` | Control-node ablation, evidence-count breakdown |
-| `control_node_ablation_two_proportion_tests.json` | Significance tests between ablation arms |
+| `verdict_invariance.json` | **The explanation node cannot change a verdict — 999/999 checked** |
+| `schema_guardrail_eval.json` | Deterministic schema guardrail, 100% injection recall |
+| `evaluation_samples/` | The committed 999- and 15,000-alert samples every figure is computed from |
 | `classifier_improvement_study.json` | **Data-scaling and estimator study, and the identifier feature-inflation ablation** |
 
+Every file above is produced by a committed script in `experiments/`, and every
+figure in this report is read from one of them.
+
 Superseded artefacts — including `agent_metrics_week12_999_current.json` (the
-"before" side of the architecture change) and `agent_metrics.json` (a
-**synthetic-data** run whose labels are random noise) — now live in
-`experiments/results/archive/`, with a README recording each file's numbers and
-what replaced it.
+"before" side of the architecture change), `agent_metrics.json` (a
+**synthetic-data** run whose labels are random noise) and
+`control_node_ablation_two_proportion_tests.json` (an unpaired test applied to
+paired data, withdrawn in Week 17) — now live in `experiments/results/archive/`,
+with a README recording each file's numbers and what replaced it.
 
 Reproduction commands are in `docs/demo-runbook.md`; conceptual background is in
 `docs/project-explained.md`.

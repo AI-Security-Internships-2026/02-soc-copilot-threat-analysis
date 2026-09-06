@@ -367,7 +367,11 @@ precisely because both models saw identical inputs.
 | **Accuracy** | | | **0.7718** | 19,895 |
 | **Macro F1** | | | **0.7505** | |
 
-Against a 43.2% majority-class floor, that is a genuine **+34 points**.
+Against a 43.2% majority-class floor, that is **+34 points** — but on a
+*row-level* split of the file the model trained on. Because GUIDE's label
+belongs to the incident rather than the alert, sibling rows leak across that
+boundary. Under an incident-level split the same baseline scores **0.7435 /
+0.7118**. Section 13.1 has the measurement.
 
 Note FalsePositive is hardest (recall 0.580) — the model misses 42% of
 detector misfires. That is the rarest class and the subtlest distinction, and
@@ -534,7 +538,8 @@ Running the whole pipeline on the same 999 alerts, before and after:
 | **New: RF decides, LLM explains** | **0.7347** | **0.7307** |
 
 **+8.9 accuracy points and +8.2 macro F1**, on identical data, with zero errors
-across all 999 alerts.
+across all 999 alerts. [STALE: train-sampled, incident-level contaminated; corrected held-out GUIDE_Test baseline = 0.6998] — the *gain* is a paired comparison and holds;
+the absolute 0.7347 is not a generalisation estimate.
 
 For context against the 0.7718 baseline: that figure is on GUIDE's *natural*
 distribution where the floor is 43.2%, while 0.7347 is on a *balanced* sample
@@ -660,11 +665,18 @@ Never let a reviewer find these first. Raise them yourself.
    They are also the fields that drove routing.
 
 5. **The split is row-level, not incident-level.** Alerts from one incident can
-   land on both sides of the train/test boundary.
+   land on both sides of the train/test boundary — and because GUIDE's label is
+   a property of the incident, that leaks the answer. Week 17 measured the
+   cost: **24.3 accuracy points** for a row with a labelled sibling in training,
+   and 55.8% of a train-sampled evaluation set has one. Section 13.1 has the
+   detail. The deployed model still uses the row-level split; what changed is
+   that the inflation is now measured and reported rather than assumed small.
 
-6. **Single runs, no confidence intervals.** Results are point estimates. The
-   999-alert figures are stable to roughly ±3 points; the 209-alert figures to
-   roughly ±6.
+6. **Sampling variance beyond the reported intervals.** Every headline figure
+   now carries a 95% bootstrap confidence interval (the earlier "±3 points"
+   heuristic was replaced by computed intervals in Week 16). Those quantify
+   sampling error *within* the drawn sample; they do not capture what a
+   different draw would give. The seed is fixed at 42 throughout.
 
 7. **The LLM comparison is n=209 against the baseline's n=19,895.** The paired
    McNemar test is valid because both models saw the same 209, but the two
@@ -746,6 +758,10 @@ Never let a reviewer find these first. Raise them yourself.
 > restructured the system so the Random Forest decides every verdict and the
 > LLM only explains it — which raised whole-pipeline accuracy from 0.6456 to
 > 0.7347 on the same 999 alerts, and made prompt injection unable to alter a
-> triage outcome. The contribution is the measurement and the design conclusion
-> that follows from it: **for structured security telemetry, an LLM is a good
-> explainer and a poor classifier.**
+> triage outcome. On Microsoft's held-out split, which is the figure to quote,
+> that pipeline scores **0.6998** (n=15,000); the gap is incident-level label
+> leakage, which we measured at **55.8%** of any train-sampled set and **+24.3
+> accuracy points**. The contribution is those measurements and the design
+> conclusion that follows: **for structured security telemetry, an LLM is a good
+> explainer and a poor classifier — and a row-level split on incident-labelled
+> data will tell you otherwise.**
