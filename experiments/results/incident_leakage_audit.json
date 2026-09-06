@@ -1,0 +1,131 @@
+{
+  "experiment": "Incident-level label leakage between the RF's training slice and the GUIDE_train-sampled evaluation sets this project reports on",
+  "generated_at_utc": "2026-09-04T13:26:15.991944+00:00",
+  "git_sha": "6ad48c8",
+  "data_source": "datasets/GUIDE_train.csv",
+  "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
+  "incident_key": [
+    "OrgId",
+    "IncidentId"
+  ],
+  "part_a_structural_facts": {
+    "training_slice_rows": 99475,
+    "unique_incidents": 52797,
+    "mean_rows_per_incident": 1.8841,
+    "max_rows_per_incident": 309,
+    "multi_row_incidents": 8727,
+    "rows_belonging_to_a_multi_row_incident": 55405,
+    "rows_belonging_to_a_multi_row_incident_rate": 0.557,
+    "incidents_with_a_single_label_value": 52797,
+    "label_constancy_rate": 1.0,
+    "finding": "The label is constant within an incident for 52797/52797 incidents (100.0000%). 55.7% of training rows belong to an incident with more than one row. Knowing an incident's grade from any one labelled row therefore determines the grade of every sibling row."
+  },
+  "part_b_key_integrity": {
+    "block_start_row": 5000000,
+    "block_rows_scored": 19904,
+    "rows_whose_key_appears_in_training_slice": 11141,
+    "key_collision_rate": 0.5597,
+    "colliding_rows_with_matching_label": 11141,
+    "label_agreement_rate": 1.0,
+    "chance_agreement_floor_majority_class": 0.4333,
+    "finding": "Of 11141 rows in a block starting at row 5,000,000 whose (OrgId, IncidentId) also appears in the training slice, 11141 carry the identical label (100.0000%) against a 43.3% chance floor. The key identifies a real incident; it is not colliding by accident."
+  },
+  "part_c_sample_overlap": {
+    "samples": {
+      "train_sampled_999": {
+        "path": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
+        "n": 999,
+        "exact_row_overlap": 14,
+        "exact_row_overlap_rate": 0.014,
+        "incident_level_overlap": 557,
+        "incident_level_overlap_rate": 0.5576
+      },
+      "held_out_999": {
+        "path": "experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.csv",
+        "n": 999,
+        "exact_row_overlap": 0,
+        "exact_row_overlap_rate": 0.0,
+        "incident_level_overlap": 0,
+        "incident_level_overlap_rate": 0.0
+      }
+    },
+    "finding": "Exact-row overlap is the figure already published (1.91% on the 209-alert control set, judged immaterial). Incident-level overlap is what determines whether a labelled sibling was available to the model, and it is roughly an order of magnitude larger on the GUIDE_train-sampled set. The GUIDE_Test.csv sample is clean on both."
+  },
+  "part_d_causal_test": {
+    "design": "Both buckets are drawn from GUIDE_train.csv rows past the 100,000-row training slice, so the model trained on neither. 'leaked' rows belong to an incident that does appear in the training slice (a labelled sibling was available); 'clean' rows do not. Both are class-balanced to identical per-class counts.",
+    "eval_block_rows_read": 300000,
+    "eval_block_rows_with_a_label": 298404,
+    "bucket_sizes_before_balancing": {
+      "leaked": 166579,
+      "clean": 131825
+    },
+    "incident_overlap_rate_in_block": 0.5582,
+    "per_class_rows_after_balancing": 2000,
+    "per_class_cap_applied": true,
+    "n_per_bucket": 6000,
+    "leaked": {
+      "accuracy": 0.8325,
+      "accuracy_bootstrap_ci": {
+        "point": 0.8325,
+        "ci_lower": 0.8232,
+        "ci_upper": 0.8418,
+        "confidence": 0.95,
+        "n": 6000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.8312,
+      "per_class_recall": {
+        "TruePositive": 0.8825,
+        "BenignPositive": 0.914,
+        "FalsePositive": 0.701
+      }
+    },
+    "clean": {
+      "accuracy": 0.5893,
+      "accuracy_bootstrap_ci": {
+        "point": 0.5893,
+        "ci_lower": 0.577,
+        "ci_upper": 0.6017,
+        "confidence": 0.95,
+        "n": 6000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.5789,
+      "per_class_recall": {
+        "TruePositive": 0.478,
+        "BenignPositive": 0.8525,
+        "FalsePositive": 0.4375
+      }
+    },
+    "accuracy_gap_leaked_minus_clean": {
+      "point_a": 0.8325,
+      "point_b": 0.5893,
+      "point_diff": 0.2432,
+      "ci_lower": 0.228,
+      "ci_upper": 0.2585,
+      "confidence": 0.95,
+      "n_a": 6000,
+      "n_b": 6000,
+      "n_resamples": 10000,
+      "significant_at_confidence": true,
+      "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+      "interpretation": "metric(a)-metric(b) = +0.2432, 95% CI [+0.2280, +0.2585]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+    },
+    "macro_f1_gap_leaked_minus_clean": {
+      "point_a": 0.8312,
+      "point_b": 0.5789,
+      "point_diff": 0.2523,
+      "ci_lower": 0.2367,
+      "ci_upper": 0.2678,
+      "confidence": 0.95,
+      "n_a": 6000,
+      "n_b": 6000,
+      "n_resamples": 10000,
+      "significant_at_confidence": true,
+      "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+      "interpretation": "metric(a)-metric(b) = +0.2523, 95% CI [+0.2367, +0.2678]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+    }
+  }
+}

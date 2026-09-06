@@ -30,6 +30,15 @@
 #
 # The Weeks 6-14 hybrid graph is still buildable via mode="legacy_hybrid" so
 # the comparison in the paper stays reproducible.
+#
+# A third mode, "llm_primary", was added for the control-node ablation: it
+# sends every alert to the LLM unconditionally (no evidence-based routing),
+# using the same corrected node order as rf_primary (fetch_mitre_context
+# before build_context) rather than legacy_hybrid's order, so its numbers
+# aren't confounded by the ordering bug described above. This is the only
+# way to measure what the LLM does on evidence-poor alerts -- under both
+# other modes it never sees them (rf_primary doesn't route by evidence at
+# all; legacy_hybrid routes sparse alerts away from it).
 
 from langgraph.graph import StateGraph, START, END
 
@@ -143,6 +152,47 @@ def _build_legacy_hybrid_graph() -> StateGraph:
     return graph
 
 
+def _build_llm_primary_graph() -> StateGraph:
+    """Every alert goes to the LLM, regardless of evidence density.
+
+    Ablation-only mode: measures what the LLM does on the alerts rf_primary
+    and legacy_hybrid never let it see (evidence-poor ones). Do not use to
+    triage anything -- the 209-alert control already showed the LLM losing
+    to a majority-class guess on the alerts *most* favourable to it.
+    """
+    graph = StateGraph(AlertState)
+
+    graph.add_node("regex_guardrail", apply_regex_guardrail)
+    graph.add_node("schema_guardrail", apply_schema_guardrail)
+    graph.add_node("fetch_mitre_context", fetch_mitre_context)
+    graph.add_node("build_context", build_context)
+    graph.add_node("classify_with_llm", classify_with_llm)
+    graph.add_node("parse_verdict", parse_verdict)
+    graph.add_node("human_review", human_review_node)
+
+    graph.add_edge(START, "regex_guardrail")
+    graph.add_conditional_edges(
+        "regex_guardrail",
+        route_after_guardrail,
+        {"continue": "schema_guardrail", "human_review": "human_review"},
+    )
+    graph.add_conditional_edges(
+        "schema_guardrail",
+        route_after_schema_guardrail,
+        {"continue": "fetch_mitre_context", "human_review": "human_review"},
+    )
+    graph.add_edge("fetch_mitre_context", "build_context")
+    graph.add_edge("build_context", "classify_with_llm")
+    graph.add_edge("classify_with_llm", "parse_verdict")
+    graph.add_conditional_edges(
+        "parse_verdict",
+        route_after_verdict,
+        {"end": END, "human_review": "human_review"},
+    )
+    graph.add_edge("human_review", END)
+    return graph
+
+
 def build_triage_graph(mode: str = "rf_primary"):
     """
     builds and compiles the triage agent graph.
@@ -152,14 +202,18 @@ def build_triage_graph(mode: str = "rf_primary"):
     mode:
       "rf_primary"    -- current design: RF decides, LLM explains (week 15)
       "legacy_hybrid" -- Weeks 6-14 design, for reproducing published results
+      "llm_primary"   -- ablation-only: LLM decides every alert unconditionally
     """
     if mode == "rf_primary":
         graph = _build_rf_primary_graph()
     elif mode == "legacy_hybrid":
         graph = _build_legacy_hybrid_graph()
+    elif mode == "llm_primary":
+        graph = _build_llm_primary_graph()
     else:
         raise ValueError(
-            f"unknown graph mode {mode!r}; expected 'rf_primary' or 'legacy_hybrid'"
+            f"unknown graph mode {mode!r}; expected 'rf_primary', 'legacy_hybrid', "
+            "or 'llm_primary'"
         )
     # compile locks the graph structure and prepares it for invocation
     return graph.compile()

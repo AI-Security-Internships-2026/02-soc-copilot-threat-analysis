@@ -1477,6 +1477,31 @@ step, distinct from and more targeted than another round of general prompt itera
 
 ## Week 15 — the control experiment, and moving the LLM off the decision path
 
+
+  alert arrives
+       |
+       v
+  [1] regex guardrail       -- reject obvious prompt-injection text
+       |
+       v
+  [2] schema guardrail      -- reject free text in numeric-only ID fields
+       |
+       v
+  [3] fetch MITRE context   -- look up what the attack technique means
+       |
+       v
+  [4] build context         -- assemble everything into readable text
+       |
+       v
+  [5] Random Forest         -- ASSIGNS THE VERDICT
+       |
+       v
+  [6] LLM                   -- EXPLAINS the verdict (cannot change it)
+       |
+       v
+  [7] margin gate           -- confident? finish. Not confident? human review.
+
+
 **Branch:** `asma-week-15`
 **PR link:** https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/26
 
@@ -1540,6 +1565,127 @@ affect a verdict, accuracy evaluation is identical with the LLM switched off
   argument rests on, and it remains the one thing none of the automated content analysis substitutes
   for. Carried from Week 14, and more load-bearing than it was then.
 
+## Week 16 — confidence intervals, and committing the code the paper already cites
+
+**Branch:** `worktree-week16-hardening` (based on `asma-week-15`)
+
+The 2026-09-01 supervisor follow-up (E4/E5: GUIDE_Test holdout, ROC/AUC, control-node ablation)
+had landed as real, working code, but only as uncommitted state in the working checkout — nothing
+beyond the result JSONs had reached git. Reported findings from that session (accuracy 0.7047 on
+the held-out split vs. 0.7347 on train-sampled, macro AUC 0.887/0.7636, zero explanation-flips
+across 299 live alerts, 42/299 `llm_primary` calls scored before Groq's quota ran out) were
+therefore not reproducible by anyone who wasn't looking at that exact working tree. This week
+closes that gap and answers Week 15's own "next week plan" item: *"Repeated trials for confidence
+intervals — every current figure is a single-run point estimate."*
+
+### Completed this week
+- [x] **Committed the E4/E5 code for the first time.** `experiments/guide_test_holdout_eval.py`,
+  `experiments/roc_auc_analysis.py`, `experiments/control_node_ablation.py`, and the
+  `llm_primary` graph mode (`src/agent/graph.py`) existed only in an uncommitted working tree
+  until now. Every number in the paper's §4.10/§4.11 now traces to a file in git history, not
+  just a result JSON someone has to trust was produced honestly.
+- [x] New `experiments/stats_utils.py`: percentile-bootstrap confidence intervals for a metric on
+  one sample, for macro ROC/AUC, and for the *difference* between two independent samples (not a
+  paired/McNemar comparison — the held-out and train-sampled runs score different alerts).
+- [x] Re-ran the GUIDE_Test holdout eval with the new CI machinery: accuracy 0.7047 (95% CI
+  [0.6757, 0.7327]) vs. 0.7347 train-sampled. The gap's own bootstrap CI is
+  **[−0.0701, +0.0100] — includes 0**, so the −0.03 gap is not distinguishable from sampling noise
+  at n=999. This replaces the earlier ad hoc "±3-point noise band" heuristic with an actual
+  computed interval and turns "a close call" into a checked, not asserted, non-significant result.
+- [x] Re-ran the 209-alert control-set ROC/AUC: macro AUC 0.7636, 95% CI [0.708, 0.8174].
+- [x] Hardened `control_node_ablation.py`:
+  - Added a `failure_reasons` histogram (quota-exhaustion vs. other errors, bucketed by message)
+    persisted to the committed output JSON. Previously the per-row error strings that would prove
+    the Groq-quota-exhaustion claim were written to a checkpoint file and then deleted on a
+    successful run — the claim was asserted in prose, not evidenced in the artifact.
+  - Added retry-with-backoff for transient (non-quota) errors, explicitly *not* retrying
+    quota-exhaustion errors (retrying those only burns what's left of the daily budget).
+  - Added paired McNemar's tests between arms that share the same alert rows (a vs c, a vs d),
+    restricted to rows both arms actually scored — reusing the existing `mcnemar()` helper from
+    `rf_vs_llm_control.py` rather than duplicating it.
+  - **Found and fixed a real data-loss bug while testing this**: running `--skip-live` (arm b
+    only, to verify the offline path) used to silently overwrite the committed output file and
+    discard the live-call results for arms a/c/d — hard-won API quota, gone, with no warning.
+    Arms not re-scored in a given invocation are now carried forward from the previous output
+    instead of dropped.
+- [x] 21 new unit tests (`tests/test_experiment_statistics.py`) for the bootstrap-CI helpers, the
+  quota-error classifier, the failure histogram, the paired McNemar helper, and
+  `compute_ovr_roc_auc`'s class-order handling — its own docstring already flagged getting
+  `classes` out of column order with `proba_matrix` as a silent-failure risk; this pins that it
+  really does change the answer with no error raised, so the risk stays caught by a test instead
+  of only a comment. Full suite: **65 → 86 passing**, zero failures.
+
+### Problems / Blockers
+**The live-arm data in `control_node_ablation.json` predates this week's hardening and can't be
+regenerated here.** No `GROQ_API_KEY` is available in this environment, and the checkpoint files
+that would have let the histogram/paired-test code run against the already-completed live rows
+are deleted by design once a run finishes successfully (confirmed empty on disk). The new
+`failure_reasons` and `paired_mcnemar_tests` fields are real, tested code — proven correct on
+synthetic data and on the offline arm (b) — but arms a/c/d's committed JSON won't carry populated
+values for them until the ablation is re-run live. Left as a disclosed limitation rather than
+backfilled with guessed numbers.
+
+**Bootstrap CIs are single-seed.** `bootstrap_metric_ci`/`bootstrap_auc_ci` reduce "no CI at all"
+to "a CI from one 10k-resample bootstrap at seed 42" — an improvement, but not the same as
+repeated *data-collection* trials across different random samples, which Week 15's plan also
+asked for and this week doesn't provide.
+
+### Week 16 continued — a live Groq key, a hung-call bug, and a corrected quota story
+
+The author supplied a Groq API key later the same day, enabling the live rerun the section above
+flagged as blocked. Three findings from actually using it:
+
+- **Found and fixed a real infrastructure bug: `ChatGroq` had no request timeout.**
+  `ChatGroq.model_fields` confirmed `timeout` defaults to `None`. One call hung for 84+ minutes
+  with no exception raised, so `explain_with_llm`'s own retry loop (which only catches raised
+  exceptions) never even ran, and the whole live run sat idle. Fixed with `timeout=60` on the
+  shared client (`src/agent/nodes.py`) — bounds worst-case call latency without changing any
+  existing retry logic, since a timeout exception falls through to the same non-retried error path
+  a genuine failure already used.
+- **The daily quota story from Week 15 was correct, and this key has the same real limit.**
+  `x-ratelimit-limit-requests: 1000` and `x-ratelimit-limit-tokens: 8000` (rate-limit response
+  headers) looked like a far more generous budget than the 200,000-tokens/day figure documented
+  Week 15, and the live ablation was paced against those headers (`--daily-call-budget`,
+  `experiments/control_node_ablation.py`) on that assumption. That assumption was wrong: those two
+  headers describe a secondary, non-binding limit. Directly reproducing a 429 revealed Groq's actual
+  message — `"Rate limit reached ... on tokens per day (TPD): Limit 200000, Used 199789"` — the same
+  200k/day ceiling as before, just not visible in the headers being watched. Lesson: when a
+  documented constraint and a live number disagree, reproduce the actual failure directly rather
+  than trusting whichever metric is easiest to read.
+- **A real accounting bug in this session's own two-proportion significance tests, caught before
+  it reached the paper.** The control-node ablation ran all four arms to `"complete": true` at
+  `n_total=999`, which reads as "fully scored at scale" — but arms c and d hit the real 200k-TPD
+  wall mid-run: arm c has 796/999 scored (203 unscored), arm d has only 33/999 scored (966
+  unscored). `compute_arm_metrics`'s accuracy is correctly computed over *scored* rows only, but
+  the first pass of `control_node_ablation_two_proportion_tests.json` used `n_total` (999) as the
+  sample size for arms c and d anyway, understating their true uncertainty. Corrected to use
+  `n_scored`: arm (a) vs (d) moves from a spuriously tight 95% CI of `[0.2995, 0.3812]` to the
+  honest, wider `[0.1718, 0.5097]` (still p=1.6e-5, still real, just correctly uncertain at n=33).
+  Arm (b) verdicts are unaffected by any of this — the RF decides regardless of Groq's state, so
+  `n_scored == n_total == 999` for arms (a) and (b) no matter what happens to the LLM calls.
+
+**Net result:** arms (a) and (b) now have genuine full-999 data (RF-only, immune to the token cap).
+Arm (c) improved substantially (203 → to 796 scored, up from the Week 15 run's smaller live subset).
+Arm (d) did **not** improve — 33 scored rows is fewer than Week 15's 42/299 — because llm_primary
+sends every alert to the LLM unconditionally and hit the daily cap almost immediately. This remains
+the one genuinely data-starved arm, for the same real, unresolved reason as before.
+
+Also, entirely offline (no Groq calls, no quota risk): the `GUIDE_Test.csv` holdout evaluation was
+expanded from 999 to 15,000 alerts (5,000/class), with a matched-scale train-sampled reference
+(`experiments/large_train_sampled_rf_eval.py`, new). At the larger sample the held-out-vs-train
+accuracy gap's 95% CI **excludes zero** (`[-0.0629, -0.0062]` at n=15000 vs n=999;
+`[-0.0461, -0.0257]` at a fully matched n=15000 vs n=15000) — the smaller n=999 sample lacked the
+power to detect what is a real, if small, generalisation gap. This is the clean payoff of "larger
+sample" this week: not a different answer, a truer one the smaller sample couldn't see.
+
+### Next week plan
+- Arm (d) (`llm_primary`) remains the one arm still meaningfully data-starved (n=33). No amount of
+  better pacing fixes this on the current key/tier — it needs either patient accumulation over many
+  more days against the 200k-TPD rolling window, or a higher-tier key.
+- The high-cardinality identifier feature-inflation ablation and incident-level (rather than
+  row-level) splits are still outstanding, carried from Week 15.
+- Analyst-rated evaluation of explanation quality — still the one gap none of this closes.
+
 ### Still open — supervisor decisions, not mine
 1. **Paper declarations**, deferred on 11 August: funding, competing interests, ethics approval,
    ORCID, repo visibility, and **co-authorship** (still a `TODO` in the author block).
@@ -1548,6 +1694,126 @@ affect a verdict, accuracy evaluation is identical with the LLM switched off
 4. Three commits on `main` (`7cbc58b`, `ad02c85`, `61ea961`) carry AI co-authorship trailers,
    conflicting with the project's attribution policy. Rewriting shared history needs an explicit
    decision; still not raised in an issue.
+
+---
+
+## Week 17 — a verification pass, and the leakage the exact-row check could not see
+
+**Branch:** `asma-week-17-verification` (based on `asma-week-16`)
+
+A full audit of the repository for claims that were asserted rather than measured. Three
+things came out of it: one genuine methodological finding, three numbers that no code in
+this repository computed, and a set of artifacts that could be mistaken for current results.
+
+### The finding: incident-level label leakage
+
+Since Week 15 every train-sampled figure has carried the same disclosure — exact-row overlap
+with the RF's training slice is ~2%, judged immaterial. That measurement is correct and it
+answers the wrong question. GUIDE rows are evidence records, several per incident, and
+`IncidentGrade` attaches to the incident. Verified in the training slice: **52,797 of 52,797**
+incidents carry a single label value, and 55.7% of rows belong to a multi-row incident. So one
+labelled row determines every sibling's answer.
+
+`(OrgId, IncidentId)` is a genuine key rather than a colliding field: in a 20,000-row block
+taken from row 5,000,000, **11,142 of 11,142** rows whose key appears in the training slice
+carry the identical label, against a 43.3% chance floor.
+
+Measured overlap, both ways:
+
+| set | exact-row | incident-level |
+|---|---|---|
+| 999-alert train-sampled | 14/999 (1.40%) | **557/999 (55.76%)** |
+| 209-alert control subset | 4/209 (1.91%) | **82/209 (39.23%)** |
+| 999-alert `GUIDE_Test` held-out | 0/999 (0%) | **0/999 (0%)** |
+
+And what it costs, from a natural experiment on 300,000 rows drawn from *past* the training
+slice — rows the model trained on under no circumstances — split by whether their incident was
+seen and class-balanced to identical distributions:
+
+- incident seen in training: **0.8325** accuracy
+- incident never seen: **0.5893** accuracy
+- difference **+0.2432**, 95% CI [+0.2280, +0.2585], and it holds within every class
+  (TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615)
+
+This supplies the mechanism for Week 16's held-out gap, which was measured but unexplained: the
+train-sampled reference is 55.8% leaked, the held-out sample is 0% leaked. It does **not** touch
+Week 15's paired comparison, which scores both models on identical alerts.
+
+### Numbers that were reported but never computed
+- [x] `guardrail_layer_eval.py` hardcoded the regex cost as `3.616` µs — a July constant restated
+  unchanged after Week 15 re-measured the same operation at 2.583. Now timed with `timeit` in the
+  run that reports it: **1.93 µs** on the short alert `benchmark.py` also times (so the two
+  artifacts are finally comparable) and 5.56 µs on a full injection payload.
+- [x] The same file asserted **"AUC 0.46"** in two places and in its own output JSON. No code in
+  this repository computed an AUC. Computed with `roc_auc_score` it is **0.46** — so the claim was
+  accurate and untraceable rather than wrong, and it is now derived.
+- [x] `round(p_value, 6)` collapsed the paper's headline significance figure to `0.0`. The
+  `4.66e-12` survived only inside a prose string. Full precision now stored: **4.657e-12**.
+- [x] Per-layer `finding` prose restated its own counts as literals; now generated from the
+  measurements so text and numbers cannot drift apart.
+
+### Correctness fixes
+- [x] `evaluate.py`'s routing summary counted only `rf_fallback`/`llm`, but `classify_with_rf`
+  writes `rf_primary` — so every rf_primary run reported all-zero routing counts. Visible in
+  `agent_metrics_week15_rf_primary.json`: 999 alerts, `rf_fallback_count: 0`, `llm_count: 0`.
+- [x] `benchmark.py`'s LLM arm ran `build_context` before `fetch_mitre_context`, so every
+  benchmarked prompt was un-enriched while appearing to include the retrieval stage — the same
+  ordering defect `rf_primary` fixed in Week 15, surviving because the benchmark builds its state
+  by hand instead of going through the graph.
+- [x] `benchmark.py` hardcoded `"benchmark": "week7_scalability"`, so `week15_rf_benchmark.json`
+  self-identified as a Week-7 artifact.
+- [x] The evaluation-sample cache compared source files by **mtime**, which changes on any copy or
+  re-download. The 999-alert cache underpinning every 209-alert result was in exactly that state —
+  byte-identical source, later mtime — so it was treated as stale and forced a needless re-stream
+  of all 9.5M rows. Now compares by path and size.
+- [x] Reported accuracy is now labelled as **ungated** and reported alongside the auto-accepted and
+  escalated figures. Roughly a fifth of alerts route to human review but were still scored into the
+  headline number, which overstates what the system acts on unattended.
+
+### The synthetic path never worked
+Two defects together made the documented no-Kaggle-credentials route useless:
+- [x] the generated sample still had non-numeric `AlertTitle` values, which the schema guardrail
+  rejects — 100% of alerts held for human review with no verdict, scored as roughly chance. The
+  generator was fixed in Week 15; the generated file was never refreshed.
+- [x] `SuspicionLevel` and `LastVerdict` were missing from the generator entirely. They are two of
+  three `EVIDENCE_FIELDS` that routing depends on, so `evidence_field_count` could never exceed 1
+  and the LLM branch was unreachable. Now emitted at real GUIDE sparsity (~14% / ~22%) and added to
+  `ALL_RAW_COLUMNS` so `load_alerts()` rejects a file lacking them. A regenerated sample blocks
+  0/5,000 at the guardrail and routes 1,716/5,000 to the LLM branch.
+- [x] `experiments/results/agent_metrics.json` was a **synthetic-data run** (0.375 accuracy)
+  sitting alongside the real results with nothing marking it. Every artifact now carries a
+  `data_source` block with an `is_synthetic` flag, and both the loader and the evaluator shout
+  when they fall back.
+
+### Hygiene
+- [x] Fourteen superseded result files moved to `experiments/results/archive/` with a lineage
+  README giving each one's date, numbers, and what replaced it. Nothing deleted; no code reads them.
+- [x] First tests for the data path (`tests/test_data_pipeline.py`) — `preprocess`, the encoder
+  round-trip and its `-1` unseen-category sentinel, `load_alerts`'s column contract, and the
+  routing predicate. That path had **zero** coverage despite every reported accuracy depending on it.
+- [x] `tests/test_leakage_guard.py` pins the held-out sample at zero incident overlap, so a future
+  change that re-pointed it at `GUIDE_train.csv` would fail loudly instead of silently inflating
+  the headline by ~24 points.
+- [x] `datasets/README.md`: corrected two stale claims (`GUIDE_Test.csv` is no longer "never read
+  by any code"; the download-date provenance cited the wrong cache file) and documented the
+  leakage measurement.
+
+### Branch audit
+All week branches verified: every file on `asma-week-01` through `asma-week-16` is present in
+`asma-week-16`, and nothing is missing from `dev`. Weeks 01–10 read as "not an ancestor" of later
+branches purely because they were squash-merged (e.g. week-08's `76543c4` landed as `cc53b52 (#14)`).
+No work was lost anywhere.
+
+### Carried forward, still open
+1. **Paper declarations** — funding, ORCID and co-authorship remain blocked on issue #16.
+2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since Week 10.
+3. **PRs #25, #26, #27 are all open and unreviewed.** They stack (week-14 ⊂ week-15 ⊂ week-16), so
+   merging #27 alone would deliver all three.
+4. Three commits on `main` carry AI co-authorship trailers, conflicting with the attribution
+   policy. Rewriting shared history needs an explicit decision.
+5. **The grouped-split baseline is diagnostic only.** The deployed model still uses a row-level
+   split; only the measurement of what that costs is new.
+
 
 ---
 
@@ -1849,3 +2115,137 @@ The README also gained a documentation index this session. `docs/project-explain
 `docs/demo-runbook.md` had been written but were mentioned only once, mid-file, in prose — they were
 effectively unfindable in a repository this size, which defeats the purpose of writing them.
 
+meeting notes (2026-09-01, from Dr. Rana) —
+- ablation study on the new rf vs llm control nodes
+- testing throughly- no testing on "learned" data
+- what happens on incomplete context on incoming alert? optimise technique? recall vs accuracy vs f1... ROC/AUC combination
+- mention explicitly results - eg incomplete info- SHOW in the paper on the findings and the reasonings behind it- explain results and its findings- based on experiments- through testing- everything needs to backed by evidence- write it correctly with figures and experiments
+- ensure the paper is updated and correct and throughly on overleaf (consise in stating and explaiantions using natural human formal scientific easy to understand and comprehend language)
+
+### Continued (2026-09-01 through 2026-09-03): the five meeting-note items, closed out one at a time
+
+The five bullets above sat unprocessed for two days before this write-up, which is itself worth
+recording: three of them ("no testing on learned data", "what happens on incomplete context", and
+"ablation study on the RF/LLM control nodes") turned out to be the same underlying gap asked three
+ways, and treating them as three separate to-dos would have meant three overlapping pieces of work
+instead of one connected one. What follows covers each bullet against what was actually measured,
+not what was planned.
+
+**"No testing on learned data" → `datasets/GUIDE_Test.csv` had never been read by any code in this
+repository.** `grep -rn "GUIDE_Test" .` outside `datasets/` returned nothing before this week.
+Every accuracy figure in the paper, including the paired 209-alert comparison, was measured on
+samples of `GUIDE_train.csv` — the file the Random Forest trains on — with a small, already-disclosed
+1.91% training-row overlap. "Immaterial overlap" and "evaluated on data the model could not have
+seen" are different claims, and only this week's `experiments/guide_test_holdout_eval.py` makes the
+second one true. It draws a fresh, class-balanced 999-alert sample from `GUIDE_Test.csv` and scores
+the existing trained model against it without retraining:
+
+| Sample | Accuracy | Macro F1 | n |
+|---|---|---|---|
+| `GUIDE_train`-sampled, evidence-rich subset | 0.6555 | 0.6035 | 209 |
+| `GUIDE_train`-sampled, full pipeline | 0.7347 | 0.7307 | 999 |
+| **`GUIDE_Test.csv`, held-out** | **0.7047** | **0.7001** | 999 |
+
+The gap (−0.0300) sits right at the edge of the ±3-point band already used elsewhere in this project
+to call a single 999-alert run noise. Reported as a close call, not a clean pass — the direction is a
+real drop even if its size can't be distinguished from sampling variance at this n. Per-class recall
+shows where it concentrates: FalsePositive recall falls to 0.532 against BenignPositive's 0.826 and
+TruePositive's 0.757, so the model degrades unevenly, not across the board. Checked and ruled out one
+candidate explanation directly rather than leaving it as a caveat: unseen-category encoding
+(`transform_with_encoders()` maps values the training encoders never saw to −1 instead of crashing)
+fired on only 0.4% of alerts, so it isn't what's driving the FalsePositive-recall drop. A 60-alert
+live smoke run through the actual `rf_primary` graph — including the LLM explanation call — produced
+zero crashes and predicted labels matching the offline prediction on every row, confirming the
+explanation-can't-alter-a-verdict property holds on data the model has never had a chance to see, not
+only on samples of its training file.
+
+**"What happens on incomplete context" and "ablation study on the RF/LLM control nodes" → answered
+together, because they're the same question.** Built `experiments/control_node_ablation.py`: four
+graph configurations (RF decides + explains, RF decides only, the retired evidence-routed
+`legacy_hybrid`, and a new `llm_primary` mode that forces the LLM to decide every alert regardless of
+evidence — added to `src/agent/graph.py` specifically because no existing mode could answer this),
+each scored on the same alerts and broken out by how many evidence fields (0–3) each alert has
+populated. `src/agent/benchmark.py`'s `RUNNERS` dict was also cleaned up in the same pass: its
+`"hybrid"` key had meant the Weeks 6–14 routed pipeline before Week 15, but had silently pointed at
+the current `rf_primary` default since — kept as a deprecated alias so old invocations and the
+already-committed `week7_scalability_benchmark.json` aren't reinterpreted, with `"rf_primary"` and
+`"llm_primary"` as the correctly-named current options.
+
+Two results, one clean, one hit an external limit worth recording honestly:
+
+- **The architecture claim is now verified, not assumed.** Running with the LLM explanation call on
+  and off across 299 identical live alerts produced zero mismatched verdicts or confidences — exactly
+  what Section 3.1's design description already asserted, now checked under live conditions rather
+  than read off the code.
+- **The evidence-density question.** `legacy_hybrid`'s live routing (RF for evidence-poor alerts,
+  LLM for evidence-rich ones — the same rule the Weeks 6–14 pipeline used) shows RF holding
+  0.7698/0.7660 accuracy at bins 0–1 and the LLM collapsing to 0.3793/0.1538 at bins 2–3, the exact
+  alerts it's supposed to be strongest on. This reproduces the paired 209-alert finding through a
+  completely independent measurement path — live per-bin routing instead of a reconstructed subset —
+  and rules out the alternative explanation that the 209-alert subset happened to be unrepresentative.
+
+**What went wrong, and what it cost.** The ablation was originally signed off at full scale: all four
+alerts at 999 alerts each for the live arms, ~2,207 Groq calls. Roughly 300 calls into the first run,
+every explanation call started failing. Investigated by calling `explain_with_llm` directly rather
+than guessing from the retry-wrapped error text, which turned out to matter — the actual message was
+a hard daily quota: `openai/gpt-oss-20b`'s 200,000 tokens/day limit, with 199,917 already used. Not a
+transient rate limit that a longer retry would clear: at roughly 600–700 tokens per call, that budget
+covers about 300–320 calls a day, not the ~2,200 the full design needed, and Groq's quota is a rolling
+24-hour window rather than a fixed reset, so waiting it out in full would have taken an estimated
+6–11 days. Re-scoped to a stratified 299-alert sample (`--reduced`, bin targets 126/94/50/29 — bin 3
+kept at its full population since it's already the thinnest bin in the cache) sized for a realistic
+1–2 day quota budget instead. Even that lost most of the `llm_primary` arm's calls: only 42 of 299
+scored, some bins down to single digits (bin 3: n=1, correctly excluded from the reported figure
+rather than plotted as if it meant something). `legacy_hybrid`'s evidence-rich bins lost about 40% of
+their rows the same way but kept usable support (n=29, n=13), which is why the paper's headline claim
+for this section rests on that arm and not on `llm_primary`. A calibration table computed over
+`llm_primary`'s 42 scored rows technically showed the auto-accept gate "not inverted", but 257 of the
+280 "escalated" rows in that table are unscored alerts with no real confidence value, not
+low-confidence predictions — reporting that number as a calibration finding would have measured how
+much data the quota outage removed, not how the model calibrates, so it isn't reported as one.
+
+Two backgrounding lessons, the same class of mistake this project's retrospectives keep finding in
+different clothes. First, `nohup ... &` inside a single shell call returns as soon as the wrapper
+shell backgrounds the job, which reports as "completed" the instant it launches — the actual process
+was still running for twenty-plus minutes afterward, untracked. The properly-backgrounded rerun (no
+`nohup`) was later killed by something outside this session's control after about twenty minutes
+regardless, which meant a long-running live job needed a mechanism to survive being killed at all —
+checkpointing (`experiments/results/.control_node_ablation_checkpoints/arm_<key>.jsonl`, one flushed
+line per completed row, deleted on a clean finish) was added specifically because of that, and it's
+what let a `nohup`-detached, fully independent-of-this-session final run actually finish overnight
+without losing the rows already paid for.
+
+**ROC/AUC.** Not computed anywhere in this repository before this week — checked directly
+(`grep -i "roc_auc\|roc_curve"` across `src/` and `experiments/` returned nothing for the live
+pipeline). Added `experiments/roc_auc_analysis.py`: multiclass one-vs-rest ROC/AUC from the RF's
+`predict_proba`, which the pipeline already computes for the margin gate. Macro AUC is 0.887 on the
+`GUIDE_Test.csv` held-out sample and 0.7636 on the 209-alert control set. No equivalent number is
+reported for the LLM — its `{"high","medium","low"}` self-report is not a calibrated probability, so
+there's no score to sweep a threshold over. Confidence-band-vs-accuracy calibration (already in the
+paper, Section 4.6) is the honest analog, not a substitute computed the same way; stating that
+explicitly in the paper text was deliberate, since silently omitting an LLM AUC without explanation
+would read as an oversight rather than a considered choice.
+
+**Paper: synced and extended, not pushed.** `docs/paper/latex/ijis-draft.tex` (on
+`recovered-paper-springer-ijis`, local-only per Dr. Rana's standing instruction) hadn't been touched
+since 2026-08-06 and still carried the pre-Week-15 title, abstract, and Section IV — an entirely
+different thesis (the guardrail-transfer negative result) from what `draft.md` has led with since the
+Week 15 restructure. Ported the current content across first, as its own commit, before adding
+anything new, redrew the Section 3.1 pipeline figure for the current `rf_primary` graph (the old TikZ
+diagram showed the retired routed `classify_with_llm | rf_fallback` graph), then added two new
+sections: 4.10 (the `GUIDE_Test.csv` holdout) and 4.11 (the control-node ablation and evidence-density
+result). Four new figures (`rf_llm_accuracy_comparison.png`, `llm_confidence_calibration.png`,
+`roc_curves_rf.png`, `accuracy_by_evidence_count.png`), and `throughput_scaling.png` regenerated to
+drop the hybrid panel the paper's own text had already flagged as stale. The abstract picked up one
+new sentence for the held-out result and was recounted rather than estimated — 241 words, still
+inside the venue's 150–250 range. Compiled cleanly with `tectonic` after each addition (15 pages,
+zero undefined references on the second pass) rather than assumed to compile. `docs/final-report.md`
+(the in-repo, pushed deliverable) mirrors the same two new sections as 5.8 and 5.9.
+
+Overleaf: no project existed in the repo before this — confirmed via `git grep` across every branch,
+including both paper branches. Set up `git subtree split --prefix=docs/paper/latex -b
+overleaf-subtree` (verified the split root actually contains `ijis-draft.tex`/`references.bib`/
+`svjour3.cls`/`svglov3.clo` directly, since Overleaf's git bridge expects those at the repository
+root, not nested under `docs/paper/latex/`) and added the `overleaf` remote. The authenticated push
+(`git push overleaf overleaf-subtree:master`) needs a personal Overleaf git-integration token this
+environment doesn't have, so it's left as the one manual step.

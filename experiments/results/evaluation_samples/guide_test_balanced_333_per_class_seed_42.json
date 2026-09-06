@@ -1,0 +1,9 @@
+{
+  "data": {
+    "path": "datasets/GUIDE_Test.csv",
+    "size_bytes": 1087963831,
+    "modified_ns": 1720674456000000000
+  },
+  "sample_per_class": 333,
+  "seed": 42
+}

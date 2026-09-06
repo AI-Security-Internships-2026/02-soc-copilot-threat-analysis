@@ -1,0 +1,107 @@
+{
+  "experiment": "RandomForest baseline trained twice on identical rows with identical hyperparameters, varying only the split rule: row-level stratified (the deployed protocol) vs incident-level GroupShuffleSplit",
+  "generated_at_utc": "2026-09-04T13:40:31.249715+00:00",
+  "git_sha": "24cfc48",
+  "diagnostic_only": "This script does NOT write baseline_model.joblib. The deployed model and every pipeline result derived from it are unchanged.",
+  "data_source": "datasets/GUIDE_train.csv",
+  "max_rows": 100000,
+  "n_alerts_after_preprocess": 99475,
+  "n_features": 40,
+  "n_incidents": 52797,
+  "split": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "group_key": [
+      "OrgId",
+      "IncidentId"
+    ]
+  },
+  "estimator": "RandomForestClassifier(n_estimators=200, random_state=42)",
+  "published_reference": {
+    "source": "experiments/results/baseline_metrics.json (Table 3)",
+    "accuracy": 0.7718,
+    "macro_f1": 0.7505,
+    "note": "The ungrouped arm below re-runs that protocol here so both arms share a sklearn version and feature encoding; it should land close to this published figure."
+  },
+  "ungrouped_row_level_split": {
+    "n_test": 19895,
+    "accuracy": 0.7718,
+    "accuracy_bootstrap_ci": {
+      "point": 0.7718,
+      "ci_lower": 0.7658,
+      "ci_upper": 0.7777,
+      "confidence": 0.95,
+      "n": 19895,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "macro_f1": 0.7505,
+    "macro_f1_bootstrap_ci": {
+      "point": 0.7505,
+      "ci_lower": 0.7439,
+      "ci_upper": 0.7569,
+      "confidence": 0.95,
+      "n": 19895,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.750     0.873     0.807      8605\n FalsePositive      0.755     0.580     0.656      4313\n  TruePositive      0.814     0.766     0.789      6977\n\n      accuracy                          0.772     19895\n     macro avg      0.773     0.739     0.751     19895\n  weighted avg      0.773     0.772     0.768     19895\n",
+    "holdout_rows_sharing_an_incident_with_train": 10611,
+    "holdout_incident_leakage_rate": 0.5334
+  },
+  "grouped_incident_level_split": {
+    "n_test": 19934,
+    "accuracy": 0.7435,
+    "accuracy_bootstrap_ci": {
+      "point": 0.7435,
+      "ci_lower": 0.7374,
+      "ci_upper": 0.7495,
+      "confidence": 0.95,
+      "n": 19934,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "macro_f1": 0.7118,
+    "macro_f1_bootstrap_ci": {
+      "point": 0.7118,
+      "ci_lower": 0.7049,
+      "ci_upper": 0.7185,
+      "confidence": 0.95,
+      "n": 19934,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.741     0.847     0.791      8962\n FalsePositive      0.669     0.523     0.587      3947\n  TruePositive      0.782     0.736     0.758      7025\n\n      accuracy                          0.743     19934\n     macro avg      0.731     0.702     0.712     19934\n  weighted avg      0.741     0.743     0.739     19934\n",
+    "holdout_rows_sharing_an_incident_with_train": 0,
+    "holdout_incident_leakage_rate": 0.0
+  },
+  "accuracy_gap_ungrouped_minus_grouped": {
+    "point_a": 0.7718,
+    "point_b": 0.7435,
+    "point_diff": 0.0283,
+    "ci_lower": 0.0199,
+    "ci_upper": 0.0368,
+    "confidence": 0.95,
+    "n_a": 19895,
+    "n_b": 19934,
+    "n_resamples": 10000,
+    "significant_at_confidence": true,
+    "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+    "interpretation": "metric(a)-metric(b) = +0.0283, 95% CI [+0.0199, +0.0368]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+  },
+  "macro_f1_gap_ungrouped_minus_grouped": {
+    "point_a": 0.7505,
+    "point_b": 0.7118,
+    "point_diff": 0.0388,
+    "ci_lower": 0.0295,
+    "ci_upper": 0.0483,
+    "confidence": 0.95,
+    "n_a": 19895,
+    "n_b": 19934,
+    "n_resamples": 10000,
+    "significant_at_confidence": true,
+    "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+    "interpretation": "metric(a)-metric(b) = +0.0388, 95% CI [+0.0295, +0.0483]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+  },
+  "finding": "Holding data, features and hyperparameters fixed and changing only the split rule, holdout accuracy moves from 0.7718 (row-level, 53.3% of holdout rows share an incident with training) to 0.7435 (incident-level, 0.0%). Difference +0.0283, 95% CI [+0.0199, +0.0368] -- excludes 0, so the published baseline is inflated by the split rule by a measurable amount."
+}

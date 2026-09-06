@@ -27,7 +27,10 @@ the Random Forest scored **0.6555** accuracy against the LLM's **0.2823**, below
 obtained by always answering `BenignPositive` (exact McNemar p = 4.66e-12). The LLM's self-reported
 confidence was *inversely* calibrated. The pipeline was restructured so the classifier assigns every
 verdict and the LLM only explains it, taking whole-pipeline accuracy from **0.6456 to 0.7347** on the
-same 999 alerts. Details in [`docs/final-report.md`](docs/final-report.md) §5.2–5.4.
+same 999 alerts — and **0.6998 on Microsoft's held-out split** (n=15,000), which is the figure to
+quote, because GUIDE's label is incident-level and 55.8% of any train-sampled evaluation set shares
+an incident with training. Details in [`docs/final-report.md`](docs/final-report.md) §5.2–5.4 and
+§5.10.
 
 ```bash
 # see it for yourself (offline, ~10 seconds, no API key needed)
@@ -144,7 +147,7 @@ python src/main.py
 
 ## Roadmap to September 8, 2026
 
-**Current state:** **the Random Forest assigns every verdict; the LLM writes the analyst-facing explanation and cannot influence the outcome** (Week 15). Week 15's control experiment scored both models on the *same* 209 alerts — removing the routing confound that made every earlier comparison unreadable — and found the LLM at 0.2823 accuracy against the RF's 0.6555, below the 0.4928 you get by always answering BenignPositive (exact McNemar p = 4.66e-12), with its self-reported confidence *inversely* calibrated. Restructuring on that evidence moved the full pipeline from 0.6456 to 0.7347 accuracy on the identical 999-alert sample. Also current: regex + deterministic schema input guardrails (measured at 5% and 100% injection recall respectively), MITRE ATT&CK enrichment (resolution fixed from 45.8% to 100%), a Wazuh alert-schema adapter, a deepteam red-team evaluation, `docs/final-report.md`, `docs/project-explained.md` (from-zero explainer) and `docs/demo-runbook.md`. The journal paper draft is kept outside this public repo per supervisor guidance — see `.gitignore`.
+**Current state:** **the Random Forest assigns every verdict; the LLM writes the analyst-facing explanation and cannot influence the outcome** (Week 15). Week 15's control experiment scored both models on the *same* 209 alerts — removing the routing confound that made every earlier comparison unreadable — and found the LLM at 0.2823 accuracy against the RF's 0.6555, below the 0.4928 you get by always answering BenignPositive (exact McNemar p = 4.66e-12), with its self-reported confidence *inversely* calibrated. Restructuring on that evidence moved the full pipeline from 0.6456 to 0.7347 accuracy on the identical 999-alert sample. **On Microsoft's held-out `GUIDE_Test.csv` split the restructured pipeline scores 0.6998 (n=15,000), and that is the figure to quote** — Week 17 measured that GUIDE's label is incident-level, so 55.8% of any train-sampled evaluation set shares an incident with training, and on rows the model never trained on a shared incident is worth 24.3 accuracy points (95% CI [+0.228, +0.259]). See `docs/final-report.md` §5.10. Also current: regex + deterministic schema input guardrails (measured at 5% and 100% injection recall respectively), MITRE ATT&CK enrichment (resolution fixed from 45.8% to 100%), a Wazuh alert-schema adapter, a deepteam red-team evaluation, `docs/final-report.md`, `docs/project-explained.md` (from-zero explainer) and `docs/demo-runbook.md`. The journal paper draft is kept outside this public repo per supervisor guidance — see `.gitignore`.
 
 **Novel contribution, landed:** built a second-stage ML classifier (TF-IDF+LogReg, selected over LlamaFirewall/Prompt Guard on Ehsanullah's benchmark), then tested it against real GUIDE alert data and found it doesn't transfer — benign and injection scores are statistically indistinguishable on SOC-domain text (0.209 vs 0.224 mean), even though it scores 0.883 F1 on the chat-jailbreak-style set it was benchmarked on. Replaced with a deterministic schema/type guardrail instead of gating on the non-transferring classifier. This domain-mismatch finding, not the classifier itself, is the actual contribution.
 
