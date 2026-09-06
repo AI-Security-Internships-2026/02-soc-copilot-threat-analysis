@@ -79,7 +79,7 @@ the LLM/RF routing stage. `tests/test_wazuh_adapter.py` covers the mapping (incl
 severity-bucketing and missing-MITRE cases) and asserts mapped output passes
 `validate_field_types()` unchanged.
 
-## Known limitation, found during audit: RF fallback path is unvalidated for Wazuh alerts
+## Known limitation, found during audit: the RF path is unvalidated for Wazuh alerts
 
 The LLM/guardrail path is safe for Wazuh-origin alerts (verified above). The **RF fallback path is
 not** — worth being explicit about this rather than letting it look more validated than it is.
@@ -100,12 +100,41 @@ rate is a different distribution than anything in GUIDE, where the model's missi
 was learned. There's no evidence the resulting predictions are reliable, and no evidence they
 aren't; it's genuinely unvalidated, not verified-bad.
 
-**Recommendation, not yet implemented:** until there's labeled Wazuh data to check RF-fallback
-accuracy against, treat any `rf_fallback`-routed verdict on a Wazuh-origin alert as needing human
-review regardless of the probability score, rather than trusting the same confidence thresholds
-calibrated on GUIDE. Implementing that requires tagging alerts with their origin through the
-pipeline state, which touches `graph.py`/`nodes.py` routing — deliberately not done as a quick
-patch in this same session; flagging it here for a scoped follow-up instead.
+**Recommendation, not yet implemented:** until there's labeled Wazuh data to check RF accuracy
+against, treat any verdict on a Wazuh-origin alert as needing human review regardless of the
+probability score, rather than trusting thresholds calibrated on GUIDE. Implementing that requires
+tagging alerts with their origin through the pipeline state, which touches `graph.py`/`nodes.py`
+routing — flagged here for a scoped follow-up rather than patched in passing.
+
+### Week 15 update: this limitation got wider, not narrower
+
+The paragraphs above were written when the RF was a *fallback*, reached only by alerts with fewer
+than two populated evidence fields. Week 15 made the Random Forest the primary classifier: it now
+assigns the verdict for **every** alert, and the LLM only writes the explanation
+(`docs/weekly-progress.md` Week 15).
+
+So the caveat no longer applies to a subset of Wazuh traffic — **it applies to all of it.** Every
+Wazuh-origin alert now gets a verdict from a model trained solely on GUIDE, against a feature
+vector roughly 62% missing, with no out-of-distribution check anywhere in the path. The failure
+mode is unchanged and still the dangerous kind: it does not error, it returns a plausible label and
+a plausible probability.
+
+Two things partly offset this, and neither resolves it:
+
+- The review gate is now keyed on the RF's **decision margin** (top-1 minus top-2 probability) at a
+  0.20 threshold rather than on a bucketed probability. On GUIDE that margin is monotonically
+  related to accuracy, so genuinely uncertain predictions are escalated. Whether that relationship
+  survives a 62%-missing feature vector is exactly what has not been tested — an uncalibrated model
+  can be confidently wrong, and margin is a calibration property.
+- Wazuh alerts now also pass through the schema guardrail on `AlertTitle`/`DetectorId`, which the
+  adapter populates from `rule.id`. That catches malformed input, not distribution shift.
+
+**Revised recommendation.** An origin tag in `AlertState` and a hard "always review non-GUIDE
+alerts" rule is now the minimum bar for running this pipeline against a live Wazuh feed, and it
+should land before any deployment rather than after. The alternative — validating RF accuracy on
+labelled Wazuh data — remains the better answer and still requires data that does not exist yet.
+Until one of those happens, the honest description of Wazuh support is *a validated schema adapter
+with an unvalidated classifier behind it*.
 
 ## What full integration would require (future work, not done this week)
 

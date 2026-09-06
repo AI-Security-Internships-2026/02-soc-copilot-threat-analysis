@@ -1,9 +1,23 @@
-"""Low-context fallback to the trained Random Forest baseline.
+"""The trained Random Forest classifier that decides every alert's verdict.
 
-The LLM is useful when an alert contains analyst-readable evidence.  GUIDE
-alerts with most of that evidence missing are different: categorical values are
-numeric dataset codes, so an LLM has little basis for a per-alert judgement.
-For that narrow case, use the already-trained structured-data classifier.
+Until Week 15 this was a narrow fallback: the pipeline sent well-evidenced
+alerts to the LLM and used this model only for sparse ones. Week 15's control
+experiment (experiments/rf_vs_llm_control.py) scored both models on the exact
+same 209 well-evidenced alerts -- the ones the router had been sending to the
+LLM -- and removed the confound that had made the comparison unreadable:
+
+    RandomForest   accuracy 0.6555   macro F1 0.6035
+    LLM            accuracy 0.2823   macro F1 0.2121
+    always-guess-BenignPositive      0.4928
+
+The LLM scored 21 points below a constant answer on the alerts specifically
+chosen as its best case, and the RF beat it on 105 of the 132 alerts where
+exactly one of them was right (exact McNemar p = 4.7e-12). Those alerts were
+not intrinsically hard; the LLM was simply worse at this task.
+
+So label authority moved here, and the LLM moved to writing the analyst-facing
+explanation. The name of this module is kept for continuity with the Weeks 6-14
+results files that reference it.
 """
 
 from __future__ import annotations
@@ -13,6 +27,7 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+import numpy as np
 import pandas as pd
 
 from src.data.preprocess import transform_with_encoders
@@ -79,9 +94,33 @@ def _to_feature_frame(alert: dict[str, Any], model, encoders: dict) -> pd.DataFr
 
 def predict_with_fallback(alert: dict[str, Any]) -> tuple[str, float]:
     """Return the RF label and its maximum class probability for one alert."""
+    label, probability, _ = predict_with_margin(alert)
+    return label, probability
+
+
+def predict_with_margin(alert: dict[str, Any]) -> tuple[str, float, float]:
+    """Return the RF label, its top-1 probability, and its decision margin.
+
+    The margin is top-1 minus top-2 probability, and it is the quantity the
+    pipeline gates human review on (Week 15). Max probability alone cannot
+    distinguish a genuine call from a coin flip: 0.45 with a 0.44 runner-up is
+    a near-tie, while 0.45 with a 0.10 runner-up is decisive, yet both look
+    identical to a threshold on max probability.
+
+    Week 15 measured both signals on the same 209 alerts
+    (experiments/rf_vs_llm_control.py). Accuracy among auto-accepted alerts
+    rises monotonically with this margin -- 0.648 at a 0.05 threshold through
+    0.761 at 0.50 -- so it is a usable confidence signal. The LLM's own
+    self-reported confidence was inverted over the same alerts (0.256 accurate
+    when it said "high" versus 0.383 when it said "medium"), which is why
+    label authority and the review gate both moved to the RF.
+    """
     artifact = _load_model()
     model = artifact["model"]
     features = _to_feature_frame(alert, model, artifact["encoders"])
-    label = str(model.predict(features)[0])
-    probability = float(model.predict_proba(features)[0].max())
-    return label, probability
+    probabilities = model.predict_proba(features)[0]
+    order = np.argsort(probabilities)[::-1]
+    label = str(model.classes_[order[0]])
+    top1 = float(probabilities[order[0]])
+    top2 = float(probabilities[order[1]]) if len(probabilities) > 1 else 0.0
+    return label, top1, top1 - top2

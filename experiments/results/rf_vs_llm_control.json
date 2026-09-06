@@ -1,0 +1,2017 @@
+{
+  "experiment": "RandomForest vs LLM on the identical LLM-routed alert subset",
+  "question": "Prior comparisons scored the two models on different alerts, so a lower LLM score could have meant the LLM-routed alerts were harder. This scores both models on the same rows to remove that confound.",
+  "generated_at_utc": "2026-08-31T15:33:47.091256+00:00",
+  "git_sha": "2a8c43f",
+  "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
+  "llm_model": "openai/gpt-oss-20b (Groq), improved prompt",
+  "llm_results_source": "experiments/results/llm_subset_eval_improved_full209.json",
+  "evaluation_sample": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
+  "routing_rule": "evidence_field_count >= 2 (src/agent/fallback_classifier.py)",
+  "reference_baselines": {
+    "class_distribution": {
+      "TruePositive": 61,
+      "BenignPositive": 103,
+      "FalsePositive": 45
+    },
+    "majority_class": "BenignPositive",
+    "majority_class_accuracy": 0.4928,
+    "uniform_random_accuracy": 0.3333
+  },
+  "randomforest": {
+    "n": 209,
+    "accuracy": 0.6555,
+    "macro_f1": 0.6035,
+    "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.634     0.893     0.742       103\n FalsePositive      0.769     0.444     0.563        45\n  TruePositive      0.658     0.410     0.505        61\n\n      accuracy                          0.656       209\n     macro avg      0.687     0.582     0.603       209\n  weighted avg      0.670     0.656     0.634       209\n"
+  },
+  "llm": {
+    "n": 209,
+    "accuracy": 0.2823,
+    "macro_f1": 0.2121,
+    "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.433     0.252     0.319       103\n FalsePositive      0.000     0.000     0.000        45\n  TruePositive      0.224     0.541     0.317        61\n\n      accuracy                          0.282       209\n     macro avg      0.219     0.264     0.212       209\n  weighted avg      0.279     0.282     0.250       209\n"
+  },
+  "paired_mcnemar_test": {
+    "both_correct": 32,
+    "rf_correct_llm_wrong": 105,
+    "llm_correct_rf_wrong": 27,
+    "both_wrong": 45,
+    "discordant_pairs": 132,
+    "p_value": 0.0,
+    "interpretation": "Of the 132 alerts where the two models disagreed in correctness, the RF was the correct one in 105. Under the null hypothesis that both models are equally accurate this split has p = 4.66e-12."
+  },
+  "llm_confidence_calibration": {
+    "by_band": {
+      "high": {
+        "n": 160,
+        "correct": 41,
+        "accuracy": 0.2562
+      },
+      "low": {
+        "n": 2,
+        "correct": 0,
+        "accuracy": 0.0
+      },
+      "medium": {
+        "n": 47,
+        "correct": 18,
+        "accuracy": 0.383
+      }
+    },
+    "gate_behaviour": {
+      "auto_accepted_n": 160,
+      "auto_accepted_accuracy": 0.2562,
+      "escalated_to_human_n": 49,
+      "escalated_accuracy": 0.3673,
+      "gate_is_inverted": true
+    }
+  },
+  "rf_margin_gate_analysis": {
+    "sweep": [
+      {
+        "margin_threshold": 0.0,
+        "auto_accepted_n": 209,
+        "auto_accepted_accuracy": 0.6555,
+        "escalated_n": 0,
+        "escalation_rate": 0.0
+      },
+      {
+        "margin_threshold": 0.05,
+        "auto_accepted_n": 196,
+        "auto_accepted_accuracy": 0.648,
+        "escalated_n": 13,
+        "escalation_rate": 0.0622
+      },
+      {
+        "margin_threshold": 0.1,
+        "auto_accepted_n": 187,
+        "auto_accepted_accuracy": 0.6578,
+        "escalated_n": 22,
+        "escalation_rate": 0.1053
+      },
+      {
+        "margin_threshold": 0.15,
+        "auto_accepted_n": 177,
+        "auto_accepted_accuracy": 0.6723,
+        "escalated_n": 32,
+        "escalation_rate": 0.1531
+      },
+      {
+        "margin_threshold": 0.2,
+        "auto_accepted_n": 168,
+        "auto_accepted_accuracy": 0.6905,
+        "escalated_n": 41,
+        "escalation_rate": 0.1962
+      },
+      {
+        "margin_threshold": 0.3,
+        "auto_accepted_n": 135,
+        "auto_accepted_accuracy": 0.7111,
+        "escalated_n": 74,
+        "escalation_rate": 0.3541
+      },
+      {
+        "margin_threshold": 0.4,
+        "auto_accepted_n": 114,
+        "auto_accepted_accuracy": 0.7368,
+        "escalated_n": 95,
+        "escalation_rate": 0.4545
+      },
+      {
+        "margin_threshold": 0.5,
+        "auto_accepted_n": 92,
+        "auto_accepted_accuracy": 0.7609,
+        "escalated_n": 117,
+        "escalation_rate": 0.5598
+      }
+    ]
+  },
+  "rf_training_overlap": {
+    "rf_training_rows_checked": 100000,
+    "evaluation_rows": 209,
+    "exact_row_overlap": 4,
+    "overlap_rate": 0.0191
+  },
+  "per_alert_results": [
+    {
+      "_row_index": 4,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.5848,
+      "rf_margin": 0.2829,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 5,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.4128,
+      "rf_margin": 0.1012,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 8,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.705,
+      "rf_margin": 0.41,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 17,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.765,
+      "rf_margin": 0.62,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 25,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.815,
+      "rf_margin": 0.715,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 38,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.41,
+      "rf_margin": 0.04,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 47,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.65,
+      "rf_margin": 0.3,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 51,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.69,
+      "rf_margin": 0.385,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 53,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.81,
+      "rf_margin": 0.62,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 57,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.725,
+      "rf_margin": 0.575,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 63,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.765,
+      "rf_margin": 0.55,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 68,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.395,
+      "rf_margin": 0.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 70,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.82,
+      "rf_margin": 0.645,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 73,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.815,
+      "rf_margin": 0.65,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 76,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.555,
+      "rf_margin": 0.195,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 84,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.4866,
+      "rf_margin": 0.0182,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 88,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.7,
+      "rf_margin": 0.525,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 89,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.56,
+      "rf_margin": 0.155,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 101,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.53,
+      "rf_margin": 0.155,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 106,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.975,
+      "rf_margin": 0.96,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 107,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.45,
+      "rf_margin": 0.005,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 109,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 110,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 113,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.8,
+      "rf_margin": 0.665,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 116,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.525,
+      "rf_margin": 0.09,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 120,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.82,
+      "rf_margin": 0.675,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 123,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.5323,
+      "rf_margin": 0.2529,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 126,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.52,
+      "rf_margin": 0.115,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 131,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.615,
+      "rf_margin": 0.385,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 134,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.64,
+      "rf_margin": 0.2983,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 138,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.86,
+      "rf_margin": 0.755,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 139,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.8158,
+      "rf_margin": 0.6349,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 154,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.475,
+      "rf_margin": 0.05,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 173,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.55,
+      "rf_margin": 0.275,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 175,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.54,
+      "rf_margin": 0.28,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 177,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.975,
+      "rf_margin": 0.955,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 178,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.515,
+      "rf_margin": 0.225,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 180,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.6733,
+      "rf_margin": 0.3485,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 184,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.72,
+      "rf_margin": 0.525,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 189,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.665,
+      "rf_margin": 0.365,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 197,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.95,
+      "rf_margin": 0.9,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 200,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.615,
+      "rf_margin": 0.355,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 202,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.97,
+      "rf_margin": 0.94,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 207,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.495,
+      "rf_margin": 0.22,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 209,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.765,
+      "rf_margin": 0.53,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 214,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.91,
+      "rf_margin": 0.83,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 228,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.985,
+      "rf_margin": 0.97,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 244,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.68,
+      "rf_margin": 0.36,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 247,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.685,
+      "rf_margin": 0.435,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 252,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.825,
+      "rf_margin": 0.65,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 256,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.63,
+      "rf_margin": 0.28,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 257,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.5575,
+      "rf_margin": 0.28,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 259,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.56,
+      "rf_margin": 0.2575,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 276,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.475,
+      "rf_margin": 0.135,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 278,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.995,
+      "rf_margin": 0.99,
+      "llm_predicted": "FalsePositive",
+      "llm_confidence": "low"
+    },
+    {
+      "_row_index": 285,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.995,
+      "rf_margin": 0.99,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 288,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.5366,
+      "rf_margin": 0.0993,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 291,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.5072,
+      "rf_margin": 0.0743,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 292,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.99,
+      "rf_margin": 0.98,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 303,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.7099,
+      "rf_margin": 0.4316,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 314,
+      "ground_truth": "TruePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.835,
+      "rf_margin": 0.67,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 333,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.875,
+      "rf_margin": 0.795,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 334,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.55,
+      "rf_margin": 0.245,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 338,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.7601,
+      "rf_margin": 0.5496,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 340,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.75,
+      "rf_margin": 0.545,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 347,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.495,
+      "rf_margin": 0.13,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 348,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.99,
+      "rf_margin": 0.98,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 351,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.9571,
+      "rf_margin": 0.9204,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 354,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.4737,
+      "rf_margin": 0.1887,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 359,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.78,
+      "rf_margin": 0.6325,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 362,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.62,
+      "rf_margin": 0.415,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 365,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.975,
+      "rf_margin": 0.96,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 366,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.7646,
+      "rf_margin": 0.5792,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 370,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.54,
+      "rf_margin": 0.145,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 373,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.635,
+      "rf_margin": 0.28,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 377,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.63,
+      "rf_margin": 0.34,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 380,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.7083,
+      "rf_margin": 0.4283,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 384,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.635,
+      "rf_margin": 0.275,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 385,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.64,
+      "rf_margin": 0.435,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 387,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.97,
+      "rf_margin": 0.95,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 392,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.6942,
+      "rf_margin": 0.3885,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 394,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.67,
+      "rf_margin": 0.34,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 397,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.67,
+      "rf_margin": 0.505,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 399,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.8,
+      "rf_margin": 0.665,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 404,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.465,
+      "rf_margin": 0.07,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 413,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.98,
+      "rf_margin": 0.96,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 414,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.68,
+      "rf_margin": 0.495,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 415,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.45,
+      "rf_margin": 0.09,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 416,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.505,
+      "rf_margin": 0.025,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 417,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.9,
+      "rf_margin": 0.84,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 420,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.65,
+      "rf_margin": 0.405,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 422,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.6137,
+      "rf_margin": 0.3987,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 427,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.5783,
+      "rf_margin": 0.2167,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 428,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 434,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.745,
+      "rf_margin": 0.495,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 435,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.915,
+      "rf_margin": 0.87,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 436,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.9062,
+      "rf_margin": 0.8123,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 437,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.6406,
+      "rf_margin": 0.2913,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 439,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.71,
+      "rf_margin": 0.47,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 446,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.695,
+      "rf_margin": 0.41,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 448,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.805,
+      "rf_margin": 0.705,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 451,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.905,
+      "rf_margin": 0.815,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 453,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.685,
+      "rf_margin": 0.44,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 454,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.995,
+      "rf_margin": 0.99,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 469,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.755,
+      "rf_margin": 0.62,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 471,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.935,
+      "rf_margin": 0.875,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 472,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.56,
+      "rf_margin": 0.205,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 473,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.705,
+      "rf_margin": 0.52,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 475,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.44,
+      "rf_margin": 0.12,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 478,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 479,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.8183,
+      "rf_margin": 0.6967,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 480,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.625,
+      "rf_margin": 0.365,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 482,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.456,
+      "rf_margin": 0.0104,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 485,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.53,
+      "rf_margin": 0.19,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 486,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.62,
+      "rf_margin": 0.255,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 490,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.425,
+      "rf_margin": 0.045,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 503,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.7012,
+      "rf_margin": 0.4423,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 506,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.515,
+      "rf_margin": 0.09,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 508,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.635,
+      "rf_margin": 0.28,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 509,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.985,
+      "rf_margin": 0.975,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 511,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.805,
+      "rf_margin": 0.615,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 518,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.535,
+      "rf_margin": 0.245,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 520,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.575,
+      "rf_margin": 0.23,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 524,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.3825,
+      "rf_margin": 0.0214,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 525,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.9862,
+      "rf_margin": 0.9788,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 527,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.44,
+      "rf_margin": 0.09,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 528,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.85,
+      "rf_margin": 0.735,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 535,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.765,
+      "rf_margin": 0.645,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 538,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.795,
+      "rf_margin": 0.61,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 541,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.935,
+      "rf_margin": 0.88,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 542,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.61,
+      "rf_margin": 0.27,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 546,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.625,
+      "rf_margin": 0.3,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 547,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.665,
+      "rf_margin": 0.4,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 548,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.985,
+      "rf_margin": 0.97,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 552,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.81,
+      "rf_margin": 0.665,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 553,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.895,
+      "rf_margin": 0.835,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 554,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.545,
+      "rf_margin": 0.105,
+      "llm_predicted": "FalsePositive",
+      "llm_confidence": "low"
+    },
+    {
+      "_row_index": 560,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.385,
+      "rf_margin": 0.025,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 563,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.68,
+      "rf_margin": 0.435,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 566,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.5,
+      "rf_margin": 0.2375,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 570,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.6,
+      "rf_margin": 0.2,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 571,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.625,
+      "rf_margin": 0.33,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 572,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.56,
+      "rf_margin": 0.315,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 573,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.66,
+      "rf_margin": 0.415,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 580,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.615,
+      "rf_margin": 0.265,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 581,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.98,
+      "rf_margin": 0.965,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 583,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.82,
+      "rf_margin": 0.72,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 600,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.8,
+      "rf_margin": 0.67,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 604,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.985,
+      "rf_margin": 0.97,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 605,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.97,
+      "rf_margin": 0.94,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 606,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.39,
+      "rf_margin": 0.065,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 610,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.61,
+      "rf_margin": 0.38,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 617,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.74,
+      "rf_margin": 0.59,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 623,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.805,
+      "rf_margin": 0.635,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 626,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.74,
+      "rf_margin": 0.525,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 628,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.75,
+      "rf_margin": 0.615,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 630,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.825,
+      "rf_margin": 0.675,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 646,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.895,
+      "rf_margin": 0.825,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 648,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.725,
+      "rf_margin": 0.515,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 654,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.815,
+      "rf_margin": 0.635,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 655,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.61,
+      "rf_margin": 0.22,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 659,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.78,
+      "rf_margin": 0.605,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 663,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.51,
+      "rf_margin": 0.185,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 664,
+      "ground_truth": "BenignPositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.985,
+      "rf_margin": 0.975,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 667,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.76,
+      "rf_margin": 0.555,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 673,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.415,
+      "rf_margin": 0.005,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 681,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 702,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.5,
+      "rf_margin": 0.145,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 716,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.71,
+      "rf_margin": 0.4683,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 734,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.935,
+      "rf_margin": 0.8738,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 741,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.665,
+      "rf_margin": 0.37,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 742,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.585,
+      "rf_margin": 0.275,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 743,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.735,
+      "rf_margin": 0.495,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 749,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.7,
+      "rf_margin": 0.53,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 752,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.53,
+      "rf_margin": 0.15,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 759,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.55,
+      "rf_margin": 0.205,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 772,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.6638,
+      "rf_margin": 0.3377,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 777,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.715,
+      "rf_margin": 0.485,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 781,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.6,
+      "rf_margin": 0.38,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 787,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.73,
+      "rf_margin": 0.475,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 791,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.365,
+      "rf_margin": 0.02,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 800,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.56,
+      "rf_margin": 0.265,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 802,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.595,
+      "rf_margin": 0.295,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 815,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.55,
+      "rf_margin": 0.1,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 818,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.83,
+      "rf_margin": 0.74,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 821,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.574,
+      "rf_margin": 0.2212,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 825,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.735,
+      "rf_margin": 0.545,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 827,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.6907,
+      "rf_margin": 0.4255,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 848,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.445,
+      "rf_margin": 0.135,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 850,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.465,
+      "rf_margin": 0.17,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 854,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.685,
+      "rf_margin": 0.39,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 867,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 873,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 885,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.8275,
+      "rf_margin": 0.68,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 886,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.62,
+      "rf_margin": 0.275,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 891,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.52,
+      "rf_margin": 0.2,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 909,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.455,
+      "rf_margin": 0.06,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 914,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.605,
+      "rf_margin": 0.285,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 919,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.535,
+      "rf_margin": 0.29,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 920,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.99,
+      "rf_margin": 0.98,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 935,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 940,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "TruePositive",
+      "rf_top1_probability": 0.79,
+      "rf_margin": 0.675,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 943,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.59,
+      "rf_margin": 0.34,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 955,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.705,
+      "rf_margin": 0.55,
+      "llm_predicted": "BenignPositive",
+      "llm_confidence": "medium"
+    },
+    {
+      "_row_index": 974,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.655,
+      "rf_margin": 0.4,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 985,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 1.0,
+      "rf_margin": 1.0,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 988,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.7776,
+      "rf_margin": 0.6059,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 994,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "FalsePositive",
+      "rf_top1_probability": 0.41,
+      "rf_margin": 0.025,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    },
+    {
+      "_row_index": 995,
+      "ground_truth": "FalsePositive",
+      "rf_predicted": "BenignPositive",
+      "rf_top1_probability": 0.8942,
+      "rf_margin": 0.8033,
+      "llm_predicted": "TruePositive",
+      "llm_confidence": "high"
+    }
+  ]
+}

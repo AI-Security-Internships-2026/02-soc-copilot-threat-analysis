@@ -68,11 +68,27 @@ def load_technique_map():
     return _download_and_build_cache()
 
 
+# GUIDE separates multiple technique ids with ";" -- verified against the
+# committed evaluation sample, where 232 of 428 non-null MitreTechniques values
+# contain ";" and none contain ",". The original parser split on "," only, so
+# a value like "T1078;T1078.004" was looked up whole, missed the map, and
+# returned nothing: every multi-technique alert -- over half of all alerts
+# carrying MITRE data -- silently lost its ATT&CK enrichment. Both separators
+# are accepted now so neither real data nor the docstring's example breaks.
+_TECHNIQUE_SEPARATORS = re.compile(r"[;,]")
+
+# Cap on how many techniques get expanded into the prompt. Alerts listing a
+# technique and two sub-techniques are common; expanding all of them crowds out
+# the alert's own fields without adding much.
+MAX_TECHNIQUES_IN_CONTEXT = 3
+
+
 def get_technique_info(technique_id: str, technique_map: dict = None) -> str:
     """
-    looks up a single technique id (e.g. 'T1059.001') and returns a short
-    formatted string for injecting into the LLM context. returns empty string
-    if not found or if technique_id is missing/blank.
+    looks up one or more technique ids (e.g. 'T1059.001' or
+    'T1078;T1078.004') and returns a short formatted string for injecting into
+    the LLM context. returns empty string if nothing is found or if
+    technique_id is missing/blank.
     """
     if not technique_id or not isinstance(technique_id, str):
         return ""
@@ -80,14 +96,17 @@ def get_technique_info(technique_id: str, technique_map: dict = None) -> str:
     if technique_map is None:
         technique_map = load_technique_map()
 
-    # GUIDE dataset sometimes has multiple comma-separated technique ids in one field
-    technique_id = technique_id.strip().split(",")[0].strip()
+    ids = [part.strip() for part in _TECHNIQUE_SEPARATORS.split(technique_id) if part.strip()]
 
-    info = technique_map.get(technique_id)
-    if not info:
-        return ""
+    descriptions = []
+    for tid in ids:
+        info = technique_map.get(tid)
+        if info:
+            descriptions.append(f"{tid} ({info['name']}): {info['description']}")
+        if len(descriptions) >= MAX_TECHNIQUES_IN_CONTEXT:
+            break
 
-    return f"{technique_id} ({info['name']}): {info['description']}"
+    return "\n".join(descriptions)
 
 
 if __name__ == "__main__":

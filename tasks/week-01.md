@@ -4,6 +4,22 @@
 **PR target:** `dev`
 **Due:** End of Week 1
 
+> **Status: completed in Week 1 (June 2026), via PR #1.** The checkboxes below are left in their
+> original unticked state because this file is the supervisor-issued task sheet, not a progress
+> record — retro-ticking it would make it look like a log it was never intended to be. The actual
+> record of what was done is `docs/weekly-progress.md` (Week 1, and Weeks 2–15 after it).
+>
+> Two corrections for anyone following this sheet:
+>
+> - Item (d) asks for **5** related papers. Week 1 identified 3 and read them; the literature review
+>   reached 8 fully-annotated papers by Week 10, and the paper draft cites 22. See
+>   `docs/literature-review.md`.
+> - The Resources section below references `SUPERVISOR-README.md`, which **does not exist in this
+>   repository**. Use `README.md` and `docs/proposal.md` instead.
+>
+> No task files exist for Weeks 2–15 — only this one was ever issued. The weekly workflow described
+> in `README.md` is tracked through `docs/weekly-progress.md` and pull requests instead.
+
 ---
 
 ## Checklist
