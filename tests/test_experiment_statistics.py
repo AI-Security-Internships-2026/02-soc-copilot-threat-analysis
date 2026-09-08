@@ -18,6 +18,9 @@ from experiments.stats_utils import (
     bootstrap_auc_ci,
     bootstrap_metric_ci,
     bootstrap_two_sample_diff_ci,
+    cochrans_q,
+    pearson_correlation,
+    wilcoxon_signed_rank,
 )
 from experiments.roc_auc_analysis import compute_ovr_roc_auc
 from experiments.control_node_ablation import (
@@ -248,3 +251,104 @@ class TestPairedMcnemar:
         result = paired_mcnemar(rows_a, rows_other)
         assert result["n_paired"] == 0
         assert "note" in result
+
+
+class TestWilcoxonSignedRank:
+    def test_consistently_positive_deltas_give_the_smallest_achievable_p(self):
+        # 5 seeds, every one shows row-split beating group-split -- the
+        # M2.1 PART A shape. With only 5 paired seeds, the Wilcoxon exact
+        # two-sided test cannot go below p=0.0625 (1/2^5, doubled) no matter
+        # how consistent the sign is -- that floor, not p<0.05, is the
+        # correct assertion here; more seeds would be needed to clear 0.05.
+        deltas = [0.021, 0.028, 0.025, 0.019, 0.031]
+        result = wilcoxon_signed_rank(deltas)
+        assert result["n"] == 5
+        assert result["median"] > 0
+        assert result["p_value"] == pytest.approx(0.0625)
+
+    def test_more_seeds_of_the_same_consistent_sign_clears_p_below_005(self):
+        deltas = [0.021, 0.028, 0.025, 0.019, 0.031, 0.024, 0.027]
+        result = wilcoxon_signed_rank(deltas)
+        assert result["p_value"] < 0.05
+
+    def test_symmetric_deltas_around_zero_are_not_significant(self):
+        deltas = [0.01, -0.01, 0.02, -0.02, 0.0, 0.005, -0.005, 0.015, -0.015]
+        result = wilcoxon_signed_rank(deltas)
+        assert result["p_value"] > 0.05
+
+    def test_all_zero_deltas_do_not_crash_and_report_p_one(self):
+        result = wilcoxon_signed_rank([0.0, 0.0, 0.0, 0.0])
+        assert result["p_value"] == 1.0
+        assert result["statistic"] == 0.0
+
+    def test_empty_sample_raises(self):
+        with pytest.raises(ValueError):
+            wilcoxon_signed_rank([])
+
+
+class TestPearsonCorrelation:
+    def test_perfect_positive_line_gives_r_near_one(self):
+        x = [0.0, 1.40, 1.91, 0.0]
+        y = [0.0, 0.05, 0.07, 0.0]
+        # not a perfect line, but strongly monotonic -- the M2.1 PART C shape
+        result = pearson_correlation(x, y)
+        assert result["n"] == 4
+        assert result["r"] > 0.8
+
+    def test_exact_linear_relationship_gives_r_equal_one(self):
+        x = [0, 1, 2, 3, 4]
+        y = [0, 2, 4, 6, 8]
+        result = pearson_correlation(x, y)
+        assert result["r"] == 1.0
+
+    def test_mismatched_lengths_raise(self):
+        with pytest.raises(ValueError):
+            pearson_correlation([1, 2, 3], [1, 2])
+
+    def test_single_point_raises(self):
+        with pytest.raises(ValueError):
+            pearson_correlation([1], [1])
+
+
+class TestCochransQ:
+    def test_near_identical_classifiers_give_q_near_zero_not_significant(self):
+        # Classifiers that mostly agree but not perfectly -- perfect
+        # agreement makes every row total either 0 or k, which makes Q's
+        # denominator exactly 0 (see test_no_variation_... below); a little
+        # independent noise keeps row totals varied so Q is actually
+        # computable, and it should come out small and non-significant.
+        # Independent per-column noise at any non-trivial rate is itself a
+        # real classifier-disagreement signal that 200 items has the power
+        # to detect -- so this asserts Q is small relative to the
+        # clearly-different-classifiers case below, not an arbitrary p>0.05
+        # threshold that random noise can cross by chance.
+        rng = np.random.default_rng(0)
+        base = rng.integers(0, 2, size=(200, 1))
+        matrix = np.repeat(base, 4, axis=1).astype(float)
+        noise_mask = rng.random(matrix.shape) < 0.02
+        matrix[noise_mask] = 1 - matrix[noise_mask]
+        result = cochrans_q(matrix)
+        assert result["k"] == 4
+        assert result["Q"] is not None
+        assert result["Q"] < 15  # well below the ~50+ a genuinely unequal suite produces
+
+    def test_one_much_better_classifier_is_significant(self):
+        rng = np.random.default_rng(1)
+        n = 300
+        weak_a = rng.choice([0, 1], size=n, p=[0.6, 0.4])
+        weak_b = rng.choice([0, 1], size=n, p=[0.6, 0.4])
+        weak_c = rng.choice([0, 1], size=n, p=[0.6, 0.4])
+        strong = rng.choice([0, 1], size=n, p=[0.1, 0.9])
+        matrix = np.column_stack([weak_a, weak_b, weak_c, strong])
+        result = cochrans_q(matrix)
+        assert result["p_value"] < 0.05
+
+    def test_no_variation_across_classifiers_is_undefined_not_a_crash(self):
+        matrix = np.ones((10, 3))  # every classifier correct on every item
+        result = cochrans_q(matrix)
+        assert result["Q"] is None
+        assert result["p_value"] is None
+
+    def test_needs_at_least_two_classifiers(self):
+        with pytest.raises(ValueError):
+            cochrans_q(np.ones((10, 1)))

@@ -1,0 +1,279 @@
+{
+  "experiment": "M2.4 held-out GUIDE_Test.csv (n=15,000) scoring across the classifier suite",
+  "generated_at_utc": "2026-09-08T10:56:54.816880+00:00",
+  "git_sha": "6c4db28",
+  "protocol": "PREFERRED",
+  "heldout_train_rows": 500000,
+  "holdout_sample_n": 15000,
+  "models": {
+    "M1": {
+      "n": 15000,
+      "accuracy": 0.3333333333333333,
+      "accuracy_bootstrap_ci": {
+        "point": 0.3333,
+        "ci_lower": 0.3259,
+        "ci_upper": 0.3409,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.16666666666666666,
+      "macro_f1_bootstrap_ci": {
+        "point": 0.1667,
+        "ci_lower": 0.1639,
+        "ci_upper": 0.1695,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "per_class_recall": {
+        "TruePositive": 0.0,
+        "BenignPositive": 1.0,
+        "FalsePositive": 0.0
+      },
+      "train_seconds": 0.2,
+      "train_rows": 500000,
+      "deploy_compatible": true
+    },
+    "M2": {
+      "n": 15000,
+      "accuracy": 0.5442666666666667,
+      "accuracy_bootstrap_ci": {
+        "point": 0.5443,
+        "ci_lower": 0.5363,
+        "ci_upper": 0.5522,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.5010913852274527,
+      "macro_f1_bootstrap_ci": {
+        "point": 0.5011,
+        "ci_lower": 0.4933,
+        "ci_upper": 0.5089,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "per_class_recall": {
+        "TruePositive": 0.684,
+        "BenignPositive": 0.7836,
+        "FalsePositive": 0.1652
+      },
+      "train_seconds": 10.3,
+      "train_rows": 500000,
+      "deploy_compatible": true
+    },
+    "M3a": {
+      "n": 15000,
+      "accuracy": 0.7294,
+      "accuracy_bootstrap_ci": {
+        "point": 0.7294,
+        "ci_lower": 0.7222,
+        "ci_upper": 0.7365,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.7258174170268656,
+      "macro_f1_bootstrap_ci": {
+        "point": 0.7258,
+        "ci_lower": 0.7185,
+        "ci_upper": 0.7329,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "per_class_recall": {
+        "TruePositive": 0.7924,
+        "BenignPositive": 0.8348,
+        "FalsePositive": 0.561
+      },
+      "train_seconds": 32.4,
+      "train_rows": 500000,
+      "deploy_compatible": true
+    },
+    "M3b": {
+      "n": 15000,
+      "accuracy": 0.7266666666666667,
+      "accuracy_bootstrap_ci": {
+        "point": 0.7267,
+        "ci_lower": 0.7193,
+        "ci_upper": 0.7337,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.7227807124685363,
+      "macro_f1_bootstrap_ci": {
+        "point": 0.7228,
+        "ci_lower": 0.7155,
+        "ci_upper": 0.7298,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "per_class_recall": {
+        "TruePositive": 0.7912,
+        "BenignPositive": 0.8322,
+        "FalsePositive": 0.5566
+      },
+      "train_seconds": 66.7,
+      "train_rows": 500000,
+      "deploy_compatible": true
+    },
+    "M4": {
+      "n": 15000,
+      "accuracy": 0.7200666666666666,
+      "accuracy_bootstrap_ci": {
+        "point": 0.7201,
+        "ci_lower": 0.7129,
+        "ci_upper": 0.7271,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.7137142290220222,
+      "macro_f1_bootstrap_ci": {
+        "point": 0.7137,
+        "ci_lower": 0.7063,
+        "ci_upper": 0.7209,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "per_class_recall": {
+        "TruePositive": 0.7588,
+        "BenignPositive": 0.898,
+        "FalsePositive": 0.5034
+      },
+      "train_seconds": 12.8,
+      "train_rows": 500000,
+      "deploy_compatible": true
+    },
+    "M5": {
+      "n": 15000,
+      "accuracy": 0.7052,
+      "accuracy_bootstrap_ci": {
+        "point": 0.7052,
+        "ci_lower": 0.698,
+        "ci_upper": 0.7123,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.6966386174596423,
+      "macro_f1_bootstrap_ci": {
+        "point": 0.6966,
+        "ci_lower": 0.6892,
+        "ci_upper": 0.7039,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "per_class_recall": {
+        "TruePositive": 0.7352,
+        "BenignPositive": 0.915,
+        "FalsePositive": 0.4654
+      },
+      "train_seconds": 9.6,
+      "train_rows": 500000,
+      "deploy_compatible": true
+    },
+    "M6": {
+      "n": 15000,
+      "accuracy": 0.7057333333333333,
+      "accuracy_bootstrap_ci": {
+        "point": 0.7057,
+        "ci_lower": 0.6984,
+        "ci_upper": 0.7129,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "macro_f1": 0.6973189073813759,
+      "macro_f1_bootstrap_ci": {
+        "point": 0.6973,
+        "ci_lower": 0.6897,
+        "ci_upper": 0.7045,
+        "confidence": 0.95,
+        "n": 15000,
+        "n_resamples": 10000,
+        "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+      },
+      "per_class_recall": {
+        "TruePositive": 0.7438,
+        "BenignPositive": 0.9038,
+        "FalsePositive": 0.4696
+      },
+      "train_seconds": 3418.3,
+      "train_rows": 500000,
+      "deploy_compatible": false,
+      "reason": "M6's estimator does not set feature_names_in_ the way fallback_classifier.py's single-alert inference path requires (known gap: CatBoost). If M2.3 chooses this model for deployment, it needs a compatibility wrapper first."
+    },
+    "M7": {
+      "n": 241,
+      "accuracy": 0.32905982905982906,
+      "macro_f1": 0.24283985478015327,
+      "per_class_recall": {
+        "TruePositive": 0.5405405405405406,
+        "BenignPositive": 0.3217391304347826,
+        "FalsePositive": 0.0
+      },
+      "complete": false
+    }
+  },
+  "mcnemar_pairs": {
+    "M6_vs_M3a": {
+      "a": "M6",
+      "b": "M3a",
+      "both_correct": 9685,
+      "M6_correct_M3a_wrong": 901,
+      "M3a_correct_M6_wrong": 1256,
+      "both_wrong": 3158,
+      "discordant_pairs": 2157,
+      "p_value": 2.1867520827526273e-14
+    },
+    "M3a_vs_M3b": {
+      "a": "M3a",
+      "b": "M3b",
+      "both_correct": 10736,
+      "M3a_correct_M3b_wrong": 205,
+      "M3b_correct_M3a_wrong": 164,
+      "both_wrong": 3895,
+      "discordant_pairs": 369,
+      "p_value": 0.03717007038152862
+    }
+  },
+  "cochrans_q_tabular_m1_m6": {
+    "Q": 16447.5212,
+    "df": 6,
+    "p_value": 0.0,
+    "k": 7,
+    "n": 15000,
+    "method": "cochran's Q, chi-squared approximation, omnibus test across k classifiers' per-item correctness",
+    "models": [
+      "M1",
+      "M2",
+      "M3a",
+      "M3b",
+      "M4",
+      "M5",
+      "M6"
+    ]
+  },
+  "m3a_vs_m3b_interpretation": "M3a (LabelEncoder, ordinal codes) scores 0.7294 accuracy vs M3b (top-30-plus-overflow one-hot, non-ordinal) at 0.7267 -- a gap of +0.0027. McNemar p=0.03717007038152862. This is a real difference at the 5% level: LabelEncoder's arbitrary ordinal numbering measurably helps this RF, answering independent review \u00a731 directly."
+}

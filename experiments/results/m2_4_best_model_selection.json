@@ -1,0 +1,48 @@
+{
+  "experiment": "M2.4 auto-selection: best classifier vs RF fallback",
+  "generated_at_utc": "2026-09-08T10:10:18.466513+00:00",
+  "git_sha": "6c4db28",
+  "rule": "best beats second-best by >1.5 accuracy points AND McNemar p<0.05 -> select best; else select RF (M3a)",
+  "ranked": [
+    [
+      "M3a",
+      0.7294
+    ],
+    [
+      "M3b",
+      0.7266666666666667
+    ],
+    [
+      "M4",
+      0.7200666666666666
+    ],
+    [
+      "M6",
+      0.7057333333333333
+    ],
+    [
+      "M5",
+      0.7052
+    ],
+    [
+      "M2",
+      0.5442666666666667
+    ]
+  ],
+  "best_candidate": "M3a",
+  "second_best": "M3b",
+  "gap_accuracy_points": 0.2733,
+  "gap_exceeds_1_5_points": false,
+  "mcnemar_best_vs_second": {
+    "a": "M3a",
+    "b": "M3b",
+    "both_correct": 10736,
+    "M3a_correct_M3b_wrong": 205,
+    "M3b_correct_M3a_wrong": 164,
+    "both_wrong": 3895,
+    "discordant_pairs": 369,
+    "p_value": 0.03717007038152862
+  },
+  "selected": "M3a",
+  "selection_reason": "did not clear both the >1.5-point gap and McNemar p<0.05 bar -- falling back to RF (M3a), the most interpretable option"
+}

@@ -2513,3 +2513,164 @@ neither of which exists — the real equivalents were used.
 **Closed this week:** the high-cardinality identifier feature-inflation ablation (carried from
 Week 15) — run, and the hypothesis it was checking turned out not to hold. Incident-level splits,
 also carried from Week 15, are now the default in every new experiment.
+
+## Week 18 — M2, Classifiers/Leakage (issues #31–#34), and the seven-classifier suite
+
+**Branch:** `asma-week-18-m2-classifiers-leakage` (based on `asma-week-17-verification`)
+**PR link:** not yet opened — same stacking situation as Week 17 (item 3 under "Carried forward").
+
+The supervisor (Hafiz Mati Ur Rahman, 2026-09-06) posted issues #29–#47 mapping to milestones
+M1–M6, with the instruction to follow issue order and the stated timeline; he reviews and closes
+issues himself, so nothing here is closed. M1 closed last week; this week is M2 in full — #31
+(leakage methodology validation), #33 (protocol doc + grouped deploy), #34 (seven-classifier
+suite) — and #32 (Kaggle third-party reproduction) documented as blocked rather than faked.
+
+### Completed this week
+
+- [x] Added Wilcoxon signed-rank, Pearson correlation, and Cochran's Q to `experiments/stats_utils.py`
+      (34 tests) — nothing in the repo had needed a >2-way omnibus test or a correlation before
+- [x] Wrote `experiments/overlap_audit.py`, consolidating the two overlap implementations that had
+      quietly diverged; verified it reproduces all three of Table 14's overlap pairs exactly
+- [x] Added `xgboost==3.2.0`, `lightgbm==4.7.0`, `catboost==1.2.10` to `requirements.txt`, pinned
+      for the same reason numpy/scikit-learn are — full 152-test suite green after
+- [x] M2.4 (#34): built `experiments/m2_4_classifier_suite.py` — a 7-classifier dispatcher
+      (Majority/LogReg/RF-LabelEncoder/RF-OneHot/XGBoost/LightGBM/CatBoost/LLM-only), 5-seed
+      GroupShuffle validate mode and a GUIDE_Test n=15,000 heldout mode, McNemar + Cochran's Q,
+      auto-selection
+- [x] M2.1 PART A (#31): `experiments/m2_1_splitmethod_5seeds.py` — 5-seed replication of the
+      row-vs-group split-method delta
+- [x] M2.1 PART B: extended `experiments/incident_leakage_audit.py` with `--seeds` — 3-seed
+      replication of the incident-level leakage causal test
+- [x] M2.1 PART C: `experiments/m2_1_historical_eval_overlap.py` — 4-point overlap-vs-inflation
+      scatter, reported as measured rather than adjusted to hit the issue's r≥0.90 expectation
+- [x] M2.3 PART A (#33): `EVAL_PROTOCOL.md` at repo root — three protocols (PREFERRED/ACCEPTABLE/
+      LAB_INFLATED), a compliance checklist, and every M2 output script now tags its own
+      `"protocol"` field at the point it writes a result, not as a later retrofit
+- [x] M2.3 PART B: `experiments/m2_3_deploy_grouped_model.py` — retrained M2.4's selected model with
+      a verified-zero-leakage GroupShuffleSplit, scored on the paper's existing samples
+- [x] `docs/m2-3-deploy-decision-memo.md` — KEEP for now, revisit at M6, with the actual numbers
+- [x] M2.2 (#32, P2-optional): documented as blocked on tooling access
+      (`experiments/kaggle_repro/README.md`), not attempted-and-faked
+
+### Finding 1: the deployed RF configuration is still the best of seven, and LabelEncoder helps
+
+M2.4's heldout scoring (GUIDE_Test n=15,000, `experiments/results/m2_4_heldout_n15k.json`):
+
+| Model | Accuracy | Macro F1 |
+|---|---|---|
+| M1 Majority | 0.3333 | 0.1667 |
+| M2 LogReg (L2) | 0.5443 | 0.5011 |
+| **M3a RF, LabelEncoder (deployed config)** | **0.7294** | **0.7258** |
+| M3b RF, top-30-plus-overflow one-hot | 0.7267 | 0.7228 |
+| M4 XGBoost(300, depth 6) | 0.7201 | 0.7137 |
+| M5 LightGBM, native categoricals | 0.7052 | 0.6966 |
+| M6 CatBoost, native categoricals, default params | 0.7057 | 0.6973 |
+
+M3a beats every alternative, including three tree-ensemble families with native categorical
+support. M3a vs M3b directly answers independent review §31 — does LabelEncoder's arbitrary
+ordinal numbering hurt or help: **McNemar p=0.037, a real but tiny +0.27-point effect in
+LabelEncoder's favour**, not the ordinality problem the review worried about. M6 vs M3a:
+p=2.19e-14. Cochran's Q across all six tabular models: p≈0 (omnibus difference is not in doubt;
+which pair differs is the McNemar table's job). Selection rule (>1.5-point gap AND McNemar
+p<0.05) does not fire for anyone against M3a, so **M3a stays selected** —
+`experiments/results/m2_4_best_model_selection.json`.
+
+M7 (LLM-only, Llama family via Groq, improved Week-14 prompt, drawn from the same clean 15,000-row
+held-out pool, not the contaminated 999-alert cache): **quota-limited to 241/500 alerts this
+invocation — accuracy 0.3291, macro F1 0.2428, *below* the 0.3333 majority-class floor.**
+Confirms the issue's expectation (< Always-BP baseline) at the scale quota allowed;
+`--daily-call-budget` is resumable via a checkpoint for whoever continues it.
+On the exact same 241 rows, **M3a (selected) scores 0.6266 — McNemar p=8.75e-10 against M7**
+(111/148 discordant alerts favour the RF). `experiments/results/m2_4_m7_llm_only.json`,
+`experiments/results/m2_4_m3a_vs_m7_mcnemar.json`.
+
+### Finding 2: the leakage effects replicate; the overlap-vs-inflation scatter does not confirm cleanly
+
+- **Split-method inflation, 5 seeds:** mean Δ_acc = +0.0306 (std 0.0075), 95% CI
+  [+0.0232, +0.0361] — overlaps the single-seed [+0.0199, +0.0368]. Wilcoxon p=0.0625: this is
+  the *exact floor* achievable with 5 same-signed paired seeds (1/2⁵, doubled), not a failure to
+  find an effect — the CI already excludes 0.
+  `experiments/results/m2_1_splitmethod_delta_5seeds.json`.
+- **Incident-level leakage, 3 seeds:** mean Δ_acc = +0.2416 (std 0.0022) against the committed
+  +0.2433 — within tolerance, std well under the 0.005 ceiling. The leakage effect is a stable
+  property of the balancing draw, not an artefact of seed 42.
+  `experiments/results/m2_1_leakage_300k_balanced.json`.
+- **4-point overlap scatter:** Pearson r=0.11 (p=0.89), well short of the issue's expected r≥0.90.
+  Not adjusted to fit: the 209-alert control point is confounded — Week 12 established that the
+  LLM-eligible subset (evidence_field_count≥2) is intrinsically harder for the RF than a typical
+  alert, independent of contamination, so its accuracy delta reflects subset difficulty and
+  contamination entangled together, not contamination alone.
+  `experiments/results/m2_1_historical_eval_overlap.json`.
+
+### Finding 3: a Protocol-B retrain of the same architecture is worth 3–6 points, and the decision is to wait
+
+`experiments/m2_3_deploy_grouped_model.py` retrained M3a on 500,000 rows (5x the deployed 100,000)
+with a `GroupShuffleSplit` on `(OrgId, IncidentId)` — 0 incidents verified crossing the train/val
+boundary. Same architecture, more data, a correct split:
+
+| Sample | Deployed (100K, Protocol C) | Candidate (500K, Protocol B) | Delta |
+|---|---|---|---|
+| GUIDE_Test held-out, n=15,000 | 0.6998 | 0.7294 | +0.0296 |
+| A4-pipeline, n=999 | 0.7347 | 0.7978 | +0.0631 |
+
+Real, reproducible, deploy-compatible without a wrapper. **Decision: KEEP the deployed
+`baseline_model.joblib` through M3–M5; adopt at M6 as one deliberate swap bundled with the final
+reproducibility pass**, not mid-schedule with M3–M6's own numbers not yet measured against
+either model. Full reasoning in `docs/m2-3-deploy-decision-memo.md`. The candidate artifact
+already exists at `models/best_grouped_classifier.joblib` (gitignored, same as
+`baseline_model.joblib`) — adopting later is "point `MODEL_PATH` at it," not a from-scratch retrain.
+
+### Problems / Blockers
+
+- **M2.2 (#32) is blocked, not done.** Kaggle's notebook listing and code viewer are both
+  client-side rendered; `WebFetch` returns only the page `<title>` for either. A live browser
+  session could read them, but this account has two connected Chrome browsers with neither
+  pre-selected, and picking one requires asking the user directly — not something to do
+  unprompted for a P2-optional sub-task. No `kaggle` API key is configured either (removed from
+  `requirements.txt` in Week 17 as unused). Real candidate notebooks are cited in
+  `experiments/kaggle_repro/README.md` for whoever has API access or picks the browser.
+- **M6 (CatBoost) vs M7 (LLM) McNemar specifically was not computed.** M7 ran as its own
+  invocation (to isolate Groq quota spend from the tabular suite), so the pairing wasn't
+  automatic. A same-session RF-only refit to pair M3a against M7's 241 scored rows succeeded
+  (35.1s fit, p=8.75e-10 — see Finding 1), but re-running that for CatBoost specifically would
+  mean a second ~57-minute default-hyperparameter fit under a machine already at ~65MB free after
+  the week's CatBoost runs, for a pairing against the selected model's runner-up rather than the
+  selected model itself. M3a-vs-M6, M3a-vs-M3b, and M3a-vs-M7 are all on record; M6-vs-M7 is the
+  one pair of the issue's three required McNemar comparisons still open.
+- **M7 is 241/500, not 500/500.** Groq's ~200,000-token/day quota for `openai/gpt-oss-20b`
+  (~300-320 calls/day) was exhausted mid-run. The direction of the result (well below the
+  majority-class floor) is unambiguous at this n; completing to 500 needs another day's quota,
+  resumable via the JSONL checkpoint.
+- **CatBoost's default-hyperparameter run was the week's dominant cost.** `iterations=1000`
+  (CatBoost's own default, per the issue's "default params" instruction) took ~57 minutes at
+  500,000 rows and ~150–200s per 100,000-row validate seed — CatBoost did not end up selected, so
+  this was measurement cost, not a deployed-path concern.
+
+### Next week plan
+
+- M3 (#35–#37, due 2026-09-12): SOC-domain prompt-injection benchmark, guardrail detector suite,
+  benchmark datasheet.
+- Complete M7 to n=500 when quota allows; compute the M6-vs-M7 McNemar pair once memory headroom
+  allows a same-session CatBoost re-score.
+
+### Carried forward, still open
+
+1. **Paper declarations** — funding, ORCID and co-authorship remain blocked on issue #16.
+2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since Week 10.
+3. **PRs #25, #26, #27 are all open and unreviewed.** Same stacking situation as every prior week.
+4. Three commits on `main` carry AI co-authorship trailers, conflicting with the attribution
+   policy. Rewriting shared history needs an explicit decision.
+5. **The grouped-split baseline (Week 17) and the M2.3 Protocol-B retrain (this week) are both
+   diagnostic-only.** The deployed model still uses the 100,000-row row-level-trained config;
+   see Finding 3 above and `docs/m2-3-deploy-decision-memo.md` for exactly when that changes.
+6. **M2.2 (#32)** — third-party Kaggle reproduction, blocked on tooling access (see Problems above).
+7. **M6-vs-M7 McNemar and M7's remaining 259 alerts** — both blocked on quota/compute, not on
+   anything methodological.
+8. **Analyst-rated evaluation of explanation quality** — still the one gap none of this closes,
+   unchanged since Week 16. M4.3 (issue #40) is where this belongs.
+
+**Closed this week:** M2 in full — #31 (leakage methodology validation, both split-method and
+incident-level effects replicated across multiple seeds), #33 (EVAL_PROTOCOL.md plus a measured,
+deliberately-deferred grouped retrain), #34 (the seven-classifier suite the paper's Table 1
+needed, with an explicit answer to the LabelEncoder-ordinality question). #32 is the one
+sub-issue left open, on tooling grounds stated above, not measurement grounds.

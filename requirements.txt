@@ -18,6 +18,20 @@ scipy>=1.15
 pandas>=2.2
 joblib>=1.4
 
+# --- M2.4 classifier suite (experiments/m2_4_classifier_suite.py) ----------
+# Three more tabular-model families the M2.4 baseline suite (issue #34)
+# compares against RF/LogReg: XGBoost and CatBoost/LightGBM's own native
+# handling of categorical columns is the direct experimental answer to
+# independent review §31's question about LabelEncoder ordinality. Pinned
+# (not >=) because, same reasoning as numpy/scikit-learn above, these
+# libraries change default hyperparameters and even API surface between
+# major versions -- XGBoost 3.x, for one, dropped silent string-label
+# encoding that earlier 1.x/2.x releases did internally; a floating pin
+# could silently change what "M4/M5/M6" mean between runs.
+xgboost==3.2.0
+lightgbm==4.7.0
+catboost==1.2.10
+
 # --- LLM pipeline ----------------------------------------------------------
 langgraph>=1.0
 langchain-core>=1.0

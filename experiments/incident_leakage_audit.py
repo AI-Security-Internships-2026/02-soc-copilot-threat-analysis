@@ -75,7 +75,7 @@ from src.agent.fallback_classifier import _load_model, _to_feature_frame
 from src.data.load_data import REAL_DATA_PATH
 from src.data.schema import TARGET_COLUMN, TARGET_CLASSES
 from src.models.decision import resolve_label
-from experiments.stats_utils import bootstrap_metric_ci, bootstrap_two_sample_diff_ci
+from experiments.stats_utils import bootstrap_metric_ci, bootstrap_two_sample_diff_ci, wilcoxon_signed_rank
 
 # Mirrors src/models/baseline.py: the deployed model trains on the first
 # 100,000 rows of GUIDE_train.csv in file order. Anything at or past this
@@ -85,6 +85,14 @@ TRAINING_SLICE_ROWS = 100_000
 INCIDENT_KEY = ["OrgId", "IncidentId"]
 CACHE_DIR = Path("experiments/results/evaluation_samples")
 OUTPUT_PATH = Path("experiments/results/incident_leakage_audit.json")
+# M2.1 PART B (issue #31): the multi-seed replication's own output, kept
+# separate from OUTPUT_PATH so the original committed single-seed evidence
+# (leaked 0.8332 vs clean 0.5898, +0.2433 [+0.2282, +0.2587]) is never
+# overwritten by a --seeds run.
+MULTISEED_OUTPUT_PATH = Path("experiments/results/m2_1_leakage_300k_balanced.json")
+PUBLISHED_SINGLE_SEED_DELTA = 0.2433
+DELTA_TOLERANCE = 0.01
+STD_CEILING = 0.005
 
 # Part B reads from here to test key integrity. Far enough from the
 # training slice that any overlap is recurrence or collision, not adjacency.
@@ -275,7 +283,7 @@ def _score_rows(sample: pd.DataFrame) -> tuple[list, list]:
 
 
 def part_d_causal_test(
-    train_label_by_key: dict, eval_block_rows: int, per_class_cap: int
+    train_label_by_key: dict, eval_block_rows: int, per_class_cap: int, seed: int = SEED
 ) -> dict:
     """Does a shared incident actually change the model's accuracy?
 
@@ -283,6 +291,13 @@ def part_d_causal_test(
     neither. They differ only in whether a labelled sibling from the same
     incident was in the training data. Class-balanced to identical
     distributions so the majority-class floor cannot explain a gap.
+
+    `seed` controls the class-balancing draw (_balance_classes) and the
+    bootstrap CI resampling -- NOT the eval block itself, which is always
+    the same fixed rows past the training slice regardless of seed. M2.1
+    PART B (issue #31) calls this across several seeds to check whether the
+    committed +0.2433 gap is a property of the balancing draw or an
+    artefact of seed 42's particular draw.
     """
     block = pd.read_csv(
         REAL_DATA_PATH,
@@ -311,8 +326,8 @@ def part_d_causal_test(
     if per_class == 0:
         return {"status": "a class is unrepresented in one bucket; cannot balance"}
 
-    leaked = _balance_classes(leaked_all, per_class, SEED)
-    clean = _balance_classes(clean_all, per_class, SEED)
+    leaked = _balance_classes(leaked_all, per_class, seed)
+    clean = _balance_classes(clean_all, per_class, seed)
 
     leaked_true, leaked_pred = _score_rows(leaked)
     clean_true, clean_pred = _score_rows(clean)
@@ -332,10 +347,10 @@ def part_d_causal_test(
         return out
 
     accuracy_gap = bootstrap_two_sample_diff_ci(
-        leaked_true, leaked_pred, clean_true, clean_pred, acc, seed=SEED
+        leaked_true, leaked_pred, clean_true, clean_pred, acc, seed=seed
     )
     f1_gap = bootstrap_two_sample_diff_ci(
-        leaked_true, leaked_pred, clean_true, clean_pred, macro_f1, seed=SEED
+        leaked_true, leaked_pred, clean_true, clean_pred, macro_f1, seed=seed
     )
 
     return {
@@ -346,6 +361,7 @@ def part_d_causal_test(
             "training slice (a labelled sibling was available); 'clean' rows do "
             "not. Both are class-balanced to identical per-class counts."
         ),
+        "seed": seed,
         "eval_block_rows_read": int(eval_block_rows),
         "eval_block_rows_with_a_label": int(len(block)),
         "bucket_sizes_before_balancing": {
@@ -358,18 +374,81 @@ def part_d_causal_test(
         "n_per_bucket": per_class * len(TARGET_CLASSES),
         "leaked": {
             "accuracy": round(acc(leaked_true, leaked_pred), 4),
-            "accuracy_bootstrap_ci": bootstrap_metric_ci(leaked_true, leaked_pred, acc, seed=SEED),
+            "accuracy_bootstrap_ci": bootstrap_metric_ci(leaked_true, leaked_pred, acc, seed=seed),
             "macro_f1": round(macro_f1(leaked_true, leaked_pred), 4),
             "per_class_recall": per_class_recall(leaked_true, leaked_pred),
         },
         "clean": {
             "accuracy": round(acc(clean_true, clean_pred), 4),
-            "accuracy_bootstrap_ci": bootstrap_metric_ci(clean_true, clean_pred, acc, seed=SEED),
+            "accuracy_bootstrap_ci": bootstrap_metric_ci(clean_true, clean_pred, acc, seed=seed),
             "macro_f1": round(macro_f1(clean_true, clean_pred), 4),
             "per_class_recall": per_class_recall(clean_true, clean_pred),
         },
         "accuracy_gap_leaked_minus_clean": accuracy_gap,
         "macro_f1_gap_leaked_minus_clean": f1_gap,
+    }
+
+
+def run_multiseed_causal_test(
+    train_label_by_key: dict, eval_block_rows: int, per_class_cap: int, seeds: list[int]
+) -> dict:
+    """M2.1 PART B (issue #31): repeat the Part D causal test across seeds.
+
+    Same eval block every time (it doesn't depend on seed); only the
+    class-balancing draw and bootstrap resampling vary. Reports mean/std of
+    the accuracy delta and checks it against the committed single-seed
+    figure (+0.2433): mean within +/-0.01, std < 0.005.
+    """
+    per_seed = []
+    for seed in seeds:
+        print(f"  seed={seed}: running the causal test...", flush=True)
+        result = part_d_causal_test(train_label_by_key, eval_block_rows, per_class_cap, seed=seed)
+        per_seed.append(result)
+
+    deltas = [r["accuracy_gap_leaked_minus_clean"]["point_diff"] for r in per_seed if "leaked" in r]
+    if not deltas:
+        return {"status": "no seed produced a scorable result (a class was unrepresented in a bucket)"}
+
+    mean_delta = float(np.mean(deltas))
+    std_delta = float(np.std(deltas))
+    wilcoxon = wilcoxon_signed_rank(deltas)
+
+    mean_within_tolerance = abs(mean_delta - PUBLISHED_SINGLE_SEED_DELTA) <= DELTA_TOLERANCE
+    std_below_ceiling = std_delta < STD_CEILING
+
+    per_class_ordering_holds = all(
+        r["leaked"]["per_class_recall"].get("TruePositive", 0) is not None
+        and r["leaked"]["per_class_recall"]["TruePositive"] > r["leaked"]["per_class_recall"].get("FalsePositive", 0)
+        for r in per_seed
+        if "leaked" in r
+    )
+
+    return {
+        "seeds": seeds,
+        "eval_block_rows": eval_block_rows,
+        "per_class_cap": per_class_cap,
+        "per_seed_deltas": [round(d, 4) for d in deltas],
+        "mean_delta_acc": round(mean_delta, 4),
+        "std_delta_acc": round(std_delta, 4),
+        "wilcoxon_delta_acc_vs_zero": wilcoxon,
+        "published_single_seed_reference": PUBLISHED_SINGLE_SEED_DELTA,
+        "checks": {
+            "mean_within_0_01_of_published": mean_within_tolerance,
+            "std_below_0_005": std_below_ceiling,
+            "delta_tp_ordering_holds_every_seed": per_class_ordering_holds,
+        },
+        "finding": (
+            f"Across {len(seeds)} seeds, mean Delta_acc = {mean_delta:+.4f} (std {std_delta:.4f}) "
+            f"against the committed single-seed +{PUBLISHED_SINGLE_SEED_DELTA}. "
+            + (
+                "Mean is within +/-0.01 and std is below 0.005: the leakage effect is a stable "
+                "property of the balancing draw, not an artefact of seed 42."
+                if mean_within_tolerance and std_below_ceiling
+                else "This does not meet both the +/-0.01 mean tolerance and the <0.005 std ceiling -- "
+                "see per_seed_deltas."
+            )
+        ),
+        "per_seed": per_seed,
     }
 
 
@@ -389,6 +468,15 @@ def main() -> None:
         type=int,
         default=2_000,
         help="Max rows per class per bucket in the Part D causal test.",
+    )
+    parser.add_argument(
+        "--seeds",
+        type=str,
+        default=None,
+        help="M2.1 PART B (issue #31): comma-separated seeds for a multi-seed replication of "
+        "the Part D causal test, e.g. 42,123,456. Written to a separate "
+        f"{MULTISEED_OUTPUT_PATH}, not this script's original single-seed output -- the "
+        "committed single-seed evidence is untouched. Omit for the original single-seed run.",
     )
     args = parser.parse_args()
 
@@ -455,6 +543,32 @@ def main() -> None:
               f"[{gap['ci_lower']:+.4f}, {gap['ci_upper']:+.4f}]  "
               f"{'SIGNIFICANT' if gap['significant_at_confidence'] else 'not significant'}")
     print(f"\nsaved to {OUTPUT_PATH}")
+
+    if args.seeds:
+        seeds = [int(s) for s in args.seeds.split(",")]
+        print(f"\nM2.1 PART B: replicating the causal test across {len(seeds)} seeds "
+              f"({seeds})...", flush=True)
+        multiseed = run_multiseed_causal_test(
+            train_label_by_key, args.eval_block_rows, args.per_class_cap, seeds
+        )
+        multiseed_output = {
+            "experiment": (
+                "M2.1 PART B: multi-seed replication of the incident-level leakage causal test "
+                "(experiments/results/incident_leakage_audit.json's Part D), checking whether the "
+                "committed single-seed +0.2433 accuracy gap is stable across the balancing draw"
+            ),
+            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+            "git_sha": git_sha(),
+            "protocol": "PREFERRED",  # class-balanced clean-vs-leaked buckets, both past the training slice
+            "data_source": str(REAL_DATA_PATH),
+            "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
+            "incident_key": INCIDENT_KEY,
+            **multiseed,
+        }
+        MULTISEED_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        MULTISEED_OUTPUT_PATH.write_text(json.dumps(multiseed_output, indent=2))
+        print(f"\n{multiseed.get('finding', multiseed.get('status'))}")
+        print(f"saved to {MULTISEED_OUTPUT_PATH}")
 
 
 if __name__ == "__main__":

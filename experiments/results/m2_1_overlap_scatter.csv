@@ -1,0 +1,5 @@
+name,n,exact_row_overlap_pct,incident_level_overlap_pct,accuracy,delta_vs_0_6998
+train_sampled_999,999,1.4,55.76,0.7347,0.0349
+control_209,209,1.91,39.23,0.6555,-0.0443
+held_out_999,999,0.0,0.0,0.7047,0.0049
+held_out_15000,15000,0.0,0.0,0.6998,0.0

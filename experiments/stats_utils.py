@@ -17,10 +17,20 @@
 # rf_vs_llm_control.py already has mcnemar(), and other scripts import it
 # directly (see control_node_ablation.py) rather than each script keeping
 # its own copy.
+#
+# Week 18 (M2.1/M2.4, issues #31/#34) added three more general-purpose tests
+# that nothing in the repo had needed before: Wilcoxon signed-rank (paired
+# per-seed deltas, e.g. row-split-minus-group-split accuracy across 5 seeds),
+# Pearson correlation (the overlap-vs-inflation scatter), and Cochran's Q
+# (omnibus test across more than two classifiers' per-item correct/incorrect
+# calls -- McNemar only handles a pair). Cochran's Q has no scipy
+# implementation and this project does not depend on statsmodels for one
+# formula, so it's computed directly from its standard definition.
 
 from __future__ import annotations
 
 import numpy as np
+from scipy import stats as scipy_stats
 
 
 def bootstrap_metric_ci(
@@ -203,4 +213,110 @@ def bootstrap_two_sample_diff_ci(
                 "noise at this sample size."
             )
         ),
+    }
+
+
+def wilcoxon_signed_rank(deltas: list, confidence: float = 0.95) -> dict:
+    """Two-sided Wilcoxon signed-rank test on a set of paired deltas vs. 0.
+
+    Used where bootstrap_metric_ci doesn't apply: a handful of per-seed
+    deltas (e.g. 5 row-split-minus-group-split accuracies, one per
+    GroupShuffleSplit seed) rather than a large per-row sample. Non-
+    parametric on purpose -- n is small enough (5 seeds) that a normality
+    assumption isn't defensible.
+    """
+    deltas_arr = np.asarray(deltas, dtype=float)
+    n = len(deltas_arr)
+    if n == 0:
+        raise ValueError("wilcoxon_signed_rank: empty sample")
+    if np.all(deltas_arr == 0):
+        # scipy.stats.wilcoxon raises on an all-zero input rather than
+        # returning a (correct) p=1.0 -- handle it explicitly instead of
+        # letting the caller's run crash on a degenerate-but-valid result.
+        return {
+            "statistic": 0.0,
+            "p_value": 1.0,
+            "n": n,
+            "median": 0.0,
+            "method": "wilcoxon signed-rank, two-sided, vs. median 0 (all deltas were exactly 0)",
+        }
+    statistic, p_value = scipy_stats.wilcoxon(deltas_arr, alternative="two-sided")
+    return {
+        "statistic": round(float(statistic), 4),
+        "p_value": float(p_value),
+        "n": n,
+        "median": round(float(np.median(deltas_arr)), 4),
+        "method": "wilcoxon signed-rank, two-sided, vs. median 0",
+    }
+
+
+def pearson_correlation(x: list, y: list) -> dict:
+    """Pearson r and its two-sided p-value between two equal-length series.
+
+    Used for the overlap-vs-inflation scatter (M2.1 PART C): x = incident
+    overlap percentage, y = accuracy delta vs. the clean held-out baseline,
+    across a handful of evaluation sets. n this small means the p-value is
+    weak evidence on its own -- report alongside r, not instead of it.
+    """
+    x_arr = np.asarray(x, dtype=float)
+    y_arr = np.asarray(y, dtype=float)
+    n = len(x_arr)
+    if n != len(y_arr):
+        raise ValueError("pearson_correlation: x and y must be the same length")
+    if n < 2:
+        raise ValueError("pearson_correlation: need at least 2 points")
+    r, p_value = scipy_stats.pearsonr(x_arr, y_arr)
+    return {
+        "r": round(float(r), 4),
+        "p_value": float(p_value),
+        "n": n,
+        "method": "pearson product-moment correlation, two-sided p-value",
+    }
+
+
+def cochrans_q(correct_matrix: np.ndarray) -> dict:
+    """Cochran's Q: omnibus test that >=2 classifiers have equal accuracy.
+
+    `correct_matrix` is (n_items, k_classifiers) of 0/1 (wrong/right), same
+    items scored by every classifier. McNemar only compares a pair; this is
+    the classifier-suite-wide equivalent asked for across M1-M6 in M2.4.
+    Not in scipy (scipy has no Cochran's Q) and statsmodels is not a
+    dependency of this project for one formula, so it's the direct textbook
+    computation: Q = k(k-1) * sum_j(Cj - Cbar)^2 / (k*sum_i(Ri) - sum_i(Ri^2)),
+    df = k-1, p-value from the chi-squared survival function.
+    """
+    matrix = np.asarray(correct_matrix, dtype=float)
+    if matrix.ndim != 2:
+        raise ValueError("cochrans_q: correct_matrix must be 2D (n_items, k_classifiers)")
+    n, k = matrix.shape
+    if n == 0 or k < 2:
+        raise ValueError("cochrans_q: need >=1 item and >=2 classifiers")
+
+    column_totals = matrix.sum(axis=0)  # Cj: correct count per classifier
+    row_totals = matrix.sum(axis=1)  # Ri: correct count per item
+    column_mean = column_totals.mean()
+    denominator = k * row_totals.sum() - float((row_totals**2).sum())
+    if denominator == 0:
+        # every item scored identically (all correct or all wrong) by every
+        # classifier -- Q is undefined, not zero; say so rather than divide
+        # by zero or report a misleading p=1.0.
+        return {
+            "Q": None,
+            "df": k - 1,
+            "p_value": None,
+            "k": k,
+            "n": n,
+            "method": "cochran's Q, undefined: no variation in per-item outcomes across classifiers",
+        }
+
+    q_statistic = k * (k - 1) * float(((column_totals - column_mean) ** 2).sum()) / denominator
+    df = k - 1
+    p_value = float(scipy_stats.chi2.sf(q_statistic, df))
+    return {
+        "Q": round(q_statistic, 4),
+        "df": df,
+        "p_value": p_value,
+        "k": k,
+        "n": n,
+        "method": "cochran's Q, chi-squared approximation, omnibus test across k classifiers' per-item correctness",
     }

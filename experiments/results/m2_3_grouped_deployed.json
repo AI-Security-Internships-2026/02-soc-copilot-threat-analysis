@@ -1,0 +1,53 @@
+{
+  "experiment": "M2.3 PART B: retrain M2.4's selected classifier with an incident-level GroupShuffleSplit (Protocol B) and re-score on the paper's existing evaluation samples",
+  "generated_at_utc": "2026-09-08T10:30:16.213194+00:00",
+  "git_sha": "6c4db28",
+  "protocol": "ACCEPTABLE (internal split) / PREFERRED (GUIDE_Test scoring)",
+  "selected_model_id": "M3a",
+  "selection_source": "experiments/results/m2_4_best_model_selection.json",
+  "train_rows": 500000,
+  "split": {
+    "rule": "GroupShuffleSplit(test_size=0.2, random_state=42) on (OrgId, IncidentId)",
+    "n_train": 398515,
+    "n_val": 98829,
+    "incidents_crossing_boundary": 0
+  },
+  "train_only_val_monitoring": {
+    "n": 98829,
+    "accuracy": 0.7719,
+    "macro_f1": 0.7507,
+    "train_seconds": 1040.3,
+    "note": "monitoring metric, not an early-stopping gate -- see module docstring"
+  },
+  "deploy_compatibility": {
+    "deploy_compatible": true,
+    "shim_applied": false
+  },
+  "refit_full_train_seconds": 48.7,
+  "new_heldout_15000": {
+    "n": 15000,
+    "accuracy": 0.7294,
+    "macro_f1": 0.7258174170268656,
+    "per_class_recall": {
+      "TruePositive": 0.7924,
+      "BenignPositive": 0.8348,
+      "FalsePositive": 0.561
+    }
+  },
+  "delta_vs_0_6998": 0.0296,
+  "new_a4_pipeline_999": {
+    "n": 999,
+    "accuracy": 0.7977977977977978,
+    "macro_f1": 0.7959740427661677,
+    "per_class_recall": {
+      "TruePositive": 0.8198198198198198,
+      "BenignPositive": 0.9069069069069069,
+      "FalsePositive": 0.6666666666666666
+    }
+  },
+  "delta_vs_0_7347": 0.0631,
+  "control_node_arms_a_b_invariant": {
+    "checked": false,
+    "reason": "Architectural invariant (explain_with_llm cannot write predicted_label/confidence), not model-dependent -- already proven row-for-row in control_node_ablation.json. Not re-run against this candidate artifact; see module docstring."
+  }
+}

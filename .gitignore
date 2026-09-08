@@ -97,3 +97,11 @@ experiments/results/evaluation_samples/*
 # paper draft kept out of the public repo per supervisor guidance
 docs/paper/
 experiments/results/.control_node_ablation_checkpoints/
+experiments/results/.m2_4_m7_checkpoint.jsonl
+catboost_info/
+
+# M2.4 (issue #34): both symlink forms, per the commit-995841b lesson --
+# .gitignore matching only the directory form let a symlink through once.
+models/
+models/best_classifier.joblib
+models/best_grouped_classifier.joblib

@@ -1,7 +1,7 @@
 {
   "experiment": "Incident-level label leakage between the RF's training slice and the GUIDE_train-sampled evaluation sets this project reports on",
-  "generated_at_utc": "2026-09-05T18:49:30.800303+00:00",
-  "git_sha": "b10c9b9",
+  "generated_at_utc": "2026-09-08T08:49:27.142690+00:00",
+  "git_sha": "6c4db28",
   "data_source": "datasets/GUIDE_train.csv",
   "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
   "incident_key": [
@@ -53,6 +53,7 @@
   },
   "part_d_causal_test": {
     "design": "Both buckets are drawn from GUIDE_train.csv rows past the 100,000-row training slice, so the model trained on neither. 'leaked' rows belong to an incident that does appear in the training slice (a labelled sibling was available); 'clean' rows do not. Both are class-balanced to identical per-class counts.",
+    "seed": 42,
     "eval_block_rows_read": 300000,
     "eval_block_rows_with_a_label": 298404,
     "bucket_sizes_before_balancing": {
