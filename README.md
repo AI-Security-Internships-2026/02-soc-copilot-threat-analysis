@@ -19,6 +19,8 @@
 | [`datasets/README.md`](datasets/README.md) | Dataset provenance, licence, sizes, class distribution, exactly which split is used, and how to verify your copy's integrity. |
 | [`docs/stale_claims_audit.md`](docs/stale_claims_audit.md) | Every occurrence of a superseded figure, classified and resolved (issue #30 Part A). |
 | [`docs/field-inclusion-memo.md`](docs/field-inclusion-memo.md) | Whether the target-adjacent features leak, measured rather than assumed (issue #30 Part C). |
+| [`docs/soc-injection-benchmark-datasheet.md`](docs/soc-injection-benchmark-datasheet.md) | Datasheet for the 500-row SOC prompt-injection benchmark: composition, collection, annotation status, licence, known biases (issue #35/#37). |
+| [`docs/m3-2-detector-family-matrix.md`](docs/m3-2-detector-family-matrix.md) | 8-detector × 7-family failure analysis against that benchmark, with a real cited miss per cell (issue #36). |
 | [`docs/reproduce_from_scratch.log`](docs/reproduce_from_scratch.log) | A clean-room run of all four baselines from a fresh virtualenv (issue #29). |
 
 The journal paper draft is deliberately **not** in this repository, per supervisor guidance.
@@ -69,6 +71,28 @@ and `docs/weekly-progress.md` Week 17.
 ```bash
 venv/bin/python experiments/classifier_improvement_study.py --max-rows-cap 500000
 ```
+
+### M3 guardrail benchmark — quick start
+
+`datasets/soc_injection_benchmark_v1.csv` (500 rows: 400 template-generated attacks across 7
+families + 100 real GUIDE `BenignPositive` alerts) replaces the earlier 40-example injection corpus
+for detector evaluation. At this scale, the previously-reported TF-IDF detector's 0.46 ROC-AUC
+(measured on the 40-row set) drops to **0.1978** — confirming negative transfer, not a fluke of a
+small sample. The union of the three heuristic layers (regex, schema, and a new SOC-aware field
+allowlist) catches **96.75%** of attacks at **0%** false positives on the 100 real-alert controls,
+outperforming every learned detector tested. One dispatcher reproduces every detector's score
+against it:
+
+```bash
+venv/bin/python scripts/benchmark_soc_injection.py --detector all
+```
+
+Offline detectors (L1, H1, H2, H3, H-union) run immediately. L2/L4 make live, quota-metered Groq
+calls and checkpoint their progress, so a run can be resumed across invocations
+(`--daily-call-budget N` to pace one). L3 (OpenAI Moderation) is off by default — pass `--include-api`
+with your own `OPENAI_API_KEY` set to run it; without one it reports itself as blocked rather than
+silently skipping. See [`docs/soc-injection-benchmark-datasheet.md`](docs/soc-injection-benchmark-datasheet.md)
+and [`docs/m3-2-detector-family-matrix.md`](docs/m3-2-detector-family-matrix.md) for the results.
 
 ---
 
