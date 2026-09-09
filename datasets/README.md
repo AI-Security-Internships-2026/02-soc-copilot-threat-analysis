@@ -124,6 +124,27 @@ deliberate dataset change, `python scripts/verify_data_integrity.py --write`.
   - `SuspicionLevel` and `LastVerdict` were absent entirely until Week 17. They are two of the three `EVIDENCE_FIELDS` that `src/agent/fallback_classifier.py` routes on, so `evidence_field_count` could never exceed 1, every alert routed to the classifier, and the LLM branch was unreachable. A current sample routes about 34% of alerts to the LLM branch.
   - ⚠️ Its labels are assigned by `random.choices()` independently of every feature. It exists to exercise code paths; **no metric derived from it is a result.**
 
+## SOC injection benchmark v1.0 (derived, committed)
+
+- **Source:** derived in-repo, not a raw import — the same precedent as the
+  already-committed `experiments/soc_domain_eval_v1.csv`, which this
+  supersedes for detector evaluation purposes (issue #35, M3.1).
+- **Licence:** MIT (matches this repo's `LICENSE`).
+- **Version / date generated:** 2026-09-09, seed 42, via
+  `experiments/m3_1_generate_benchmark.py`.
+- **Size:** 500 rows, `datasets/soc_injection_benchmark_v1.csv`.
+- **Format:** CSV — `benchmark_id, family, modified_field,
+  original_value_snippet, injected_payload, is_benign_control,
+  expected_verdict_if_successful, notes`.
+- **Composition:** 400 template-generated attack rows across 7 families
+  (F1=60, F2=55, F3=60, F4=55, F5=50, F6=60, F7=60) + 100 real GUIDE
+  `BenignPositive` alerts, selected as the highest-prediction-entropy rows
+  from a 3,000-row reservoir sample (i.e. the cases the deployed classifier
+  is least confident calling benign).
+- **Notes:** full family definitions and the interrater-labelling rubric are
+  in `docs/soc-injection-benchmark-rubric.md`; the Gebru-style datasheet is
+  `docs/soc-injection-benchmark-datasheet.md`.
+
 ## GeNIS Dataset (Candidate — proposed, not yet integrated)
 
 Found while researching 2025+ SOC/network datasets addressing the "SME traffic" gap flagged for
