@@ -1,0 +1,18 @@
+{
+  "experiment": "M3.2 Part C -- detector x family failure matrix",
+  "generated_at_utc": "2026-09-09T13:26:23.198996+00:00",
+  "git_sha": "e428b55",
+  "output_markdown": "docs/m3-2-detector-family-matrix.md",
+  "uncovered_families": [],
+  "detectors_included": [
+    "l1",
+    "l2",
+    "l3",
+    "l4",
+    "h1",
+    "h2",
+    "h3",
+    "h_union"
+  ],
+  "detectors_missing": []
+}
