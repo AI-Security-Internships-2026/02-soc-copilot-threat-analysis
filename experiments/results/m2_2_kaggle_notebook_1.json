@@ -1,0 +1,30 @@
+{
+  "experiment": "M2.2 notebook 1/2: CatBoost, ported from kaggle.com/code/kugakugar/catboost",
+  "generated_at_utc": "2026-09-10T13:38:47.567551+00:00",
+  "git_sha": "78b843f",
+  "source_notebook": {
+    "ref": "kugakugar/catboost",
+    "title": "CatBoost",
+    "author": "Kuga Kugar",
+    "total_votes_at_pull_time": 39,
+    "url": "https://www.kaggle.com/code/kugakugar/catboost",
+    "license_note": "Notebook code is authored by Kuga Kugar and published on Kaggle; ported here for split-method comparison, attributed above, not redistributed verbatim."
+  },
+  "nrows": 300000,
+  "original_row_level_split": {
+    "n_train": 253653,
+    "n_test": 44763,
+    "accuracy": 0.8706,
+    "f1_binary": 0.8157
+  },
+  "groupshuffle_split": {
+    "n_train": 254517,
+    "n_test": 43899,
+    "accuracy": 0.8636,
+    "f1_binary": 0.8002,
+    "incidents_crossing_boundary": 0
+  },
+  "delta_acc": 0.007,
+  "delta_f1_binary": 0.0155,
+  "meets_ac_delta_ge_0_020": false
+}

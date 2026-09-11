@@ -1,0 +1,34 @@
+{
+  "experiment": "M2.2 notebook 2/2: RandomForest, ported from kaggle.com/code/mohamedamr992/94-roc-randomforest",
+  "generated_at_utc": "2026-09-10T13:39:32.377461+00:00",
+  "git_sha": "78b843f",
+  "source_notebook": {
+    "ref": "mohamedamr992/94-roc-randomforest",
+    "title": "94%ROC-RandomForest",
+    "author": "Mohamed Amr992",
+    "total_votes_at_pull_time": 16,
+    "url": "https://www.kaggle.com/code/mohamedamr992/94-roc-randomforest",
+    "selection_note": "Not the 2nd-highest vote count on the dataset -- the two higher-voted candidates were rejected for cause (see module docstring): one has no train_test_split to patch, one is unrelated to this dataset despite the vote-count tag match.",
+    "license_note": "Notebook code is authored by Mohamed Amr992 and published on Kaggle; ported here for split-method comparison, attributed above, not redistributed verbatim."
+  },
+  "nrows": 300000,
+  "original_row_level_split": {
+    "n_train": 238732,
+    "n_test": 59684,
+    "accuracy": 0.8369,
+    "f1_binary": 0.7795,
+    "roc_auc": 0.9238
+  },
+  "groupshuffle_split": {
+    "n_train": 240719,
+    "n_test": 57697,
+    "accuracy": 0.8277,
+    "f1_binary": 0.7649,
+    "roc_auc": 0.9142,
+    "incidents_crossing_boundary": 0
+  },
+  "delta_acc": 0.0092,
+  "delta_f1_binary": 0.0146,
+  "delta_roc_auc": 0.0096,
+  "meets_ac_delta_ge_0_020": false
+}

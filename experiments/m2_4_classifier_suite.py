@@ -100,6 +100,8 @@ OUTPUT_HELDOUT_PATH = Path("experiments/results/m2_4_heldout_n15k.json")
 OUTPUT_SELECTION_PATH = Path("experiments/results/m2_4_best_model_selection.json")
 OUTPUT_M7_PATH = Path("experiments/results/m2_4_m7_llm_only.json")
 M7_CHECKPOINT_PATH = Path("experiments/results/.m2_4_m7_checkpoint.jsonl")
+BEST_CLASSIFIER_LINK = Path("models/best_classifier.joblib")
+GROUPED_CLASSIFIER_ARTIFACT = Path("models/best_grouped_classifier.joblib")
 M7_TARGET_N = 500
 
 SEED = 42
@@ -414,6 +416,11 @@ def run_heldout(model_ids: list[str]) -> dict:
         if name_a not in correct_by_model or name_b not in correct_by_model:
             return {"status": f"{name_a} or {name_b} not run this call"}
         raw = mcnemar(correct_by_model[name_a], correct_by_model[name_b])
+        a_wrong_b_right = raw["llm_correct_rf_wrong"]
+        a_right_b_wrong = raw["rf_correct_llm_wrong"]
+        odds_ratio = (
+            a_right_b_wrong / a_wrong_b_right if a_wrong_b_right else float("inf")
+        )
         return {
             "a": name_a,
             "b": name_b,
@@ -423,6 +430,9 @@ def run_heldout(model_ids: list[str]) -> dict:
             "both_wrong": raw["both_wrong"],
             "discordant_pairs": raw["discordant_pairs"],
             "p_value": raw["p_value"],
+            # McNemar odds ratio = (a-right/b-wrong) / (a-wrong/b-right) among
+            # discordant pairs -- >1 means a wins more of the disagreements.
+            "odds_ratio_a_over_b": round(odds_ratio, 4) if odds_ratio != float("inf") else None,
         }
 
     mcnemar_pairs = {
@@ -533,9 +543,11 @@ def check_deploy_compatibility(model_id: str, feature_names_in_ok: bool) -> dict
     fallback_classifier.py raises if the loaded estimator lacks
     feature_names_in_. sklearn RF/LogReg and XGBoost/LightGBM (fit on a
     DataFrame) set it automatically; CatBoost does not use that attribute
-    name. M2.4 only selects a model -- it does not write models/*.joblib;
-    that artifact-save step is M2.3's, gated on this script's selection
-    output. This just records the fact M2.3 will need.
+    name. This just records the fact M2.3 will need; the M3a-selection ->
+    models/best_classifier.joblib link is written at the end of main(),
+    pointing at M2.3's models/best_grouped_classifier.joblib artifact since
+    both scripts train the identical procedure (500K rows, GroupShuffleSplit)
+    and report the same 0.7294 heldout accuracy for M3a.
     """
     if feature_names_in_ok:
         return {"deploy_compatible": True}
@@ -681,6 +693,13 @@ def run_m7(daily_call_budget: int, heldout_correct_by_model: dict[str, list[bool
                     paired_other.append(bool(other_correct_full[idx]))
             if paired_m7:
                 raw = mcnemar(paired_other, paired_m7)
+                other_wrong_m7_right = raw["llm_correct_rf_wrong"]
+                other_right_m7_wrong = raw["rf_correct_llm_wrong"]
+                odds_ratio = (
+                    other_right_m7_wrong / other_wrong_m7_right
+                    if other_wrong_m7_right
+                    else float("inf")
+                )
                 mcnemar_vs[f"{other_id}_vs_M7"] = {
                     "a": other_id,
                     "b": "M7",
@@ -691,6 +710,7 @@ def run_m7(daily_call_budget: int, heldout_correct_by_model: dict[str, list[bool
                     "both_wrong": raw["both_wrong"],
                     "discordant_pairs": raw["discordant_pairs"],
                     "p_value": raw["p_value"],
+                    "odds_ratio_a_over_b": round(odds_ratio, 4) if odds_ratio != float("inf") else None,
                 }
     else:
         mcnemar_vs = {
@@ -838,6 +858,19 @@ def main() -> None:
         OUTPUT_SELECTION_PATH.write_text(json.dumps(selection_payload, indent=2))
         print(f"saved to {OUTPUT_SELECTION_PATH}")
         print(f"\nSELECTED: {selection['selected']} ({selection['selection_reason']})")
+
+        if selection["selected"] == "M3a" and GROUPED_CLASSIFIER_ARTIFACT.exists():
+            BEST_CLASSIFIER_LINK.parent.mkdir(parents=True, exist_ok=True)
+            if BEST_CLASSIFIER_LINK.is_symlink() or BEST_CLASSIFIER_LINK.exists():
+                BEST_CLASSIFIER_LINK.unlink()
+            BEST_CLASSIFIER_LINK.symlink_to(GROUPED_CLASSIFIER_ARTIFACT.name)
+            print(f"linked {BEST_CLASSIFIER_LINK} -> {GROUPED_CLASSIFIER_ARTIFACT.name}")
+        elif selection["selected"] == "M3a":
+            print(
+                f"selection is M3a but {GROUPED_CLASSIFIER_ARTIFACT} is not present "
+                "on disk yet -- run m2_3_deploy_grouped_model.py first, then rerun "
+                "this script's heldout mode to create the models/best_classifier.joblib link"
+            )
 
     if run_m7_flag:
         print("\n" + "=" * 72)
