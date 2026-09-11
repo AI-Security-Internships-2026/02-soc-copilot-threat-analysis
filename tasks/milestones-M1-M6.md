@@ -146,12 +146,13 @@ The issue also expects 102 passing tests; the suite is larger. That is added cov
 - [x] Dispatcher runs all 7 models (`--model_id`) in both modes (`--mode validate|heldout`)
 - [x] Heldout (GUIDE_Test n=15,000): M1 0.3333, M2 0.5443, **M3a 0.7294 (winner)**, M3b 0.7267,
       M4 0.7201, M5 0.7052, M6 0.7057
-- [x] McNemar M6-vs-M3a (p=2.19e-14) and M3a-vs-M3b (p=0.0372) reported
-- [x] McNemar M3a-vs-M7 (the selected model against the LLM, on the same 241 scored rows):
-      p=8.75e-10, RF correct on 111/148 discordant alerts. `experiments/results/m2_4_m3a_vs_m7_mcnemar.json`
-- [ ] McNemar M6-vs-M7 specifically — **not computed**; would need a second ~57-minute
-      default-hyperparameter CatBoost fit under this machine's memory ceiling after the week's
-      other CatBoost runs, for a pairing against the runner-up rather than the selected model
+- [x] McNemar+odds ratio, all 3 required pairs, on the completed n=500 M7 arm (superseding the
+      earlier 241-row partial figures below): M6-vs-M3a p=2.19e-14 (OR 0.72), M3a-vs-M3b p=0.0372
+      (OR 1.25), M6-vs-M7 p=3.17e-17 (OR 2.84), M3a-vs-M7 p=2.22e-18 (OR 2.94) — RF wins the
+      large majority of discordant pairs against the LLM in both tabular comparisons.
+      `experiments/results/m2_4_heldout_n15k.json`'s `mcnemar_pairs` field.
+      `experiments/results/m2_4_m3a_vs_m7_mcnemar.json` is the superseded n=241 partial figure,
+      kept for history.
 - [x] Cochran's Q across tabular M1–M6: p≈0
 - [x] `models/best_classifier.joblib` selection: **M3a retained** — no alternative cleared both
       the >1.5-point gap and McNemar p<0.05 bar against it

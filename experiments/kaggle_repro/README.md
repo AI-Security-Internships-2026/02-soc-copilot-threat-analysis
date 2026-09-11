@@ -1,8 +1,45 @@
 # M2.2 (issue #32) — third-party leakage reproducibility
 
-**Status: blocked on tooling access, not attempted-and-failed.** P2-optional
-per the issue's own priority label, so this is the piece of M2 left
-incomplete rather than delivered with fabricated numbers.
+**Status: attempted and completed, with two honest deviations from the
+issue's literal spec.** `~/.kaggle/kaggle.json` credentials were available
+this session (not checked, or not present, previously) — the real Kaggle
+API (`kaggle kernels list --dataset
+Microsoft/microsoft-security-incident-prediction --sort-by voteCount`)
+gives ranked, real vote counts, superseding the websearch-only attempt
+recorded below. Results: `experiments/results/m2_2_kaggle_baselines.json`
+(combined), `m2_2_kaggle_notebook_1.json` / `m2_2_kaggle_notebook_2.json`
+(per-notebook). Scripts: `kaggle_notebook_1.py` (CatBoost, ported from
+kugakugar/catboost, 39 votes), `kaggle_notebook_2.py` (RandomForest, ported
+from mohamedamr992/94-roc-randomforest, 16 votes).
+
+**Deviation 1 — no notebook on this dataset reaches the issue's "≥50
+upvotes" bar.** The real ceiling is 39 votes (kugakugar/catboost). Used the
+top-voted notebook anyway rather than treating this as another blocker.
+
+**Deviation 2 — the literal 2nd-highest-voted notebook doesn't fit the
+task.** safreita/incident-triage-prediction (26 votes) trains directly on
+GUIDE_Train.csv and scores on GUIDE_Test.csv with no `train_test_split`
+call anywhere in it — there is no row-level split in it to patch to
+GroupShuffleSplit. The next candidate down,
+alexandrepedrosai/majorana-hardware (21 votes), is unrelated to this
+dataset entirely despite the vote-count/tag association. Used
+mohamedamr992/94-roc-randomforest (16 votes), the next-highest-voted
+notebook that actually performs a row-level split — see
+`kaggle_notebook_2.py`'s module docstring for the full chain of rejections.
+
+**Result: the issue's AC ("at least one notebook shows delta_acc ≥
++0.020") is not met** — 0.0070 and 0.0092 respectively, both real,
+positive, same-direction results, both smaller than this project's own
++0.0283 finding. See `m2_2_kaggle_baselines.json`'s `interpretation` field
+for why (binary vs. this project's 3-class target formulation). Reported
+as a real negative result, not adjusted or hidden.
+
+---
+
+## Original blocked-attempt record (superseded above, kept for context)
+
+*The following was true of the first attempt this session, before Kaggle
+API credentials were found at `~/.kaggle/kaggle.json`:*
 
 ## What the issue asks for
 

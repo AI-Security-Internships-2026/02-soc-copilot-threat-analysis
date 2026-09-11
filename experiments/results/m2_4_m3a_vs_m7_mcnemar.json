@@ -8,5 +8,6 @@
   "discordant_pairs": 148,
   "p_value": 8.74661329915905e-10,
   "p_value_scientific": "8.747e-10",
-  "interpretation": "Of the 148 alerts where the two models disagreed in correctness, the RF was the correct one in 111. Under the null hypothesis that both models are equally accurate this split has p = 8.75e-10."
+  "interpretation": "Of the 148 alerts where the two models disagreed in correctness, the RF was the correct one in 111. Under the null hypothesis that both models are equally accurate this split has p = 8.75e-10.",
+  "superseded_by": "experiments/results/m2_4_heldout_n15k.json mcnemar_pairs.M3a_vs_M7 -- this file is the partial n=241 figure from before M7 finished scoring all 500 target alerts; kept for history, not authoritative"
 }

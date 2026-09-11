@@ -1,7 +1,7 @@
 {
   "experiment": "M2.4 held-out GUIDE_Test.csv (n=15,000) scoring across the classifier suite",
-  "generated_at_utc": "2026-09-08T10:56:54.816880+00:00",
-  "git_sha": "6c4db28",
+  "generated_at_utc": "2026-09-11T08:23:47.618801+00:00",
+  "git_sha": "78b843f",
   "protocol": "PREFERRED",
   "heldout_train_rows": 500000,
   "holdout_sample_n": 15000,
@@ -64,7 +64,7 @@
         "BenignPositive": 0.7836,
         "FalsePositive": 0.1652
       },
-      "train_seconds": 10.3,
+      "train_seconds": 11.6,
       "train_rows": 500000,
       "deploy_compatible": true
     },
@@ -95,7 +95,7 @@
         "BenignPositive": 0.8348,
         "FalsePositive": 0.561
       },
-      "train_seconds": 32.4,
+      "train_seconds": 32.7,
       "train_rows": 500000,
       "deploy_compatible": true
     },
@@ -126,7 +126,7 @@
         "BenignPositive": 0.8322,
         "FalsePositive": 0.5566
       },
-      "train_seconds": 66.7,
+      "train_seconds": 53.4,
       "train_rows": 500000,
       "deploy_compatible": true
     },
@@ -157,7 +157,7 @@
         "BenignPositive": 0.898,
         "FalsePositive": 0.5034
       },
-      "train_seconds": 12.8,
+      "train_seconds": 9.5,
       "train_rows": 500000,
       "deploy_compatible": true
     },
@@ -188,7 +188,7 @@
         "BenignPositive": 0.915,
         "FalsePositive": 0.4654
       },
-      "train_seconds": 9.6,
+      "train_seconds": 6.4,
       "train_rows": 500000,
       "deploy_compatible": true
     },
@@ -219,21 +219,21 @@
         "BenignPositive": 0.9038,
         "FalsePositive": 0.4696
       },
-      "train_seconds": 3418.3,
+      "train_seconds": 862.0,
       "train_rows": 500000,
       "deploy_compatible": false,
       "reason": "M6's estimator does not set feature_names_in_ the way fallback_classifier.py's single-alert inference path requires (known gap: CatBoost). If M2.3 chooses this model for deployment, it needs a compatibility wrapper first."
     },
     "M7": {
-      "n": 241,
-      "accuracy": 0.32905982905982906,
-      "macro_f1": 0.24283985478015327,
+      "n": 500,
+      "accuracy": 0.32563025210084034,
+      "macro_f1": 0.24038235984048792,
       "per_class_recall": {
-        "TruePositive": 0.5405405405405406,
-        "BenignPositive": 0.3217391304347826,
+        "TruePositive": 0.6027397260273972,
+        "BenignPositive": 0.2863247863247863,
         "FalsePositive": 0.0
       },
-      "complete": false
+      "complete": true
     }
   },
   "mcnemar_pairs": {
@@ -245,7 +245,8 @@
       "M3a_correct_M6_wrong": 1256,
       "both_wrong": 3158,
       "discordant_pairs": 2157,
-      "p_value": 2.1867520827526273e-14
+      "p_value": 2.1867520827526273e-14,
+      "odds_ratio_a_over_b": 0.7174
     },
     "M3a_vs_M3b": {
       "a": "M3a",
@@ -255,7 +256,32 @@
       "M3b_correct_M3a_wrong": 164,
       "both_wrong": 3895,
       "discordant_pairs": 369,
-      "p_value": 0.03717007038152862
+      "p_value": 0.03717007038152862,
+      "odds_ratio_a_over_b": 1.25
+    },
+    "M6_vs_M7": {
+      "a": "M6",
+      "b": "M7",
+      "n_paired": 500,
+      "both_correct": 76,
+      "M6_correct_M7_wrong": 224,
+      "M7_correct_M6_wrong": 79,
+      "both_wrong": 121,
+      "discordant_pairs": 303,
+      "p_value": 3.168780232652897e-17,
+      "odds_ratio_a_over_b": 2.8354
+    },
+    "M3a_vs_M7": {
+      "a": "M3a",
+      "b": "M7",
+      "n_paired": 500,
+      "both_correct": 77,
+      "M3a_correct_M7_wrong": 229,
+      "M7_correct_M3a_wrong": 78,
+      "both_wrong": 116,
+      "discordant_pairs": 307,
+      "p_value": 2.2212567978384838e-18,
+      "odds_ratio_a_over_b": 2.9359
     }
   },
   "cochrans_q_tabular_m1_m6": {

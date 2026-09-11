@@ -1,7 +1,7 @@
 {
   "experiment": "M2.4 auto-selection: best classifier vs RF fallback",
-  "generated_at_utc": "2026-09-08T10:10:18.466513+00:00",
-  "git_sha": "6c4db28",
+  "generated_at_utc": "2026-09-11T08:23:46.336228+00:00",
+  "git_sha": "78b843f",
   "rule": "best beats second-best by >1.5 accuracy points AND McNemar p<0.05 -> select best; else select RF (M3a)",
   "ranked": [
     [

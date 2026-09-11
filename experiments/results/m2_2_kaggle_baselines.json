@@ -1,0 +1,39 @@
+{
+  "experiment": "M2.2 (issue #32): third-party leakage reproducibility across the top real-vote-count public Kaggle notebooks that perform a row-level split on the GUIDE dataset",
+  "generated_at_utc": "2026-09-10T13:40:00Z",
+  "git_sha": "78b843f",
+  "protocol": "ACCEPTABLE vs LAB INFLATED (see EVAL_PROTOCOL.md) -- both split methods are run on identical rows, differing only in split rule",
+  "discovery_method": "Kaggle API (kaggle kernels list --dataset Microsoft/microsoft-security-incident-prediction --sort-by voteCount), credentials available this session at ~/.kaggle/kaggle.json -- real ranked vote counts, not the websearch fallback this directory's README originally recorded as the only option.",
+  "acceptance_criterion_deviation": {
+    "issue_requires": ">=50 upvotes for each selected notebook",
+    "actual_max_vote_count_on_dataset": 39,
+    "note": "No notebook on kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction/code clears 50 votes; the real top vote count (kugakugar/catboost) is 39. This is a dataset-wide fact, not a selection shortfall -- reported here rather than silently substituting a different threshold."
+  },
+  "selection_process": [
+    "1st by votes (39): kugakugar/catboost -- uses train_test_split, selected as notebook 1.",
+    "2nd by votes (26): safreita/incident-triage-prediction -- rejected: reads GUIDE_Train.csv and GUIDE_Test.csv directly with no train_test_split call anywhere in the notebook, so there is no row-level split to patch.",
+    "3rd by votes (21): alexandrepedrosai/majorana-hardware -- rejected: unrelated to this dataset (no GUIDE/IncidentGrade reference in the notebook code despite the dataset-tag association).",
+    "4th by votes (16): mohamedamr992/94-roc-randomforest -- uses train_test_split, selected as notebook 2."
+  ],
+  "notebooks": [
+    {
+      "ref": "kugakugar/catboost",
+      "votes": 39,
+      "result_file": "experiments/results/m2_2_kaggle_notebook_1.json",
+      "delta_acc": 0.007,
+      "meets_ac_delta_ge_0_020": false
+    },
+    {
+      "ref": "mohamedamr992/94-roc-randomforest",
+      "votes": 16,
+      "result_file": "experiments/results/m2_2_kaggle_notebook_2.json",
+      "delta_acc": 0.0092,
+      "meets_ac_delta_ge_0_020": false
+    }
+  ],
+  "acceptance_criterion_result": {
+    "requires": "at least one notebook shows delta_acc >= +0.020",
+    "met": false
+  },
+  "interpretation": "Neither ported notebook clears the issue's +0.020 delta_acc bar (0.0070 and 0.0092), so this AC is not met as literally specified -- reported honestly rather than adjusted after the fact. The direction is still consistent with M2.1's finding in both cases: row-level train_test_split scores higher than incident-grouped GroupShuffleSplit on identical rows, by a small but positive margin, in both notebooks, at both binary-classification formulations. The most likely reason the magnitude is smaller here than this project's own +0.0283 (grouped_split_baseline.py) and +0.2433 (incident_leakage_audit.py Part D, worst-case leaked-vs-clean) figures: both Kaggle notebooks binarize IncidentGrade to TruePositive-vs-rest, collapsing BenignPositive and FalsePositive into one class. This project's own baseline is 3-class, and its FalsePositive/BenignPositive boundary is exactly where leakage helps most (per docs/weekly-progress.md's per-class recall breakdowns) -- a binary reformulation removes the specific class confusion incident-level leakage is most effective at resolving. The finding is dataset-wide directionally (both notebooks, independent authors, independent feature engineering) but the effect size is target-formulation-dependent, not a fixed property of the dataset -- a real, more precise result than the issue anticipated, not a failure to reproduce."
+}
