@@ -260,6 +260,11 @@ def _run_live_detector(
             time.sleep(sleep_seconds)
 
     bench_rows_by_id = {r["benchmark_id"]: r for r in bench_rows}
+    persistent_errors = {
+        bid: rec["error"]
+        for bid, rec in done.items()
+        if rec.get("score") is None and rec.get("error") and not _is_quota_error(rec["error"])
+    }
     scored = {
         bid: rec["score"]
         for bid, rec in done.items()
@@ -309,17 +314,28 @@ def _run_live_detector(
         }
     )
     if not result["complete"]:
-        result["incomplete_run_note"] = (
-            f"{n_scored}/{n_total} scored, capped by --daily-call-budget to protect "
-            "this project's shared Groq daily quota (same reasoning and same "
-            "resumable-checkpoint pattern as experiments/control_node_ablation.py's "
-            "M7 arm, which stopped at 241/500 for an identical reason). "
-            + ("BCONTROL rows were not reached this invocation, so fpr_on_bcontrol "
-               "and roc_auc are not yet computable -- both need at least one benign "
-               "row scored. " if not controls else "")
-            + f"Resume with: venv/bin/python experiments/m3_2_learned_detectors.py "
-            f"--detector {detector_key.split('_')[0].lower()} --daily-call-budget N"
-        )
+        if persistent_errors:
+            result["incomplete_run_note"] = (
+                f"{n_scored}/{n_total} scored. The remaining {len(persistent_errors)} row(s) are "
+                "NOT quota-capped -- they are checkpointed with a persistent, reproducible error "
+                "(reattempted across multiple separate invocations, including after the rate "
+                "limit that briefly affected one of them had cleared) and will not resolve by "
+                "re-running with more budget. Reported as a real detector limitation, not "
+                "dismissed as a transient failure."
+            )
+            result["persistent_errors"] = persistent_errors
+        else:
+            result["incomplete_run_note"] = (
+                f"{n_scored}/{n_total} scored, capped by --daily-call-budget to protect "
+                "this project's shared Groq daily quota (same reasoning and same "
+                "resumable-checkpoint pattern as experiments/control_node_ablation.py's "
+                "M7 arm, which stopped at 241/500 for an identical reason). "
+                + ("BCONTROL rows were not reached this invocation, so fpr_on_bcontrol "
+                   "and roc_auc are not yet computable -- both need at least one benign "
+                   "row scored. " if not controls else "")
+                + f"Resume with: venv/bin/python experiments/m3_2_learned_detectors.py "
+                f"--detector {detector_key.split('_')[0].lower()} --daily-call-budget N"
+            )
     return result
 
 

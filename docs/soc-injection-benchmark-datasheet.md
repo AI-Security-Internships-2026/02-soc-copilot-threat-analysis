@@ -99,8 +99,11 @@ needs two independent human raters, and a single rater (or an AI system)
 re-checking its own generated labels would not be independent by
 construction. Target once both raters complete the worksheet: κ ≥ 0.75 (issue
 #35's acceptance criterion). This is stated as pending rather than filled
-with an invented number, consistent with how issue #32 (blocked on Kaggle
-tooling access) was handled elsewhere in this project.
+with an invented number, consistent with how issue #32 (Kaggle tooling
+access) was handled elsewhere in this project before it was resolved.
+Raters and timeline requested from the supervisors in
+[issue #35's comments](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/issues/35);
+this section will be updated with the real κ once both rating passes land.
 
 ## 5. Known biases
 
