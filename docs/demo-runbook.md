@@ -464,7 +464,9 @@ Fixed this week.
 >
 > The honest limitation is what is left after that: the deployed classifier is
 > trained on 100,000 rows, 1% of GUIDE, and a larger slice is measured to be
-> worth about 3.6 points that this project did not adopt. And the four-arm
+> worth **+3.4 points** that this project did not adopt — that is the arm
+> selected on the internal holdout; the best arm reaches +3.6, but it is the one
+> picked by reading the held-out set we promised not to optimise against. And the four-arm
 > ablation is incomplete — Groq's daily quota left two arms scored on a subset
 > that is missing exactly the alerts they existed to test, so those arms are
 > reported descriptively and no significance is claimed between them.
