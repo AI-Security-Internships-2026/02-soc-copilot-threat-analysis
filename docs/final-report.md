@@ -655,6 +655,16 @@ the held-out evaluation found weakest. This is **diagnostic**: the deployed
 `baseline_model.joblib` is unchanged, so every pipeline figure in this report
 was produced by the same model as before.
 
+**Replicated across seven seeds.** The contrast above is a single seed. Holding
+the 100,000-row slice and RF-200 configuration fixed and varying only the split
+rule and the seed (`experiments/results/m2_1_splitmethod_delta_5seeds.json`), the
+row-level arm scores higher in **7 of 7** replicates — never once the reverse —
+with a mean gap of **+0.0302 accuracy** (95% CI [+0.0244, +0.0351]) and **+0.0355
+macro F1** (95% CI [+0.0278, +0.0419]). A two-sided Wilcoxon signed-rank test
+against a zero median gives **p = 0.0156**, the smallest value attainable at n=7.
+The multi-seed interval contains the single-seed estimate, so the original figure
+was not a favourable draw.
+
 **Why 2.8 and not 24.3.** The two numbers answer different questions and it
 would overstate the result to conflate them. The 24.3-point gap holds one model
 fixed and varies the row population, on class-balanced buckets (majority floor
@@ -705,10 +715,15 @@ reported but never optimised against.
 | HistGradientBoosting, `class_weight="balanced"` | 2M | 0.7341 | 0.7343 | 0.659 |
 | **RF-200, `min_samples_leaf=5`, `class_weight="balanced"`** | **1M** | **0.7355** | **0.7338** | **0.607** |
 
-Against the deployed model's 0.6998 / 0.6949 (Section 5.8), the best configuration
-is worth **+3.6 accuracy points and +3.9 macro F1**, and raises `FalsePositive`
-recall — the weakness Sections 5.8 and 6.2 both single out — from 0.514 to 0.607.
-It trains in 87 seconds.
+Against the deployed model's 0.6998 / 0.6949 (Section 5.8), the arm the stated
+selection rule actually picks — `rf200_leaf5@2000000`, chosen on the internal
+grouped holdout — is worth **+3.43 accuracy points**. The best-scoring arm on
+`GUIDE_Test` itself is worth **+3.6 accuracy points and +3.9 macro F1**, but that
+arm is identified by reading the held-out split this section commits to never
+optimising against, so it is reported for reference rather than claimed; the
+honest headline is the smaller figure. It raises `FalsePositive` recall — the
+weakness Sections 5.8 and 6.2 both single out — from 0.514 to 0.607, and trains
+in 87 seconds.
 
 Three observations matter more than the headline:
 
@@ -780,6 +795,64 @@ measured on the same held-out split. Dropping the mid-cardinality descriptive
 fields as well (`AlertTitle`, `MitreTechniques`, `City`, `State`) costs a further
 8.2 points held-out, which puts a floor under how much of this task is learnable
 from low-cardinality metadata alone.
+
+### 5.12 A SOC-domain injection benchmark, and eight detectors measured on it
+
+Sources: `experiments/results/m3_1_benchmark_generation.json`,
+`m3_2_heuristic_detectors.json`, `m3_2_learned_detectors.json`; benchmark at
+`datasets/soc_injection_benchmark_v1.csv`.
+
+Section 5.5's figures rest on 40 examples written by the same author as the regex
+patterns they score — self-consistency, not generalisation, and the weakest
+evidence in this report. This benchmark fixes the attack taxonomy *before* any
+detector is run: **400 injection payloads across seven families**, plus **100 real
+`BenignPositive` GUIDE alerts** as controls (500 rows). The controls are
+reservoir-sampled unique-incident rows scored with the deployed classifier and
+taken from the top of the entropy ranking — the genuinely ambiguous alerts most
+likely to trip a detector into a false positive.
+
+| Family | Attack type | n |
+|---|---|---|
+| F1 | Direct override | 60 |
+| F2 | Role playing | 55 |
+| F3 | Passive / buried | 60 |
+| F4 | Encoded / obfuscated | 55 |
+| F5 | Cross-field fragmentation | 50 |
+| F6 | False evidence injection | 60 |
+| F7 | Output-format / JSON manipulation | 60 |
+| BCONTROL | real benign GUIDE alerts | 100 |
+
+Recall is over the 400 attacks; FPR is over the 100 real controls.
+
+| Detector | Recall | FPR on real alerts |
+|---|---|---|
+| H1 regex (the deployed filter) | 2.75% | 0% |
+| H2 schema type-check | 10.50% | 0% |
+| H3 SOC-aware detector | **91.25%** | 0% |
+| H-union (H1 ∪ H2 ∪ H3) | **96.75%** | 0% |
+| L1 TF-IDF + logistic regression | 3.25% | 10% |
+| L2 Llama Prompt Guard 2 (86M) | 31.25% | 0% |
+| L3 OpenAI Moderation | not run — no API key | — |
+| L4 NeMo-style LLM self-check | 58.99% | 0% |
+
+Three findings. First, **the deployed regex filter is worse than Section 5.5
+suggested** — 2.75% against 5% — which is the expected direction once the corpus
+is not written by the same hand as the patterns. Second, **general-purpose
+learned detectors underperform a domain-specific heuristic**: a purpose-built 86M
+injection classifier reaches 31.25% and an LLM self-check 58.99%, while a
+SOC-aware detector reaches 91.25% at no false positives. The TF-IDF baseline is
+both the weakest detector and the only one that fires on real alerts (10% FPR),
+because generic chat-jailbreak vocabulary does not transfer to alert-field
+payloads. Third, **failures are structured by family**: F3 (passive/buried)
+defeats both L2 and L4 completely (0%) because the payload reads as an ordinary
+analyst note, and F4 (encoded) is the only family the heuristic union fails to
+close, at 76%. L3 was not run — no OpenAI key was available — and is reported as
+not run rather than as a zero.
+
+This sharpens rather than changes Section 5.5's conclusion. The best single
+detector still leaves about one attack in twelve undetected and the union one in
+thirty, so the property that a successful injection cannot alter a verdict
+(Section 5.4) remains the load-bearing mitigation.
 
 ## 6. Discussion and Limitations
 
@@ -960,6 +1033,10 @@ supervisor's direction.
 | `schema_guardrail_eval.json` | Deterministic schema guardrail, 100% injection recall |
 | `evaluation_samples/` | The committed 999- and 15,000-alert samples every figure is computed from |
 | `classifier_improvement_study.json` | **Data-scaling and estimator study, and the identifier feature-inflation ablation** |
+| `m2_1_splitmethod_delta_5seeds.json` | **The split-rule gap replicated across seven seeds, with Wilcoxon test** |
+| `m3_1_benchmark_generation.json` | SOC injection benchmark v1.0 — 400 attacks, 7 families, 100 real controls |
+| `m3_2_heuristic_detectors.json` | Heuristic detectors (regex, schema, SOC-aware) on that benchmark |
+| `m3_2_learned_detectors.json` | **Learned detectors (TF-IDF, Prompt Guard 2, LLM self-check) on that benchmark** |
 
 Every file above is produced by a committed script in `experiments/`, and every
 figure in this report is read from one of them.
