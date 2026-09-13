@@ -2674,3 +2674,160 @@ incident-level effects replicated across multiple seeds), #33 (EVAL_PROTOCOL.md 
 deliberately-deferred grouped retrain), #34 (the seven-classifier suite the paper's Table 1
 needed, with an explicit answer to the LabelEncoder-ordinality question). #32 is the one
 sub-issue left open, on tooling grounds stated above, not measurement grounds.
+
+## Week 20 — M4, Integrity/Explanation (issues #38, #40, #41), and a heuristic that measured itself
+
+Branched from `asma-week-19-m3-benchmark` (M3 already committed there, PR #49) since M4.1 depends
+on M3.1's benchmark and M4.4 depends on M2.4's classifier selection, both already in the stack.
+
+### Finding 1: A4's "0% Triage-ASR by construction" claim is now measured, not asserted
+
+`experiments/m4_1_security_asr_runner.py` (issue #38) scores all 400 attack rows of the M3.1
+benchmark against A3 (ML-only) and A4 (proposed: ML decides, LLM explains) under both defense
+modes ("none": inject raw; "combined": H1∪H2∪H3 pre-filter). Both read `predicted_label` from
+`src.models.classifier_factory` / `fallback_classifier.predict_with_margin` only — never from a
+live LLM call — so this measurement costs zero Groq quota and runs on the full population, not a
+sample:
+
+| Arch | Defense | n | Triage-ASR (lenient) |
+|---|---|---|---|
+| A3 ml_only | none | 400 | 0.0 |
+| A3 ml_only | combined | 400 | 0.0 |
+| A4 proposed | none | 400 | 0.0 |
+| A4 proposed | combined | 400 | 0.0 |
+
+Bootstrap 95% CI is `[0, 0]` at every configuration — not just low, exactly zero across 10,000
+resamples, which is what "by construction" predicts. The PART A task-6 graph-wiring proof is
+generated from the actual source via `ast` (not regex): only `classify_with_fallback`,
+`classify_with_rf`, and `parse_verdict` ever return a `predicted_label` key in
+`src/agent/nodes.py`; `explain_with_llm` is not among them.
+
+**A regex-substring version of that same proof shipped first and was wrong.** Checking `'"predicted_label"' in function_body` flagged `explain_with_llm` and `route_after_rf_verdict` as
+writers, because both *read* `state.get("predicted_label")` — the same characters, different
+meaning. Caught before commit by checking the printed proof against the code by hand; replaced
+with an AST walk over actual `return {...}` dict literals
+(`_functions_returning_key`), pinned by
+`tests/test_m4_1_asr_runner.py::test_predicted_label_writers_are_ast_verified_not_regex_guessed`.
+
+### Finding 2: A1 (llm_primary) has a real, quota-bounded, statistically significant ASR
+
+A1 needs a live Groq call per label, so Triage-ASR was scored on a stratified n=56 sample (8 per
+family, seed 42) rather than the full 400:
+
+| Defense | n | Triage-ASR (lenient) | Triage-ASR (strict) |
+|---|---|---|---|
+| none | 56 | 0.1071 | 0.0893 |
+| combined | 56 | 0.0 | 0.0 |
+
+McNemar (A4 safe vs. A1 safe, paired, none-defense, n=56): 6 discordant pairs, all "A4 safe / A1
+not" (0 the other direction) — exact p=0.03125. A4 is significantly safer than A1 at this sample
+size, and the direction is unambiguous even before considering scale.
+
+### M4.4: the classifier swap the issue described turned out to already be settled
+
+M2.4's auto-selection already picked M3a (the deployed RF) as best — it never became CatBoost —
+and `docs/m2-3-deploy-decision-memo.md` already decided KEEP that model through M5, ADOPT the
+grouped candidate only at M6. So there is no model to swap right now. Scoped M4.4 down to what
+that actually leaves: `src/models/classifier_factory.py`, a named seam
+(`MODEL_ID`/`load_classifier()`) that M4.1 and the eventual M6 swap both read, proven identical to
+the deployed path by `tests/test_best_classifier_integration.py` (4 tests: load succeeds,
+`predict_proba` shape `(3,)`, matches `fallback_classifier.predict_with_margin` exactly, matches
+the compiled A4 graph exactly). `graph.py`/`nodes.py` were deliberately left untouched — renaming
+`classify_with_rf` for a model that isn't changing would be churn, not integration work.
+
+Building the M4.1 runner surfaced a real, independent production bug while doing this: any
+feature column without a saved training-time encoder (e.g. `DeviceName`, numeric in real GUIDE
+data) crashed `predict_with_margin` on a non-numeric string instead of degrading gracefully —
+one weird field would have taken down the whole triage graph. Fixed in
+`fallback_classifier.py::_to_feature_frame` by coercing unencoded object columns to numeric,
+`NaN` on failure — the same "unknown → missing" treatment `transform_with_encoders` already gives
+an out-of-vocabulary value in an *encoded* column.
+
+### A heuristic that measured itself, and got caught before it shipped
+
+The Explanation-ASR heuristic (issue #38 PART A task 5) initially flagged an explanation as
+hallucinated if it merely mentioned a verdict word other than the assigned one. On the live n=56
+sample this scored 30/56 (54%) of **unattacked baseline** explanations as hallucinated — a red
+flag, since nothing attacked those. Root cause: `nodes.py`'s `build_context` injects
+`Last Verdict: TruePositive` into every prompt (the synthetic base alert's fixed field value), and
+a well-grounded explanation legitimately cites that field by name — not a contradiction. Fixed to
+require an assertive claim pattern ("the correct verdict is X") rather than a bare mention, and
+changed the metric itself from a raw "flagged after" rate to a flip-based one
+(`newly_hallucinated`: flagged after and not flagged at baseline), matching Triage-ASR's own
+flip semantics rather than inventing a different one. Regression-pinned in
+`tests/test_m4_1_asr_runner.py::test_explanation_hallucination_allows_citing_last_verdict_field`.
+
+The rerun to collect corrected numbers (~112 calls for the same n=56 sample) stalled: CPU time on
+the running process grew 0.4s over 10+ minutes of wall time, consistent with a long rate-limit
+backoff rather than a hang — today's Groq quota was already spent on Finding 2's sample (226
+calls) before this bug was caught. Killed rather than left to sleep through an unknown-length
+backoff. **`experiments/results/m4_1_asr_8configs.json`'s `a4_explanation_asr_status` reads "not
+yet collected"** — no Explanation-ASR number is reported this week; reporting the pre-fix number
+would have been reporting a measured false-positive rate as an attack-success rate.
+
+While a live sample was mid-write, the runner's own output step was caught doing the same class of
+thing at a smaller scale: it rewrote `OUTPUT_PATH` from scratch every invocation, so a
+budget-limited `--arches a4x` rerun would have silently discarded the already-collected
+`a1_llm_primary` arm. Backed up the file by hand before the rerun landed, then fixed the root
+cause — the script now merges into whatever's already on disk, keyed per defense-mode/arch, rather
+than overwriting. That same investigation also found the McNemar block had been checking for key
+`"a1"` when the stored key is `"a1_llm_primary"`, so it had silently never fired in either
+successful run this week; fixed alongside (Finding 2's McNemar result above is from the corrected
+version).
+
+### Problems / Blockers
+
+- **M4.3 PART A (issue #40) needs real human raters** — 3–5 cybersecurity-knowledgeable lab
+  members blind-rating 100 alert/explanation pairs, ~1-week response window. Not something to
+  simulate: flagged to @Mati86 and @engranaabubakar directly on the issue, offering to build the
+  rating packet (stratified 100 pairs, blind-randomised, anonymised Variant IDs) now if wanted.
+  PART B's automated-proxy script doesn't depend on Part A to *compute*, only to *validate*
+  (Spearman ρ against human averages) — not started this week, no point building the proxy
+  before knowing whether Part A's schedule affects its design.
+- **Explanation-ASR (M4.1 PART A task 5) not yet collected** — see above; needs
+  `venv/bin/python experiments/m4_1_security_asr_runner.py --sample-n 60 --arches a4x` on a fresh
+  Groq quota day (~112 calls).
+- **A2 (legacy_hybrid) Triage-ASR not attempted this week.** Deliberately: today's quota went to
+  A1 (the more informative arm — A1 decides every alert, A2 only the evidence-dense subset) and
+  the A4x rerun above. `label_a2_legacy_hybrid` is implemented and covered by the same
+  `run_live_arch` path A1 uses; running it needs its own quota day.
+- **M4.2 (#39, P2-optional) not started.** Its own design explicitly calls for a 2–3 day
+  Groq-quota-paced re-run (999 alerts, arms `legacy_hybrid`/`llm_primary` first); out of scope
+  for a session already at today's ceiling from M4.1.
+- **M5/M6 not started.** Both are substantively blocked on M4 finishing (M4.1's remaining arms,
+  M4.3's human study), and each is itself multi-week scope on its own terms — M5.2's cross-domain
+  10K synthetic benchmark, M6.2's WSL2+PowerShell reproduction runner, M6.4's 22-page manuscript
+  draft are not one-session tasks regardless of M4's status.
+
+### Next week plan
+
+- Fresh-quota-day rerun: Explanation-ASR (a4x) and A2 Triage-ASR, both already implemented.
+- Depending on Mati/Rana's response on issue #40: build the M4.3 rating packet, or move to M4.2's
+  paced re-run if the human study is still being scheduled.
+
+### Carried forward, still open
+
+1. **Paper declarations** — funding, ORCID and co-authorship remain blocked on issue #16.
+2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since Week 10.
+3. **PRs #28, #48, #49 are all open and unreviewed**, now with #50 (this week) stacked on top.
+4. Three commits on `main` carry AI co-authorship trailers, conflicting with the attribution
+   policy. Rewriting shared history needs an explicit decision.
+5. **The deployed classifier is still the 100,000-row row-level-trained RF.** M4.4 confirmed the
+   graph correctly uses it (it's also M2.4's selected best); still true that the grouped/500K
+   candidate is deferred to M6 per `docs/m2-3-deploy-decision-memo.md`.
+6. **M2.2 (#32)** — third-party Kaggle reproduction, blocked on tooling access (unchanged).
+7. **M6-vs-M7 McNemar and M7's remaining 259 alerts** — both blocked on quota/compute (unchanged).
+8. **Analyst-rated evaluation of explanation quality (M4.3)** — no longer just "the one gap none
+   of this closes": now explicitly flagged to the two people who can actually unblock it
+   (issue #40 comment), with the non-human half of the work scoped and ready to start once theirs
+   lands.
+9. **`docs/weekly-progress.md` has no Week 19 (M3) entry.** M3's commits, results, and docs
+   (`docs/m3-2-detector-family-matrix.md`, `datasets/soc_injection_benchmark_v1_RUBRIC.md`) are
+   all in `asma-week-19-m3-benchmark` / PR #49, but this log jumps from Week 18 straight to Week
+   20. Not backfilled here — it wasn't this week's work, and inventing the narrative from the
+   commit history alone risks getting the "why" wrong even if the "what" is verifiable.
+
+**Closed this week:** none formally — merges are Mati/Rana's call per the supervisor review gate.
+Substantively: M4.1 (#38) is complete for A3/A4 (offline, full n=400, both defense modes) and A1
+(live, n=56, both defense modes), with Explanation-ASR and A2 the two pieces still open. M4.4
+(#41) is complete. M4.3 (#40) PART A is blocked on rater scheduling, flagged on the issue.

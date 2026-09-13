@@ -90,7 +90,23 @@ def _to_feature_frame(alert: dict[str, Any], model, encoders: dict) -> pd.DataFr
     row["Month"] = timestamp.month if not pd.isna(timestamp) else row.get("Month")
     frame = pd.DataFrame([row])
     frame = transform_with_encoders(frame, encoders)
-    return frame.reindex(columns=_model_features(model))
+    frame = frame.reindex(columns=_model_features(model))
+
+    # transform_with_encoders only touches columns that had a LabelEncoder
+    # saved at train time (encode_categoricals only fits one for columns
+    # pandas inferred as dtype "object" in the training data). A feature like
+    # DeviceName is numeric in GUIDE's real schema, so it has no encoder --
+    # but a caller can still hand this function an unexpected string for it
+    # (e.g. a real-world hostname, or a synthetic test alert). Left alone
+    # that string reaches model.predict_proba() as-is and crashes the whole
+    # triage graph on a ValueError, turning "one weird field" into "no
+    # verdict for this alert at all". Coerce it to NaN instead, the same
+    # "unknown -> missing" treatment transform_with_encoders already gives an
+    # out-of-vocabulary value in an *encoded* column.
+    unencoded_object_cols = [c for c in frame.select_dtypes(include="object").columns if c not in encoders]
+    if unencoded_object_cols:
+        frame[unencoded_object_cols] = frame[unencoded_object_cols].apply(pd.to_numeric, errors="coerce")
+    return frame
 
 
 def predict_with_fallback(alert: dict[str, Any]) -> tuple[str, float]:

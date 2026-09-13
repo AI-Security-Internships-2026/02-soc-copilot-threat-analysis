@@ -111,6 +111,10 @@ catboost_info/
 
 # M2.4 (issue #34): both symlink forms, per the commit-995841b lesson --
 # .gitignore matching only the directory form let a symlink through once.
-models/
-models/best_classifier.joblib
-models/best_grouped_classifier.joblib
+# Anchored to the repo root (leading slash): a bare `models/` also matches
+# `src/models/`, which is a real tracked source package, not an artifact
+# directory -- an unanchored pattern here silently swallowed
+# src/models/classifier_factory.py (M4.4, issue #41) until this fix.
+/models/
+/models/best_classifier.joblib
+/models/best_grouped_classifier.joblib
