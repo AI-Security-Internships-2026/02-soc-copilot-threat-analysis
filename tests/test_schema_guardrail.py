@@ -9,7 +9,12 @@ that actually runs, instead of only living as prose in a log file.
 import csv
 from pathlib import Path
 
-from src.agent.schema_guardrail import validate_field_types
+import pytest
+
+from src.agent.schema_guardrail import (
+    EXPECTED_NUMERIC_FIELDS,
+    validate_field_types,
+)
 
 INJECTION_STRINGS_PATH = Path("experiments/soc_domain_eval_v1.csv")
 
@@ -75,3 +80,51 @@ def test_full_20v20_synthetic_set_scores_100_percent():
 
     assert false_positives == 0
     assert false_negatives == 0
+
+
+# ---------------------------------------------------------------------------
+# M1.2 Part C1 (issue #30): the numeric-ID assumption, checked against the data
+# ---------------------------------------------------------------------------
+
+def test_detector_id_and_alert_title_are_numeric_across_a_large_sample():
+    """The guardrail's numeric assumption holds on real GUIDE data at scale.
+
+    `EXPECTED_NUMERIC_FIELDS` blocks an alert whose AlertTitle or DetectorId is
+    non-numeric. That is a security control, so a false block on legitimate
+    traffic is a real cost. AlertTitle had been inspected; DetectorId was
+    asserted rather than checked.
+
+    `experiments/field_inclusion_audit.py` scanned 500,000 rows and found:
+        AlertTitle  33,042 distinct values, 0 non-numeric
+        DetectorId   4,559 distinct values, 0 non-numeric
+
+    This pins that result so a future schema change cannot silently invalidate
+    it. It reads the committed audit artifact rather than the 2.4GB dataset, so
+    it runs anywhere; if the artifact is absent the test skips rather than
+    inventing a pass.
+    """
+    import json
+    from pathlib import Path
+
+    audit_path = Path("experiments/results/field_inclusion_audit.json")
+    if not audit_path.exists():
+        pytest.skip(
+            "experiments/results/field_inclusion_audit.json is absent; "
+            "regenerate with experiments/field_inclusion_audit.py"
+        )
+
+    audit = json.loads(audit_path.read_text())["part_c1_numeric_field_audit"]
+    assert audit["rows_scanned"] >= 50_000, "issue #30 requires a sample of at least 50,000 rows"
+
+    for field, result in audit["results"].items():
+        assert result["present"], f"{field} is missing from the audited slice"
+        assert result["all_parse_as_numeric"], (
+            f"{field} has {result['non_numeric_distinct_values']} non-numeric distinct "
+            f"values, e.g. {result['examples_of_non_numeric'][:3]}. The schema guardrail "
+            f"would false-block those alerts; either the field leaves "
+            f"EXPECTED_NUMERIC_FIELDS or the Limitations must state the rate."
+        )
+
+    assert set(audit["results"]) == set(EXPECTED_NUMERIC_FIELDS), (
+        "the audit and the guardrail disagree about which fields must be numeric"
+    )

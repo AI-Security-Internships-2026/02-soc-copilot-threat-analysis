@@ -10,7 +10,7 @@ numbers mean.
 
 ```bash
 cd "/Users/asma/Desktop/iot lab/02-soc-copilot-threat-analysis"
-git checkout asma-week-15
+git checkout asma-week-17-verification
 ```
 
 Everything runs from the repository root. All commands use `venv/bin/python`
@@ -26,7 +26,7 @@ ls -la experiments/results/baseline_model.joblib
 venv/bin/python -c "import os;print('GROQ key loaded:', bool(os.getenv('GROQ_API_KEY')) or 'check .env')"
 ```
 
-Expect `65 passed`, and the joblib file present at ~590 MB.
+Expect `118 passed`, and the joblib file present at ~590 MB.
 
 **If Groq is down or out of quota**, everything except Step 2's explanation text
 and Step 4 still works. Say so plainly and continue — that is itself the point
@@ -42,9 +42,9 @@ of the architecture, and Step 6 makes the argument without any network at all.
 venv/bin/python -m pytest tests/ -q
 ```
 
-**Expected:** `65 passed in ~3.5s`
+**Expected:** `118 passed in ~5s`
 
-**What to say:** 65 tests, up from 33. The new ones cover things that were
+**What to say:** 118 tests, up from 33 at Week 15. The new ones cover things that were
 genuinely unprotected: `guardrails.py` had been in the pipeline since Week 3
 with zero tests, while the *unused* ML guardrail had dedicated ones. There is
 also now a test asserting the language model cannot set a verdict — the
@@ -191,7 +191,8 @@ SAME 209 ALERTS, TWO MODELS
                    escalates 49 at 0.3673 accuracy.
                    inverted: True
 
-  RF training overlap: 4/209 rows (1.91%)
+  RF training overlap, exact-row    : 4/209 (1.91%)
+  RF training overlap, incident-lvl: 82/209 (39.23%)  <- the figure that matters
 ```
 
 **Walk through it in this order:**
@@ -267,7 +268,63 @@ Under the old design, skipping the LLM would have changed the result.
 
 ---
 
-## Step 7 — Guardrail measurements (optional, 20 seconds)
+## Step 7 — The held-out result, and the leakage behind it (40 seconds)
+
+> "Everything so far is measured on samples of the file the forest trained on.
+> This is the number I would actually stand behind."
+
+```bash
+venv/bin/python -c "
+import json
+h = json.load(open('experiments/results/guide_test_holdout_eval.json'))['test_holdout']
+l = json.load(open('experiments/results/incident_leakage_audit.json'))
+d = l['part_d_causal_test']
+print(f\"  held-out GUIDE_Test  : accuracy {h['accuracy']}  macro F1 {h['macro_f1']}  n={h['n']}\")
+print(f\"  incident overlap in a train-sampled set : {l['part_c_sample_overlap']['samples']['train_sampled_999']['incident_level_overlap_rate']:.1%}\")
+print(f\"  accuracy WITH a labelled sibling in training : {d['leaked']['accuracy']}\")
+print(f\"  accuracy WITHOUT one                        : {d['clean']['accuracy']}\")
+"
+```
+
+**Expected:**
+
+```
+  held-out GUIDE_Test  : accuracy 0.6998  macro F1 0.6949  n=15000
+  incident overlap in a train-sampled set : 55.8%
+  accuracy WITH a labelled sibling in training : 0.8332
+  accuracy WITHOUT one                        : 0.5898
+```
+
+**What to say, in this order:**
+
+1. **GUIDE's label is incident-level, not alert-level.** One incident produces
+   many alert rows and they all carry the same grade. We verified that: of
+   11,141 rows in a block far outside the training slice whose incident also
+   appears in training, **11,141 carry the identical label**. The label is
+   constant within an incident.
+
+2. **So a row-level split leaks.** Sibling rows of the same incident land on
+   both sides of it, and the model can retrieve the answer rather than infer
+   it. **55.8%** of any train-sampled evaluation set is contaminated this way.
+
+3. **It is worth 24.3 accuracy points.** On rows the model trained on *neither*
+   way, having a labelled sibling available in training is worth **0.8332
+   versus 0.5898** — 95% CI [+0.2282, +0.2587]. That is the size of the effect
+   every train-sampled figure in this project carries.
+
+4. **Which is why 0.6998 is the number to quote.** Microsoft's own held-out
+   split, 15,000 alerts, no shared incidents. It is lower than the 0.7347 and
+   that is the point — the lower number is the honest one.
+
+**If asked "so are your other numbers wrong?":** the paired comparisons are
+unaffected, because both models see identical alerts and the contamination
+cancels. What contamination inflates is any *absolute* accuracy read off a
+train-sampled set. Both readings are reported side by side in
+`docs/final-report.md` §5.10.
+
+---
+
+## Step 8 — Guardrail measurements (optional, 20 seconds)
 
 ```bash
 venv/bin/python experiments/guardrail_layer_eval.py
@@ -278,7 +335,7 @@ note that since this week injection cannot change a triage outcome at all.
 
 ---
 
-## Step 8 — The clickable demo (optional, 60 seconds)
+## Step 9 — The clickable demo (optional, 60 seconds)
 
 ```bash
 venv/bin/streamlit run src/app.py
@@ -320,9 +377,20 @@ Fixed this week.
 > safety net was auto-accepting its worst predictions. That is not visible
 > unless you measure it, and nothing in the pipeline would have alerted us.
 >
-> The honest limitation is that the official test split is still unused —
-> everything is evaluated on samples from the training file. That is the first
-> thing I would fix.
+> The number I would actually stand behind, though, is **0.6998 on Microsoft's
+> own held-out split** over 15,000 alerts — not the 0.7347. Week 17 found that
+> GUIDE's label is incident-level, so a row-level split lets sibling rows of the
+> same incident fall on both sides of it. **55.8%** of any train-sampled
+> evaluation set is contaminated that way, and having a labelled sibling in
+> training is worth **24.3 accuracy points**. Every train-sampled figure in this
+> project, including the 0.7347, carries that inflation.
+>
+> The honest limitation is what is left after that: the deployed classifier is
+> trained on 100,000 rows, 1% of GUIDE, and a larger slice is measured to be
+> worth about 3.6 points that this project did not adopt. And the four-arm
+> ablation is incomplete — Groq's daily quota left two arms scored on a subset
+> that is missing exactly the alerts they existed to test, so those arms are
+> reported descriptively and no significance is claimed between them.
 
 ---
 
@@ -333,7 +401,8 @@ Fixed this week.
    which is still a `TODO` in the author block.
 2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since
    Week 10, unchanged.
-3. **PR #25 is open and unreviewed**; this week's work is on `asma-week-15`.
+3. **PRs #25, #26 and #27 are open and unreviewed**; this week's work is on
+   `asma-week-17-verification`.
 4. **Three commits on `main`** (`7cbc58b`, `ad02c85`, `61ea961`) carry AI
    co-authorship trailers, which conflicts with the project's attribution
    policy. Rewriting shared history needs his decision.
@@ -344,7 +413,7 @@ Fixed this week.
 
 | Symptom | Do this |
 |---|---|
-| Groq errors / quota exhausted | Say the explanation layer is down and the verdicts are unaffected — *that is the architecture working*. Steps 1, 5, 6, 7 need no network. |
-| `FileNotFoundError: baseline_model.joblib` | Retrain: `venv/bin/python -m src.models.baseline` (~10 min). Do not start the demo without checking preflight. |
-| Streamlit will not start | Skip Step 8. `run_agent.py` shows the same pipeline. |
+| Groq errors / quota exhausted | Say the explanation layer is down and the verdicts are unaffected — *that is the architecture working*. Steps 1, 5, 6, 7 and 8 need no network. |
+| `FileNotFoundError: baseline_model.joblib` | Retrain: `venv/bin/python -m src.models.baseline` (~10 min). Do not start the demo without checking preflight. Note `src/main.py` will *not* retrain unless passed `--retrain`; it reuses the saved artifact, because retraining silently invalidates every committed result. |
+| Streamlit will not start | Skip Step 9. `run_agent.py` shows the same pipeline. |
 | A number differs from this runbook | Say so out loud and open the JSON in `experiments/results/`. Every figure here is traceable to a committed file — reading from the source is a better look than glossing over it. |

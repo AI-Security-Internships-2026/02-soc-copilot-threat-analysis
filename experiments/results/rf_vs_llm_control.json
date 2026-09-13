@@ -1,8 +1,8 @@
 {
   "experiment": "RandomForest vs LLM on the identical LLM-routed alert subset",
   "question": "Prior comparisons scored the two models on different alerts, so a lower LLM score could have meant the LLM-routed alerts were harder. This scores both models on the same rows to remove that confound.",
-  "generated_at_utc": "2026-09-04T13:26:09.375525+00:00",
-  "git_sha": "6ad48c8",
+  "generated_at_utc": "2026-09-06T17:14:30.856680+00:00",
+  "git_sha": "e126c1e",
   "rf_model": "RandomForestClassifier, experiments/results/baseline_model.joblib",
   "llm_model": "openai/gpt-oss-20b (Groq), improved prompt",
   "llm_results_source": "experiments/results/llm_subset_eval_improved_full209.json",
@@ -127,6 +127,7 @@
     ]
   },
   "rf_training_overlap": {
+    "measured": true,
     "rf_training_rows_checked": 100000,
     "evaluation_rows": 209,
     "exact_row_overlap": 4,

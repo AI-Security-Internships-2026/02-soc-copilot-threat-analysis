@@ -1,0 +1,613 @@
+{
+  "experiment": "What the deployed RF leaves on the table: data scaling, estimator choice, class weighting, tuning, and the identifier feature-inflation ablation carried outstanding from Week 15",
+  "generated_at_utc": "2026-09-05T11:15:41.450718+00:00",
+  "git_sha": "b10c9b9",
+  "diagnostic_only": "This script does NOT write experiments/results/baseline_model.joblib. The deployed model and every published figure derived from it are unchanged unless a candidate is adopted by a separate, explicit decision.",
+  "deployed_reference": {
+    "max_rows": 100000,
+    "held_out_accuracy": 0.6998,
+    "held_out_macro_f1": 0.6949,
+    "source": "experiments/results/guide_test_holdout_eval.json"
+  },
+  "evaluation_protocol": {
+    "external": "datasets/GUIDE_Test.csv, class-balanced n=15,000, seed 42, 0% incident overlap",
+    "internal": "incident-level GroupShuffleSplit on (OrgId, IncidentId), test_size 0.2, seed 42",
+    "selection": "candidates are selected on the internal grouped holdout only; GUIDE_Test is reported, never optimised against",
+    "memory_note": "A fully-grown RandomForest(200) fits only up to about 500,000 rows on an 8 GB machine, so the scaling curve is run twice: once in the deployed configuration up to that ceiling, and once with min_samples_leaf=5, which reaches 2M rows."
+  },
+  "available_training_rows": 9516838,
+  "arms": {
+    "rf200_default@100000": {
+      "grouped_internal_holdout": {
+        "n": 19351,
+        "accuracy": 0.7410986512324944,
+        "macro_f1": 0.7057299281908967,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.6969333333333333,
+        "macro_f1": 0.6920413078160732,
+        "per_class_recall": {
+          "TruePositive": 0.7626,
+          "BenignPositive": 0.8138,
+          "FalsePositive": 0.5144
+        }
+      },
+      "stage": 1,
+      "max_rows": 100000,
+      "n_after_preprocess": 99475,
+      "n_train": 80124,
+      "n_incidents": 52797,
+      "train_seconds": 6.9,
+      "estimator": "RandomForestClassifier(n_estimators=200, n_jobs=-1, random_state=42)"
+    },
+    "rf200_leaf5@100000": {
+      "grouped_internal_holdout": {
+        "n": 19351,
+        "accuracy": 0.7461113120768953,
+        "macro_f1": 0.69006908032266,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.6819333333333333,
+        "macro_f1": 0.6691075758187092,
+        "per_class_recall": {
+          "TruePositive": 0.7464,
+          "BenignPositive": 0.889,
+          "FalsePositive": 0.4104
+        }
+      },
+      "stage": 1,
+      "max_rows": 100000,
+      "n_after_preprocess": 99475,
+      "n_train": 80124,
+      "n_incidents": 52797,
+      "train_seconds": 5.1,
+      "estimator": "RandomForestClassifier(min_samples_leaf=5, n_estimators=200, n_jobs=-1,\n                       random_state=42)"
+    },
+    "rf200_default@250000": {
+      "grouped_internal_holdout": {
+        "n": 48261,
+        "accuracy": 0.7562835415760137,
+        "macro_f1": 0.7286269427429267,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7126666666666667,
+        "macro_f1": 0.7081672690681072,
+        "per_class_recall": {
+          "TruePositive": 0.773,
+          "BenignPositive": 0.8312,
+          "FalsePositive": 0.5338
+        }
+      },
+      "stage": 1,
+      "max_rows": 250000,
+      "n_after_preprocess": 248680,
+      "n_train": 200419,
+      "n_incidents": 110868,
+      "train_seconds": 20.1,
+      "estimator": "RandomForestClassifier(n_estimators=200, n_jobs=-1, random_state=42)"
+    },
+    "rf200_leaf5@250000": {
+      "grouped_internal_holdout": {
+        "n": 48261,
+        "accuracy": 0.7466898738111518,
+        "macro_f1": 0.7006086137403821,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.697,
+        "macro_f1": 0.6852690966519971,
+        "per_class_recall": {
+          "TruePositive": 0.7562,
+          "BenignPositive": 0.9036,
+          "FalsePositive": 0.4312
+        }
+      },
+      "stage": 1,
+      "max_rows": 250000,
+      "n_after_preprocess": 248680,
+      "n_train": 200419,
+      "n_incidents": 110868,
+      "train_seconds": 16.3,
+      "estimator": "RandomForestClassifier(min_samples_leaf=5, n_estimators=200, n_jobs=-1,\n                       random_state=42)"
+    },
+    "rf200_default@500000": {
+      "grouped_internal_holdout": {
+        "n": 98829,
+        "accuracy": 0.7719495289844074,
+        "macro_f1": 0.7506586126021905,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7213333333333334,
+        "macro_f1": 0.7173904289646602,
+        "per_class_recall": {
+          "TruePositive": 0.7864,
+          "BenignPositive": 0.8294,
+          "FalsePositive": 0.5482
+        }
+      },
+      "stage": 1,
+      "max_rows": 500000,
+      "n_after_preprocess": 497344,
+      "n_train": 398515,
+      "n_incidents": 188139,
+      "train_seconds": 44.7,
+      "estimator": "RandomForestClassifier(n_estimators=200, n_jobs=-1, random_state=42)"
+    },
+    "rf200_leaf5@500000": {
+      "grouped_internal_holdout": {
+        "n": 98829,
+        "accuracy": 0.7628226532697893,
+        "macro_f1": 0.7288077631778517,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7066666666666667,
+        "macro_f1": 0.6971050825733025,
+        "per_class_recall": {
+          "TruePositive": 0.7596,
+          "BenignPositive": 0.9032,
+          "FalsePositive": 0.4572
+        }
+      },
+      "stage": 1,
+      "max_rows": 500000,
+      "n_after_preprocess": 497344,
+      "n_train": 398515,
+      "n_incidents": 188139,
+      "train_seconds": 40.1,
+      "estimator": "RandomForestClassifier(min_samples_leaf=5, n_estimators=200, n_jobs=-1,\n                       random_state=42)"
+    },
+    "histgb@500000": {
+      "grouped_internal_holdout": {
+        "n": 98829,
+        "accuracy": 0.762488743182669,
+        "macro_f1": 0.7313281464573623,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7076,
+        "macro_f1": 0.6999555019695881,
+        "per_class_recall": {
+          "TruePositive": 0.7398,
+          "BenignPositive": 0.9042,
+          "FalsePositive": 0.4788
+        }
+      },
+      "stage": 2,
+      "max_rows": 500000,
+      "n_after_preprocess": 497344,
+      "n_train": 398515,
+      "n_incidents": 188139,
+      "train_seconds": 56.6,
+      "estimator": "HistGradientBoostingClassifier(early_stopping=True, max_iter=300,\n                               random_state=42)"
+    },
+    "rf200_leaf5@1000000": {
+      "grouped_internal_holdout": {
+        "n": 185465,
+        "accuracy": 0.7655676273151268,
+        "macro_f1": 0.7318402081446211,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7198666666666667,
+        "macro_f1": 0.7122040888901336,
+        "per_class_recall": {
+          "TruePositive": 0.7684,
+          "BenignPositive": 0.9044,
+          "FalsePositive": 0.4868
+        }
+      },
+      "stage": 1,
+      "max_rows": 1000000,
+      "n_after_preprocess": 994711,
+      "n_train": 809246,
+      "n_incidents": 303379,
+      "train_seconds": 91.2,
+      "estimator": "RandomForestClassifier(min_samples_leaf=5, n_estimators=200, n_jobs=-1,\n                       random_state=42)"
+    },
+    "histgb@1000000": {
+      "grouped_internal_holdout": {
+        "n": 185465,
+        "accuracy": 0.7527134499770847,
+        "macro_f1": 0.7163286838841344,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7076666666666667,
+        "macro_f1": 0.7005318676755303,
+        "per_class_recall": {
+          "TruePositive": 0.7428,
+          "BenignPositive": 0.904,
+          "FalsePositive": 0.4762
+        }
+      },
+      "stage": 2,
+      "max_rows": 1000000,
+      "n_after_preprocess": 994711,
+      "n_train": 809246,
+      "n_incidents": 303379,
+      "train_seconds": 100.8,
+      "estimator": "HistGradientBoostingClassifier(early_stopping=True, max_iter=300,\n                               random_state=42)"
+    },
+    "rf200_leaf5_balanced@1000000": {
+      "grouped_internal_holdout": {
+        "n": 185465,
+        "accuracy": 0.7657185991966139,
+        "macro_f1": 0.7438917466474132,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7354666666666667,
+        "macro_f1": 0.7338366807113541,
+        "per_class_recall": {
+          "TruePositive": 0.7548,
+          "BenignPositive": 0.8446,
+          "FalsePositive": 0.607
+        }
+      },
+      "stage": 3,
+      "max_rows": 1000000,
+      "n_after_preprocess": 994711,
+      "n_train": 809246,
+      "n_incidents": 303379,
+      "train_seconds": 86.7,
+      "estimator": "RandomForestClassifier(class_weight='balanced', min_samples_leaf=5,\n                       n_estimators=200, n_jobs=-1, random_state=42)"
+    },
+    "rf400_leaf5_sqrt@1000000": {
+      "grouped_internal_holdout": {
+        "n": 185465,
+        "accuracy": 0.7665058097215108,
+        "macro_f1": 0.732736409859497,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7198666666666667,
+        "macro_f1": 0.712059606963858,
+        "per_class_recall": {
+          "TruePositive": 0.7684,
+          "BenignPositive": 0.9066,
+          "FalsePositive": 0.4846
+        }
+      },
+      "stage": 4,
+      "max_rows": 1000000,
+      "n_after_preprocess": 994711,
+      "n_train": 809246,
+      "n_incidents": 303379,
+      "train_seconds": 163.2,
+      "estimator": "RandomForestClassifier(min_samples_leaf=5, n_estimators=400, n_jobs=-1,\n                       random_state=42)"
+    },
+    "rf200_leaf5@2000000": {
+      "grouped_internal_holdout": {
+        "n": 400836,
+        "accuracy": 0.7937710185711863,
+        "macro_f1": 0.7671887982504404,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7341333333333333,
+        "macro_f1": 0.7285541437057512,
+        "per_class_recall": {
+          "TruePositive": 0.775,
+          "BenignPositive": 0.9064,
+          "FalsePositive": 0.521
+        }
+      },
+      "stage": 1,
+      "max_rows": 2000000,
+      "n_after_preprocess": 1989246,
+      "n_train": 1588410,
+      "n_incidents": 454661,
+      "train_seconds": 663.0,
+      "estimator": "RandomForestClassifier(min_samples_leaf=5, n_estimators=200, n_jobs=-1,\n                       random_state=42)"
+    },
+    "histgb@2000000": {
+      "grouped_internal_holdout": {
+        "n": 400836,
+        "accuracy": 0.7704497600015967,
+        "macro_f1": 0.7375725881219223,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7101333333333333,
+        "macro_f1": 0.7037726384525115,
+        "per_class_recall": {
+          "TruePositive": 0.7368,
+          "BenignPositive": 0.9044,
+          "FalsePositive": 0.4892
+        }
+      },
+      "stage": 2,
+      "max_rows": 2000000,
+      "n_after_preprocess": 1989246,
+      "n_train": 1588410,
+      "n_incidents": 454661,
+      "train_seconds": 1325.1,
+      "estimator": "HistGradientBoostingClassifier(early_stopping=True, max_iter=300,\n                               random_state=42)"
+    },
+    "histgb_deep@2000000": {
+      "grouped_internal_holdout": {
+        "n": 400836,
+        "accuracy": 0.7815365885299723,
+        "macro_f1": 0.752593797152601,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7212666666666666,
+        "macro_f1": 0.7155462654120459,
+        "per_class_recall": {
+          "TruePositive": 0.7492,
+          "BenignPositive": 0.9034,
+          "FalsePositive": 0.5112
+        }
+      },
+      "stage": 2,
+      "max_rows": 2000000,
+      "n_after_preprocess": 1989246,
+      "n_train": 1588410,
+      "n_incidents": 454661,
+      "train_seconds": 1406.3,
+      "estimator": "HistGradientBoostingClassifier(early_stopping=True, l2_regularization=1.0,\n                               learning_rate=0.06, max_iter=500,\n                               max_leaf_nodes=63, random_state=42)"
+    },
+    "histgb_balanced@2000000": {
+      "grouped_internal_holdout": {
+        "n": 400836,
+        "accuracy": 0.7686435350118253,
+        "macro_f1": 0.7507096050561635,
+        "split": "incident-level GroupShuffleSplit on (OrgId, IncidentId)"
+      },
+      "held_out_guide_test": {
+        "n": 15000,
+        "accuracy": 0.7340666666666666,
+        "macro_f1": 0.7342820172950688,
+        "per_class_recall": {
+          "TruePositive": 0.7366,
+          "BenignPositive": 0.8064,
+          "FalsePositive": 0.6592
+        }
+      },
+      "stage": 3,
+      "max_rows": 2000000,
+      "n_after_preprocess": 1989246,
+      "n_train": 1588410,
+      "n_incidents": 454661,
+      "train_seconds": 883.0,
+      "estimator": "HistGradientBoostingClassifier(class_weight='balanced', early_stopping=True,\n                               l2_regularization=1.0, learning_rate=0.06,\n                               max_iter=500, max_leaf_nodes=63,\n                               random_state=42)"
+    }
+  },
+  "selection": {
+    "rule": "highest macro F1 on the incident-level internal holdout. GUIDE_Test is reported but never optimised against, so this figure stays an honest estimate.",
+    "selected": "rf200_leaf5@2000000",
+    "selected_held_out_accuracy": 0.7341333333333333,
+    "selected_held_out_macro_f1": 0.7285541437057512,
+    "accuracy_gain_vs_deployed": 0.0343,
+    "macro_f1_gain_vs_deployed": 0.0337,
+    "best_held_out_arm_for_reference": "rf200_leaf5_balanced@1000000",
+    "best_held_out_accuracy_for_reference": 0.7354666666666667
+  },
+  "identifier_ablation": {
+    "max_rows": 500000,
+    "estimator": "rf200_leaf5@2000000",
+    "feature_cardinality": {
+      "AlertTitle": 31794,
+      "Category": 18,
+      "MitreTechniques": 820,
+      "ActionGrouped": 4,
+      "ActionGranular": 14,
+      "EntityType": 27,
+      "EvidenceRole": 2,
+      "Sha256": 14793,
+      "IpAddress": 44590,
+      "Url": 15661,
+      "AccountSid": 65155,
+      "AccountUpn": 101051,
+      "AccountObjectId": 64328,
+      "AccountName": 67701,
+      "DeviceName": 18223,
+      "NetworkMessageId": 48975,
+      "EmailClusterId": 3199,
+      "RegistryKey": 227,
+      "RegistryValueName": 91,
+      "RegistryValueData": 128,
+      "ApplicationId": 231,
+      "ApplicationName": 351,
+      "OAuthApplicationId": 72,
+      "ThreatFamily": 676,
+      "FileName": 24220,
+      "FolderPath": 12424,
+      "ResourceIdName": 271,
+      "ResourceType": 21,
+      "Roles": 9,
+      "OSFamily": 4,
+      "OSVersion": 23,
+      "AntispamDirection": 5,
+      "SuspicionLevel": 3,
+      "LastVerdict": 6,
+      "CountryCode": 151,
+      "State": 638,
+      "City": 2138,
+      "Hour": 24,
+      "DayOfWeek": 7,
+      "Month": 7
+    },
+    "arms": {
+      "t0_all_features": {
+        "n_features": 40,
+        "dropped_features": [],
+        "row_level_split": {
+          "n": 99469,
+          "accuracy": 0.7923775246559229,
+          "macro_f1": 0.7665070026538046
+        },
+        "grouped_incident_split": {
+          "n": 98829,
+          "accuracy": 0.7628226532697893,
+          "macro_f1": 0.7288077631778517
+        },
+        "held_out_guide_test": {
+          "n": 15000,
+          "accuracy": 0.7066666666666667,
+          "macro_f1": 0.6971050825733025,
+          "per_class_recall": {
+            "TruePositive": 0.7596,
+            "BenignPositive": 0.9032,
+            "FalsePositive": 0.4572
+          }
+        }
+      },
+      "t1_drop_account_identifiers": {
+        "n_features": 36,
+        "dropped_features": [
+          "AccountSid",
+          "AccountUpn",
+          "AccountObjectId",
+          "AccountName"
+        ],
+        "row_level_split": {
+          "n": 99469,
+          "accuracy": 0.7713659532115533,
+          "macro_f1": 0.738502052961393
+        },
+        "grouped_incident_split": {
+          "n": 98829,
+          "accuracy": 0.7458843052140566,
+          "macro_f1": 0.7056244222253877
+        },
+        "held_out_guide_test": {
+          "n": 15000,
+          "accuracy": 0.6871333333333334,
+          "macro_f1": 0.6745645131258021,
+          "per_class_recall": {
+            "TruePositive": 0.7496,
+            "BenignPositive": 0.8938,
+            "FalsePositive": 0.418
+          }
+        }
+      },
+      "t2_drop_account_and_artifact_identifiers": {
+        "n_features": 28,
+        "dropped_features": [
+          "Sha256",
+          "IpAddress",
+          "Url",
+          "AccountSid",
+          "AccountUpn",
+          "AccountObjectId",
+          "AccountName",
+          "DeviceName",
+          "NetworkMessageId",
+          "EmailClusterId",
+          "FileName",
+          "FolderPath"
+        ],
+        "row_level_split": {
+          "n": 99469,
+          "accuracy": 0.7512591862791422,
+          "macro_f1": 0.7132339204763888
+        },
+        "grouped_incident_split": {
+          "n": 98829,
+          "accuracy": 0.7245140596383652,
+          "macro_f1": 0.677378243026638
+        },
+        "held_out_guide_test": {
+          "n": 15000,
+          "accuracy": 0.6626666666666666,
+          "macro_f1": 0.6465626250211809,
+          "per_class_recall": {
+            "TruePositive": 0.7242,
+            "BenignPositive": 0.8916,
+            "FalsePositive": 0.3722
+          }
+        }
+      },
+      "t3_low_cardinality_only": {
+        "n_features": 16,
+        "dropped_features": [
+          "AlertTitle",
+          "MitreTechniques",
+          "Sha256",
+          "IpAddress",
+          "Url",
+          "AccountSid",
+          "AccountUpn",
+          "AccountObjectId",
+          "AccountName",
+          "DeviceName",
+          "NetworkMessageId",
+          "EmailClusterId",
+          "RegistryKey",
+          "RegistryValueName",
+          "RegistryValueData",
+          "ApplicationId",
+          "ApplicationName",
+          "OAuthApplicationId",
+          "ThreatFamily",
+          "FileName",
+          "FolderPath",
+          "ResourceIdName",
+          "State",
+          "City"
+        ],
+        "row_level_split": {
+          "n": 99469,
+          "accuracy": 0.6638550704239512,
+          "macro_f1": 0.5888437781959355
+        },
+        "grouped_incident_split": {
+          "n": 98829,
+          "accuracy": 0.6455392647906991,
+          "macro_f1": 0.5596664778603574
+        },
+        "held_out_guide_test": {
+          "n": 15000,
+          "accuracy": 0.5804666666666667,
+          "macro_f1": 0.5439113912556327,
+          "per_class_recall": {
+            "TruePositive": 0.6712,
+            "BenignPositive": 0.8554,
+            "FalsePositive": 0.2148
+          }
+        }
+      }
+    },
+    "identifier_value_by_split": {
+      "row_level_accuracy_cost_of_removal": 0.0411,
+      "grouped_accuracy_cost_of_removal": 0.0383,
+      "held_out_accuracy_cost_of_removal": 0.044,
+      "held_out_difference_ci": {
+        "point_a": 0.7067,
+        "point_b": 0.6627,
+        "point_diff": 0.044,
+        "ci_lower": 0.0335,
+        "ci_upper": 0.0546,
+        "confidence": 0.95,
+        "n_a": 15000,
+        "n_b": 15000,
+        "n_resamples": 10000,
+        "significant_at_confidence": true,
+        "method": "percentile bootstrap on the difference between two independently-resampled samples (not a paired/McNemar comparison -- a and b are different alerts)",
+        "interpretation": "metric(a)-metric(b) = +0.0440, 95% CI [+0.0335, +0.0546]. This excludes 0, so the gap is a real effect at this sample size, not sampling noise."
+      }
+    },
+    "finding": "Removing the twelve identifier-like features that survive schema.py's ID_COLUMNS filter costs 0.0411 accuracy under a row-level split, 0.0383 under an incident-level split, and 0.0440 on the held-out GUIDE_Test split. The further the evaluation moves from the training incidents, the less those features are worth."
+  }
+}

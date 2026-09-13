@@ -53,6 +53,10 @@ models/weights/
 logs/
 *.log
 *.out
+# ...except the clean-room reproducibility audit, which issue #29 requires to be
+# committed: it is the evidence that the baselines reproduce from a fresh venv,
+# and it is worthless if a reader cannot open it.
+!docs/reproduce_from_scratch.log
 
 # Secrets and credentials — NEVER commit these
 .env
@@ -68,19 +72,36 @@ credentials/
 experiments/results/*.png
 experiments/results/*.pdf
 datasets/mitre_technique_cache.json
+# ...but the dataset integrity manifest IS committed: it is how a reader
+# confirms their 3.4GB GUIDE copy is the release these results came from
+# (issue #30 Part D). It holds hashes, not data.
+!datasets/INTEGRITY_MANIFEST.json
 experiments/results/baseline_model.joblib
-# The evaluation-sample caches are committed, not ignored: every 209- and
-# 999-alert result in the paper is computed from them, and without them a
-# reader needs the 2.4GB Kaggle download plus a full retrain to reproduce
-# anything. GUIDE is CDLA-Permissive-2.0, which permits redistribution.
-# Larger caches (the n=15,000 runs) stay out -- regenerate those from the
-# seed, which is fixed at 42 and deterministic.
+# The evaluation-sample caches are committed, not ignored: every result the
+# paper reports is computed from them, and without them a reader needs the
+# 2.4GB + 1.0GB Kaggle downloads plus a full retrain to reproduce anything.
+# GUIDE is CDLA-Permissive-2.0, which permits redistribution.
+#
+# The n=15,000 held-out sample is committed too, as of Week 17. It is 3.8MB --
+# larger than the others, and worth it: 0.6998 is the figure this project asks
+# to be judged on, and it was previously unverifiable from a clone. Its own
+# result file named it as the source while the file itself was ignored.
 experiments/results/evaluation_samples/*
 !experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv
 !experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.json
 !experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.csv
 !experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.json
+!experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv
+!experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.json
 
 # paper draft kept out of the public repo per supervisor guidance
 docs/paper/
 experiments/results/.control_node_ablation_checkpoints/
+experiments/results/.m2_4_m7_checkpoint.jsonl
+catboost_info/
+
+# M2.4 (issue #34): both symlink forms, per the commit-995841b lesson --
+# .gitignore matching only the directory form let a symlink through once.
+models/
+models/best_classifier.joblib
+models/best_grouped_classifier.joblib

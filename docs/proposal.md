@@ -101,7 +101,10 @@ always predicting the majority class. Exact McNemar p = 4.66e-12 on 132 discorda
 comparison is paired, so it is unaffected by the incident-level label leakage separately measured
 in this project (39.23% of this subset, against 1.91% exact-row). The system was restructured on that evidence so the classifier assigns every
 verdict and the LLM only explains it, which raised whole-pipeline accuracy from 0.6456 to 0.7347 on
-an identical 999-alert sample. See `docs/final-report.md` §5.2 and §5.4.
+an identical 999-alert sample [STALE: train-sampled, incident-level contaminated; corrected held-out GUIDE_Test baseline = 0.6998]. **The figure to quote for generalisation is 0.6998**, measured
+on Microsoft's held-out `GUIDE_Test.csv` split at n=15,000: GUIDE's label is incident-level, so 55.8%
+of a train-sampled evaluation set shares an incident with training, worth +24.3 accuracy points.
+See `docs/final-report.md` §5.2, §5.4 and §5.10.
 
 **RQ2 — does grounding reduce unsupported claims? Partially answered, and not as originally
 framed.** No controlled grounded-vs-ungrounded comparison of hallucination rates was run. The

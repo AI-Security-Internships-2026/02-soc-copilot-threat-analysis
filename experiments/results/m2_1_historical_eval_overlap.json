@@ -1,0 +1,58 @@
+{
+  "experiment": "4-point scatter of incident-level training overlap vs accuracy delta from the clean 0.6998 held-out baseline, across the evaluation sets this project reports on",
+  "generated_at_utc": "2026-09-08T08:30:28.513683+00:00",
+  "git_sha": "6c4db28",
+  "protocol": "PREFERRED for (c)/(d); (a)/(b) are Protocol C/LAB_INFLATED comparators cited for the scatter",
+  "deployed_heldout_accuracy_anchor": 0.6998,
+  "points": [
+    {
+      "name": "train_sampled_999",
+      "path": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
+      "n": 999,
+      "exact_row_overlap_pct": 1.4,
+      "incident_level_overlap_pct": 55.76,
+      "accuracy": 0.7347,
+      "accuracy_source": "experiments/results/guide_test_holdout_eval.json:train_sampled_999_rf_primary_pipeline",
+      "delta_vs_0_6998": 0.0349
+    },
+    {
+      "name": "control_209",
+      "path": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv (LLM-eligible subset, should_use_fallback()==False)",
+      "n": 209,
+      "exact_row_overlap_pct": 1.91,
+      "incident_level_overlap_pct": 39.23,
+      "accuracy": 0.6555,
+      "accuracy_source": "experiments/results/rf_vs_llm_control.json:randomforest.accuracy",
+      "delta_vs_0_6998": -0.0443
+    },
+    {
+      "name": "held_out_999",
+      "path": "experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.csv",
+      "n": 999,
+      "exact_row_overlap_pct": 0.0,
+      "incident_level_overlap_pct": 0.0,
+      "accuracy": 0.7047,
+      "accuracy_source": "measured fresh by this script (_score_rows against baseline_model.joblib)",
+      "delta_vs_0_6998": 0.0049
+    },
+    {
+      "name": "held_out_15000",
+      "path": "experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv",
+      "n": 15000,
+      "exact_row_overlap_pct": 0.0,
+      "incident_level_overlap_pct": 0.0,
+      "accuracy": 0.6998,
+      "accuracy_source": "experiments/results/guide_test_holdout_eval.json:test_holdout_15000 (the anchor)",
+      "delta_vs_0_6998": 0.0
+    }
+  ],
+  "pearson_incident_overlap_vs_delta": {
+    "r": 0.1139,
+    "p_value": 0.8861442810183713,
+    "n": 4,
+    "method": "pearson product-moment correlation, two-sided p-value"
+  },
+  "expected_min_r": 0.9,
+  "meets_expected_min_r": false,
+  "interpretation": "Across the 4 evaluation sets, Pearson r=0.1139 (p=0.8861, n=4) between incident-level overlap and accuracy delta from the clean 0.6998 baseline. This does NOT meet the issue's r>=0.90 expectation. With n=4, one point can move r a great deal; the control_209 point in particular is confounded -- Week 12 established that the LLM-eligible subset (evidence_field_count>=2) is intrinsically harder for the RF to classify than a typical alert, independent of contamination, so its accuracy delta reflects subset difficulty and contamination together, not contamination alone. Reported as measured rather than adjusted to fit the expectation."
+}

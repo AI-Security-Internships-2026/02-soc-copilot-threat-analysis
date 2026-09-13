@@ -72,8 +72,53 @@ For every dataset you use, create a file `datasets/<dataset-name>.md` with the f
     | 209-alert control subset | 4/209 (1.91%) | **82/209 (39.23%)** |
     | 999-alert `GUIDE_Test` held-out | 0/999 (0%) | **0/999 (0%)** |
 
-    The effect is large and measured, not hypothetical: on rows the model never trained on, accuracy is **0.8325** when a labelled sibling from the same incident was in training versus **0.5893** when none was — a 24.3-point gap (95% CI [+0.228, +0.259], n=6,000 per bucket, class-balanced). Read any `GUIDE_train`-sampled score with that in mind.
+    The effect is large and measured, not hypothetical: on rows the model never trained on, accuracy is **0.8332** when a labelled sibling from the same incident was in training versus **0.5898** when none was — a 24.3-point gap (95% CI [+0.2282, +0.2587], n=6,000 per bucket, class-balanced). Read any `GUIDE_train`-sampled score with that in mind.
   - The `1.91%` figure previously reported here, and in the paper, is correct as an exact-row measurement and was the wrong statistic to rely on.
+### (A) Citation
+
+> Ronen, S., Kalech, M., Rokach, L., et al. **GUIDE: Microsoft Security Incident
+> Prediction dataset.** arXiv:2407.09017, 2024.
+> Licence: **CDLA-Permissive-2.0** — redistribution of derived samples is
+> permitted, which is why the evaluation-sample caches under
+> `experiments/results/evaluation_samples/` are committed to this repository.
+
+### (B) Download via the Kaggle CLI
+
+```bash
+pip install kaggle                      # then place kaggle.json in ~/.kaggle/
+kaggle datasets download -d Microsoft/microsoft-security-incident-prediction -p datasets/
+unzip datasets/microsoft-security-incident-prediction.zip -d datasets/
+```
+
+Expect `datasets/GUIDE_train.csv` (2,425,409,087 bytes) and
+`datasets/GUIDE_Test.csv` (1,087,963,831 bytes).
+
+### (C) Alternative: direct from Microsoft
+
+Kaggle requires an account and an API token. The same release is published by
+Microsoft Security AI Research at
+<https://github.com/microsoft/msticpy> (dataset announcement and mirror links)
+and via the arXiv paper's data statement, arXiv:2407.09017. Use whichever route
+is available; the integrity check below is what confirms you got the same bytes,
+not the route you took.
+
+### (D) Integrity check — run this before trusting any re-run
+
+```bash
+python scripts/verify_data_integrity.py
+```
+
+Recomputes SHA-256 for both CSVs and compares against
+`datasets/INTEGRITY_MANIFEST.json`, which records the exact release every
+committed result in `experiments/results/` was computed from. Exit code 0 means
+your copy matches; 1 means it does not, and the script says which file and
+whether the size or only the contents differ. A truncated download is the usual
+cause of a size mismatch; a different GUIDE release is the usual cause of a
+same-size hash mismatch.
+
+Hashing 3.4 GB takes a couple of minutes. To regenerate the manifest after a
+deliberate dataset change, `python scripts/verify_data_integrity.py --write`.
+
 - **Notes:** A synthetic sample matching this schema lives at `datasets/sample/guide_sample.csv` for local dev without the full download (see `src/data/generate_sample.py`). It is gitignored, so it is generated locally rather than committed. **Regenerate any sample created before Week 17** — `venv/bin/python -m src.data.generate_sample` — as older ones carry two defects that made the no-Kaggle path silently useless:
   - `AlertTitle` was non-numeric (`Alert_29`) until Week 15, which the schema guardrail blocked 100% of, so every alert was held for human review with no verdict and the evaluator scored roughly chance accuracy — a broken configuration that looked like a weak model.
   - `SuspicionLevel` and `LastVerdict` were absent entirely until Week 17. They are two of the three `EVIDENCE_FIELDS` that `src/agent/fallback_classifier.py` routes on, so `evidence_field_count` could never exceed 1, every alert routed to the classifier, and the LLM branch was unreachable. A current sample routes about 34% of alerts to the LLM branch.

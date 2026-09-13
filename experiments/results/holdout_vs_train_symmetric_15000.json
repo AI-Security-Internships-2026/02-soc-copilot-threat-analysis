@@ -1,10 +1,11 @@
 {
   "experiment": "Symmetric (n=15000 vs n=15000) held-out vs train-sampled RF generalisation gap",
-  "question": "The earlier held-out-vs-train comparison used mismatched sample sizes (n=999 or n=15000 held-out vs n=999 train-sampled). This repeats it at matched n=15000 on both sides for a fully symmetric significance test.",
-  "generated_at_utc": "2026-09-03T11:54:15.069507+00:00",
-  "git_sha": "1bbf073",
+  "question": "The earlier held-out-vs-train comparison used mismatched sample sizes (n=15000 held-out vs n=999 train-sampled), which confounds the gap with sampling error on the smaller side. This repeats it at matched n on both sides.",
+  "generated_at_utc": "2026-09-06T08:58:14.062641+00:00",
+  "git_sha": "e126c1e",
   "held_out_source": "experiments/results/guide_test_holdout_eval.json (n=15000)",
   "train_sampled_source": "experiments/results/large_train_sampled_rf_eval.json (n=15000)",
+  "leakage_caveat": "A lower bound on the generalisation cost, not the whole of it. The train-sampled side is itself contaminated: GUIDE's label is incident-level and 55.76% of a train-sampled evaluation set shares an incident with the training slice, worth +24.3 accuracy points (experiments/incident_leakage_audit.py). This gap is measured between a clean sample and a leaky one.",
   "accuracy_gap": {
     "point_a": 0.6998,
     "point_b": 0.7357,

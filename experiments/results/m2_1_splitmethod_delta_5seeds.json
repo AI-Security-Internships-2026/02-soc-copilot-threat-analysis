@@ -1,0 +1,467 @@
+{
+  "experiment": "5-seed replication of the row-level-vs-group-level split-method accuracy/F1 delta, identical 100,000-row slice and RF-200/LabelEncoder config as grouped_split_baseline.py",
+  "generated_at_utc": "2026-09-10T15:28:17.901985+00:00",
+  "git_sha": "78b843f",
+  "protocol": "ACCEPTABLE",
+  "data_source": "datasets/GUIDE_train.csv",
+  "max_rows": 100000,
+  "seeds": [
+    42,
+    123,
+    456,
+    789,
+    1001,
+    2024,
+    31415
+  ],
+  "estimator": "RandomForestClassifier(n_estimators=200, random_state=<per-seed>)",
+  "published_single_seed_reference": {
+    "delta_acc": 0.0283,
+    "ci": [
+      0.0199,
+      0.0368
+    ],
+    "source": "experiments/results/grouped_split_baseline.json"
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "row_level_split": {
+        "n_test": 19895,
+        "accuracy": 0.7718,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7718,
+          "ci_lower": 0.7658,
+          "ci_upper": 0.7777,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7505,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7505,
+          "ci_lower": 0.7439,
+          "ci_upper": 0.7569,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.750     0.873     0.807      8605\n FalsePositive      0.755     0.580     0.656      4313\n  TruePositive      0.814     0.766     0.789      6977\n\n      accuracy                          0.772     19895\n     macro avg      0.773     0.739     0.751     19895\n  weighted avg      0.773     0.772     0.768     19895\n",
+        "holdout_rows_sharing_an_incident_with_train": 10611,
+        "holdout_incident_leakage_rate": 0.5334
+      },
+      "group_level_split": {
+        "n_test": 19934,
+        "accuracy": 0.7435,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7435,
+          "ci_lower": 0.7374,
+          "ci_upper": 0.7495,
+          "confidence": 0.95,
+          "n": 19934,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7118,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7118,
+          "ci_lower": 0.7049,
+          "ci_upper": 0.7185,
+          "confidence": 0.95,
+          "n": 19934,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.741     0.847     0.791      8962\n FalsePositive      0.669     0.523     0.587      3947\n  TruePositive      0.782     0.736     0.758      7025\n\n      accuracy                          0.743     19934\n     macro avg      0.731     0.702     0.712     19934\n  weighted avg      0.741     0.743     0.739     19934\n",
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0283,
+      "delta_macro_f1": 0.0387
+    },
+    {
+      "seed": 123,
+      "row_level_split": {
+        "n_test": 19895,
+        "accuracy": 0.7674,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7674,
+          "ci_lower": 0.7615,
+          "ci_upper": 0.7733,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.747,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.747,
+          "ci_lower": 0.7406,
+          "ci_upper": 0.7534,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.749     0.860     0.801      8605\n FalsePositive      0.751     0.581     0.655      4313\n  TruePositive      0.803     0.768     0.785      6977\n\n      accuracy                          0.767     19895\n     macro avg      0.767     0.736     0.747     19895\n  weighted avg      0.768     0.767     0.764     19895\n",
+        "holdout_rows_sharing_an_incident_with_train": 10585,
+        "holdout_incident_leakage_rate": 0.532
+      },
+      "group_level_split": {
+        "n_test": 19779,
+        "accuracy": 0.7319,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7319,
+          "ci_lower": 0.7258,
+          "ci_upper": 0.738,
+          "confidence": 0.95,
+          "n": 19779,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7043,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7043,
+          "ci_lower": 0.6974,
+          "ci_upper": 0.7109,
+          "confidence": 0.95,
+          "n": 19779,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.731     0.839     0.781      8737\n FalsePositive      0.666     0.533     0.592      4083\n  TruePositive      0.766     0.714     0.739      6959\n\n      accuracy                          0.732     19779\n     macro avg      0.721     0.695     0.704     19779\n  weighted avg      0.730     0.732     0.728     19779\n",
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0355,
+      "delta_macro_f1": 0.0427
+    },
+    {
+      "seed": 456,
+      "row_level_split": {
+        "n_test": 19895,
+        "accuracy": 0.7685,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7685,
+          "ci_lower": 0.7626,
+          "ci_upper": 0.7743,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7472,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7472,
+          "ci_lower": 0.7407,
+          "ci_upper": 0.7537,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.748     0.869     0.804      8605\n FalsePositive      0.759     0.574     0.654      4313\n  TruePositive      0.805     0.765     0.784      6977\n\n      accuracy                          0.768     19895\n     macro avg      0.770     0.736     0.747     19895\n  weighted avg      0.770     0.768     0.764     19895\n",
+        "holdout_rows_sharing_an_incident_with_train": 10724,
+        "holdout_incident_leakage_rate": 0.539
+      },
+      "group_level_split": {
+        "n_test": 19110,
+        "accuracy": 0.7314,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7314,
+          "ci_lower": 0.7253,
+          "ci_upper": 0.7377,
+          "confidence": 0.95,
+          "n": 19110,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7008,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7008,
+          "ci_lower": 0.6938,
+          "ci_upper": 0.7077,
+          "confidence": 0.95,
+          "n": 19110,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.720     0.852     0.781      8408\n FalsePositive      0.681     0.499     0.576      4033\n  TruePositive      0.773     0.720     0.746      6669\n\n      accuracy                          0.731     19110\n     macro avg      0.725     0.690     0.701     19110\n  weighted avg      0.730     0.731     0.725     19110\n",
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0371,
+      "delta_macro_f1": 0.0464
+    },
+    {
+      "seed": 789,
+      "row_level_split": {
+        "n_test": 19895,
+        "accuracy": 0.7675,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7675,
+          "ci_lower": 0.7616,
+          "ci_upper": 0.7734,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7463,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7463,
+          "ci_lower": 0.7399,
+          "ci_upper": 0.7526,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.749     0.860     0.801      8605\n FalsePositive      0.742     0.577     0.649      4313\n  TruePositive      0.809     0.771     0.789      6977\n\n      accuracy                          0.768     19895\n     macro avg      0.766     0.736     0.746     19895\n  weighted avg      0.768     0.768     0.764     19895\n",
+        "holdout_rows_sharing_an_incident_with_train": 10610,
+        "holdout_incident_leakage_rate": 0.5333
+      },
+      "group_level_split": {
+        "n_test": 20349,
+        "accuracy": 0.7507,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7507,
+          "ci_lower": 0.7449,
+          "ci_upper": 0.7567,
+          "confidence": 0.95,
+          "n": 20349,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7287,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7287,
+          "ci_lower": 0.7222,
+          "ci_upper": 0.7352,
+          "confidence": 0.95,
+          "n": 20349,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.733     0.843     0.784      8649\n FalsePositive      0.710     0.560     0.626      4407\n  TruePositive      0.796     0.757     0.776      7293\n\n      accuracy                          0.751     20349\n     macro avg      0.746     0.720     0.729     20349\n  weighted avg      0.751     0.751     0.747     20349\n",
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0168,
+      "delta_macro_f1": 0.0176
+    },
+    {
+      "seed": 1001,
+      "row_level_split": {
+        "n_test": 19895,
+        "accuracy": 0.7704,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7704,
+          "ci_lower": 0.7646,
+          "ci_upper": 0.7763,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7496,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7496,
+          "ci_lower": 0.7431,
+          "ci_upper": 0.7561,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.753     0.864     0.805      8605\n FalsePositive      0.753     0.581     0.656      4313\n  TruePositive      0.804     0.772     0.788      6977\n\n      accuracy                          0.770     19895\n     macro avg      0.770     0.739     0.750     19895\n  weighted avg      0.771     0.770     0.767     19895\n",
+        "holdout_rows_sharing_an_incident_with_train": 10733,
+        "holdout_incident_leakage_rate": 0.5395
+      },
+      "group_level_split": {
+        "n_test": 19454,
+        "accuracy": 0.7351,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7351,
+          "ci_lower": 0.7289,
+          "ci_upper": 0.7414,
+          "confidence": 0.95,
+          "n": 19454,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7079,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7079,
+          "ci_lower": 0.7011,
+          "ci_upper": 0.7148,
+          "confidence": 0.95,
+          "n": 19454,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.730     0.842     0.782      8802\n FalsePositive      0.695     0.526     0.599      4111\n  TruePositive      0.764     0.722     0.743      6541\n\n      accuracy                          0.735     19454\n     macro avg      0.730     0.697     0.708     19454\n  weighted avg      0.734     0.735     0.730     19454\n",
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0353,
+      "delta_macro_f1": 0.0417
+    },
+    {
+      "seed": 2024,
+      "row_level_split": {
+        "n_test": 19895,
+        "accuracy": 0.7704,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7704,
+          "ci_lower": 0.7646,
+          "ci_upper": 0.7762,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7505,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7505,
+          "ci_lower": 0.7441,
+          "ci_upper": 0.7567,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.754     0.864     0.805      8605\n FalsePositive      0.761     0.587     0.663      4313\n  TruePositive      0.798     0.769     0.783      6977\n\n      accuracy                          0.770     19895\n     macro avg      0.771     0.740     0.751     19895\n  weighted avg      0.771     0.770     0.767     19895\n",
+        "holdout_rows_sharing_an_incident_with_train": 10686,
+        "holdout_incident_leakage_rate": 0.5371
+      },
+      "group_level_split": {
+        "n_test": 20344,
+        "accuracy": 0.7478,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7478,
+          "ci_lower": 0.7419,
+          "ci_upper": 0.7538,
+          "confidence": 0.95,
+          "n": 20344,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7245,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7245,
+          "ci_lower": 0.718,
+          "ci_upper": 0.731,
+          "confidence": 0.95,
+          "n": 20344,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.740     0.840     0.787      8910\n FalsePositive      0.712     0.546     0.618      4481\n  TruePositive      0.777     0.760     0.768      6953\n\n      accuracy                          0.748     20344\n     macro avg      0.743     0.715     0.725     20344\n  weighted avg      0.747     0.748     0.743     20344\n",
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0226,
+      "delta_macro_f1": 0.026
+    },
+    {
+      "seed": 31415,
+      "row_level_split": {
+        "n_test": 19895,
+        "accuracy": 0.7709,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7709,
+          "ci_lower": 0.765,
+          "ci_upper": 0.7767,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7504,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7504,
+          "ci_lower": 0.7438,
+          "ci_upper": 0.7567,
+          "confidence": 0.95,
+          "n": 19895,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.755     0.867     0.807      8605\n FalsePositive      0.753     0.587     0.659      4313\n  TruePositive      0.804     0.766     0.785      6977\n\n      accuracy                          0.771     19895\n     macro avg      0.771     0.740     0.750     19895\n  weighted avg      0.772     0.771     0.767     19895\n",
+        "holdout_rows_sharing_an_incident_with_train": 10742,
+        "holdout_incident_leakage_rate": 0.5399
+      },
+      "group_level_split": {
+        "n_test": 19739,
+        "accuracy": 0.7351,
+        "accuracy_bootstrap_ci": {
+          "point": 0.7351,
+          "ci_lower": 0.7289,
+          "ci_upper": 0.7412,
+          "confidence": 0.95,
+          "n": 19739,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "macro_f1": 0.7152,
+        "macro_f1_bootstrap_ci": {
+          "point": 0.7152,
+          "ci_lower": 0.7084,
+          "ci_upper": 0.7217,
+          "confidence": 0.95,
+          "n": 19739,
+          "n_resamples": 10000,
+          "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+        },
+        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.704     0.850     0.770      8068\n FalsePositive      0.745     0.528     0.618      4647\n  TruePositive      0.775     0.741     0.758      7024\n\n      accuracy                          0.735     19739\n     macro avg      0.741     0.706     0.715     19739\n  weighted avg      0.739     0.735     0.730     19739\n",
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0358,
+      "delta_macro_f1": 0.0352
+    }
+  ],
+  "aggregate_delta_acc": {
+    "mean": 0.0302,
+    "ci_lower": 0.0244,
+    "ci_upper": 0.0351,
+    "confidence": 0.95,
+    "n": 7,
+    "n_resamples": 10000,
+    "method": "percentile bootstrap on the mean of a small (n=seeds) sample of deltas",
+    "std": 0.0073
+  },
+  "aggregate_delta_macro_f1": {
+    "mean": 0.0355,
+    "ci_lower": 0.0278,
+    "ci_upper": 0.0419,
+    "confidence": 0.95,
+    "n": 7,
+    "n_resamples": 10000,
+    "method": "percentile bootstrap on the mean of a small (n=seeds) sample of deltas",
+    "std": 0.0095
+  },
+  "wilcoxon_delta_acc_vs_zero": {
+    "statistic": 0.0,
+    "p_value": 0.015625,
+    "n": 7,
+    "median": 0.0353,
+    "method": "wilcoxon signed-rank, two-sided, vs. median 0"
+  },
+  "wilcoxon_delta_macro_f1_vs_zero": {
+    "statistic": 0.0,
+    "p_value": 0.015625,
+    "n": 7,
+    "median": 0.0387,
+    "method": "wilcoxon signed-rank, two-sided, vs. median 0"
+  },
+  "checks": {
+    "mean_delta_acc_exceeds_0_020": true,
+    "wilcoxon_p_below_0_05": true,
+    "multi_seed_ci_overlaps_published_single_seed_ci": true
+  },
+  "interpretation": "Across 7 seeds, mean Delta_acc = +0.0302 (std 0.0073), 95% CI [+0.0244, +0.0351]. Wilcoxon signed-rank p=0.0156 vs a median-0 null. Mean exceeds +0.020 and the sign is consistent enough for Wilcoxon to reach significance at this seed count; the multi-seed CI overlaps the paper's single-seed estimate (+0.0283, CI [0.0199, 0.0368]), so the single-seed figure is not an outlier of the split-seed distribution."
+}

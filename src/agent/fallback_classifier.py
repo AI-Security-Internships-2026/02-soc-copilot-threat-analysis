@@ -31,6 +31,7 @@ import numpy as np
 import pandas as pd
 
 from src.data.preprocess import transform_with_encoders
+from src.models.decision import resolve_label
 
 
 MODEL_PATH = Path("experiments/results/baseline_model.joblib")
@@ -120,7 +121,10 @@ def predict_with_margin(alert: dict[str, Any]) -> tuple[str, float, float]:
     features = _to_feature_frame(alert, model, artifact["encoders"])
     probabilities = model.predict_proba(features)[0]
     order = np.argsort(probabilities)[::-1]
-    label = str(model.classes_[order[0]])
+    # The tie-break rule lives in src/models/decision.py rather than here, so
+    # the evaluation harness and this deployed path cannot drift apart on the
+    # 0.1-0.2% of alerts where the top two classes tie exactly.
+    label = resolve_label(model.classes_, probabilities)
     top1 = float(probabilities[order[0]])
     top2 = float(probabilities[order[1]]) if len(probabilities) > 1 else 0.0
     return label, top1, top1 - top2

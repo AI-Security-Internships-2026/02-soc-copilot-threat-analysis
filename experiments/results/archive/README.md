@@ -63,6 +63,38 @@ run of the improved prompt, which is what `rf_vs_llm_control.py` and
 **Superseded by:** `../deepteam_redteam_fullgraph_llm_reached.json` — the full-graph
 run after the routing gap was fixed and the attacks demonstrably reached the LLM.
 
+## The withdrawn ablation significance tests
+
+`control_node_ablation_two_proportion_tests.json` was archived in Week 17. It is
+**invalid**, for two independent reasons, and nothing should cite it.
+
+1. **Wrong test for the design.** The four ablation arms score *the same 999
+   alerts* under different pipeline configurations. That is paired data, and it
+   needs a paired test — McNemar's, as used for the RF-vs-LLM comparison in
+   `../rf_vs_llm_control.json`. A two-proportion z-test assumes the two samples
+   are independent. This repository's own code says so in two places:
+   `experiments/rf_vs_llm_control.py` and `experiments/control_node_ablation.py`
+   both carry comments warning against exactly this substitution.
+2. **The subsets are missing-not-at-random.** Arms (c) and (d) scored 796 and 33
+   of 999 alerts respectively, because Groq's daily token quota ran out mid-run.
+   Quota exhaustion tracks position in the run, not any property of the alert,
+   and it removed 174 of 180 evidence-bin-2 alerts and all 29 bin-3 alerts —
+   precisely the evidence-rich alerts `legacy_hybrid` routes to the LLM, which is
+   what arm (c) exists to test. Arm (c)'s 0.755 is therefore the Random Forest's
+   score on the sparse-evidence remainder, not a like-for-like result.
+
+A valid paired test would need per-row results for arms (a), (c) and (d).
+`../control_node_ablation_rows/` holds only `arm_b.json`, so it cannot be
+computed, and no claim of statistical significance between arms is made anywhere
+in the project.
+
+**What replaced it:** `../control_node_ablation.json` now reports `n_scored`,
+per-bin coverage and an explicit `comparable_to_fully_scored_arms` flag for every
+arm, so the arms are read descriptively and the incomparable ones say so. The
+project's one significance claim about the RF-versus-LLM question rests on
+`../rf_vs_llm_control.json`, which is a genuine paired McNemar test over an
+identical 209-alert subset (p = 4.66e-12).
+
 ## A note on `../baseline_metrics.json`
 
 That file is **live**, not archived, but it predates the provenance fields

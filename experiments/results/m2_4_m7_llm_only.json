@@ -1,0 +1,45 @@
+{
+  "experiment": "M2.4 M7: LLM-only classification on up to 500 LLM-eligible held-out alerts",
+  "generated_at_utc": "2026-09-11T08:23:47.607164+00:00",
+  "git_sha": "78b843f",
+  "protocol": "PREFERRED",
+  "model": "Llama family via Groq (openai/gpt-oss-20b), improved prompt (Week 14)",
+  "n_target": 500,
+  "n_scored_this_and_prior_invocations": 500,
+  "n_with_a_usable_verdict": 476,
+  "complete": true,
+  "quota_exhausted_this_invocation": false,
+  "calls_made_this_invocation": 0,
+  "accuracy": 0.32563025210084034,
+  "macro_f1": 0.24038235984048792,
+  "per_class_recall": {
+    "TruePositive": 0.6027397260273972,
+    "BenignPositive": 0.2863247863247863,
+    "FalsePositive": 0.0
+  },
+  "reference_209_alert_result": "experiments/results/llm_subset_eval_improved_full209.json reported 0.2823 accuracy on a 55.76%-incident-overlap train-sampled pool -- corroborating context, not this arm's number (that pool is Protocol C/LAB_INFLATED; this arm is Protocol A/PREFERRED).",
+  "mcnemar_vs_tabular": {
+    "M6_vs_M7": {
+      "a": "M6",
+      "b": "M7",
+      "n_paired": 500,
+      "both_correct": 76,
+      "M6_correct_M7_wrong": 224,
+      "M7_correct_M6_wrong": 79,
+      "both_wrong": 121,
+      "discordant_pairs": 303,
+      "p_value": 3.168780232652897e-17
+    },
+    "M3a_vs_M7": {
+      "a": "M3a",
+      "b": "M7",
+      "n_paired": 500,
+      "both_correct": 77,
+      "M3a_correct_M7_wrong": 229,
+      "M7_correct_M3a_wrong": 78,
+      "both_wrong": 116,
+      "discordant_pairs": 307,
+      "p_value": 2.2212567978384838e-18
+    }
+  }
+}

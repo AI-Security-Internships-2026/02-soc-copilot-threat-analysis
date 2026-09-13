@@ -7,7 +7,7 @@
 > **Status: completed in Week 1 (June 2026), via PR #1.** The checkboxes below are left in their
 > original unticked state because this file is the supervisor-issued task sheet, not a progress
 > record — retro-ticking it would make it look like a log it was never intended to be. The actual
-> record of what was done is `docs/weekly-progress.md` (Week 1, and Weeks 2–15 after it).
+> record of what was done is `docs/weekly-progress.md` (Week 1, and Weeks 2–17 after it).
 >
 > Two corrections for anyone following this sheet:
 >
@@ -17,8 +17,10 @@
 > - The Resources section below references `SUPERVISOR-README.md`, which **does not exist in this
 >   repository**. Use `README.md` and `docs/proposal.md` instead.
 >
-> No task files exist for Weeks 2–15 — only this one was ever issued. The weekly workflow described
-> in `README.md` is tracked through `docs/weekly-progress.md` and pull requests instead.
+> No task files were issued for Weeks 2–17 — only this one. The weekly workflow described in
+> `README.md` was tracked through `docs/weekly-progress.md` and pull requests instead. From
+> 2026-09-06 the work is issue-driven rather than week-driven: the supervisor filed #29–#47
+> defining milestones M1–M6 (8–20 September). See `tasks/milestones-M1-M6.md`.
 
 ---
 
@@ -82,4 +84,5 @@ Suggested search terms:
 - Project proposal: `docs/proposal.md`
 - Literature review template: `docs/literature-review.md`
 - Weekly log: `docs/weekly-progress.md`
-- GitHub guide for students: see supervisor's `SUPERVISOR-README.md`
+- GitHub guide for students: `README.md` (`SUPERVISOR-README.md`, referenced when this
+  sheet was issued, was never added to this repository)

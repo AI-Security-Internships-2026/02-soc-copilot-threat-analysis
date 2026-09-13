@@ -1,0 +1,80 @@
+{
+  "experiment": "Reusable overlap computation, verified against the three overlap pairs already published in Table 14 (docs/final-report.md)",
+  "generated_at_utc": "2026-09-08T08:03:27.469812+00:00",
+  "git_sha": "6c4db28",
+  "data_source": "datasets/GUIDE_train.csv",
+  "incident_key": [
+    "OrgId",
+    "IncidentId"
+  ],
+  "training_slice_rows": 100000,
+  "results": {
+    "train_sampled_999": {
+      "n": 999,
+      "exact_row_overlap": 14,
+      "exact_row_overlap_pct": 1.4,
+      "incident_level_overlap": 557,
+      "incident_level_overlap_pct": 55.76,
+      "n_train_rows_checked": 100000
+    },
+    "held_out_999": {
+      "n": 999,
+      "exact_row_overlap": 0,
+      "exact_row_overlap_pct": 0.0,
+      "incident_level_overlap": 0,
+      "incident_level_overlap_pct": 0.0,
+      "n_train_rows_checked": 100000
+    },
+    "control_209": {
+      "n": 209,
+      "exact_row_overlap": 4,
+      "exact_row_overlap_pct": 1.91,
+      "incident_level_overlap": 82,
+      "incident_level_overlap_pct": 39.23,
+      "n_train_rows_checked": 100000
+    }
+  },
+  "table_14_reproduction_check": {
+    "train_sampled_999": {
+      "expected": {
+        "exact_row_overlap": 14,
+        "incident_level_overlap": 557,
+        "n": 999
+      },
+      "measured": {
+        "exact_row_overlap": 14,
+        "incident_level_overlap": 557,
+        "n": 999
+      },
+      "matches_table_14": true
+    },
+    "control_209": {
+      "expected": {
+        "exact_row_overlap": 4,
+        "incident_level_overlap": 82,
+        "n": 209
+      },
+      "measured": {
+        "exact_row_overlap": 4,
+        "incident_level_overlap": 82,
+        "n": 209
+      },
+      "matches_table_14": true
+    },
+    "held_out_999": {
+      "expected": {
+        "exact_row_overlap": 0,
+        "incident_level_overlap": 0,
+        "n": 999
+      },
+      "measured": {
+        "exact_row_overlap": 0,
+        "incident_level_overlap": 0,
+        "n": 999
+      },
+      "matches_table_14": true
+    }
+  },
+  "all_table_14_numbers_reproduced": true,
+  "finding": "All three published overlap pairs reproduce exactly from this script."
+}
