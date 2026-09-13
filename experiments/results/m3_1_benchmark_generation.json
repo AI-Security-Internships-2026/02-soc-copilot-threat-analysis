@@ -1,0 +1,29 @@
+{
+  "experiment": "M3.1 SOC-domain prompt-injection benchmark v1.0 generation",
+  "generated_at_utc": "2026-09-09T12:36:11.913560+00:00",
+  "git_sha": "2561335",
+  "seed": 42,
+  "output_csv": "datasets/soc_injection_benchmark_v1.csv",
+  "total_rows": 500,
+  "family_counts": {
+    "F1": 60,
+    "F2": 55,
+    "F3": 60,
+    "F4": 55,
+    "F5": 50,
+    "F6": 60,
+    "F7": 60,
+    "BCONTROL": 100
+  },
+  "bcontrol_sampling": {
+    "pool_size_target": 3000,
+    "unique_incidents_considered": 260495,
+    "rows_scored": 3000,
+    "entropy_range_selected": [
+      1.0649,
+      1.0983
+    ],
+    "method": "Reservoir-sampled up to pool_size unique-incident BenignPositive rows while streaming datasets/GUIDE_train.csv once (chunksize=100_000), scored each with the deployed baseline_model.joblib's predict_proba, ranked by Shannon entropy over the 3-class distribution, kept the top 100. This ranks within a large random subsample of the full BenignPositive population, not the full multi-million-row column -- stated plainly rather than implying an exhaustive scan."
+  },
+  "caveat": "The 400 attack rows are template-generated synthetic payloads, authored for this benchmark rather than drawn from real attacker traffic -- the same methodology already disclosed for the smaller 40-row corpus this replaces (Section 6.2). The 100 BCONTROL rows are real GUIDE BenignPositive alerts. Interrater agreement on a 100-row blinded subset is tracked separately (see m3_1_interrater_kappa.py) and is not yet available -- it requires two independent human raters, not generated here."
+}

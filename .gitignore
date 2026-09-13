@@ -76,6 +76,10 @@ datasets/mitre_technique_cache.json
 # confirms their 3.4GB GUIDE copy is the release these results came from
 # (issue #30 Part D). It holds hashes, not data.
 !datasets/INTEGRITY_MANIFEST.json
+# The M3.1 injection benchmark is a curated, derived artifact -- not a raw
+# dataset import -- same precedent as the already-committed
+# experiments/soc_domain_eval_v1.csv (issue #35).
+!datasets/soc_injection_benchmark_v1.csv
 experiments/results/baseline_model.joblib
 # The evaluation-sample caches are committed, not ignored: every result the
 # paper reports is computed from them, and without them a reader needs the
@@ -97,6 +101,11 @@ experiments/results/evaluation_samples/*
 # paper draft kept out of the public repo per supervisor guidance
 docs/paper/
 experiments/results/.control_node_ablation_checkpoints/
+# M3.2 live-detector checkpoints (L2/L4) -- working state superseded by the
+# aggregated experiments/results/m3_2_learned_detectors.json, same reasoning
+# as the control_node_ablation checkpoints above.
+experiments/results/.m3_2_l2_checkpoint.jsonl
+experiments/results/.m3_2_l4_checkpoint.jsonl
 experiments/results/.m2_4_m7_checkpoint.jsonl
 catboost_info/
 
