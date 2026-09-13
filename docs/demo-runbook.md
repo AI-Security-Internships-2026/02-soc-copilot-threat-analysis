@@ -6,11 +6,88 @@ in order. Total time: **about 6 minutes**, or 3 if you skip the optional steps.
 Read `docs/project-explained.md` first — this runbook assumes you know what the
 numbers mean.
 
+---
+
+# Part A — The 3-5 minute video (due 18 September)
+
+For the CNIT professor, who has no context on this project. Record the web demo,
+not the terminal: `venv/bin/streamlit run src/app.py`, one tab per beat. Talk
+naturally, do not read this aloud.
+
+**Beat 1 — the problem, one line (0:00-0:20).** *Tab 1.*
+
+> Security alerts get triaged by machine learning. The question I asked is
+> whether the model is actually learning the attack — or just memorising
+> incident IDs that leaked into its training data.
+
+**Beat 2 — show it working (0:20-1:10).** *Tab 1.* Enter `15723` / `7` /
+`Collection` / `T1078;T1078.004` / `Suspicious` / `Suspicious`, press **run
+triage**. Say three things:
+
+- The Random Forest assigns the verdict; the language model only explains it.
+- The decision margin is below the 0.20 threshold, so it was **held for a human**
+  rather than auto-actioned. The system knows when it does not know.
+- The explanation says the verdict rests on a weak signal — it describes the
+  classifier's uncertainty instead of manufacturing confidence.
+
+**Beat 3 — the leakage, the moment that matters (1:10-2:30).** *Tab 2. Slow down
+here; this is the strongest part of the talk.*
+
+> GUIDE grades *incidents*, not alerts. One incident produces many alert rows and
+> they all carry the same label. So if you split the data row by row — the
+> obvious thing to do, and what we did at first — sibling rows of the same
+> incident land on both sides of the split, and the model can look the answer up
+> instead of working it out.
+
+Point at the chart: seven seeds, the leaky split scores higher **every single
+time**, never once the reverse. Mean inflation **+3.02 accuracy points**, 95% CI
+[2.44, 3.51], Wilcoxon p = 0.0156.
+
+> So the honest number is the lower one: **0.6998** on Microsoft's own held-out
+> split, 15,000 alerts, no shared incidents — not the 0.7347 we would have
+> reported. This is a bug we found in our own method and then measured. It is the
+> result I am most confident in precisely because it made our numbers worse.
+
+**Beat 4 — one injection blocked (2:30-3:20).** *Tab 3.* Run preset 1 — the regex
+catches it. Then run preset 2, the same attack rephrased:
+
+> The regex filter **misses** this one. That is not a demo accident — measured
+> against our own corpus it catches 1 in 20. The schema check stops it anyway,
+> because it does not try to understand the attack: free text is not a valid
+> numeric alert ID whatever it says. A type constraint cannot be evaded by
+> rephrasing.
+
+Then the real point: since the language model no longer assigns verdicts, a
+successful injection can corrupt the *explanation* but cannot change a triage
+outcome — verified across all 999 alerts.
+
+**Beat 5 — close on a non-confirming result (3:20-4:00).** *Tab 4.* Pick one and
+state it plainly. The strongest choice:
+
+> The language model scored **0.2823** on the same 209 alerts the forest scored
+> 0.6555 on — below the 0.4928 you get by always answering "BenignPositive" with
+> no model at all. And it was *less* accurate when it claimed to be *more*
+> confident, so the human-review gate was auto-accepting its worst predictions.
+> We moved it off the decision path rather than defend it.
+
+Close: *the classifier decides, the language model explains, and the number I
+would stand behind is the one that went down when we fixed our own experiment.*
+
+**Do not:** bury the leakage story in statistics, claim more than the tabs show,
+or rush Beat 3.
+
+---
+
+# Part B — The live supervisor walkthrough
+
+Everything below is the longer terminal walkthrough. Part A is the video; this is
+for questions afterwards.
+
 **Setup, once, before the meeting:**
 
 ```bash
 cd "/Users/asma/Desktop/iot lab/02-soc-copilot-threat-analysis"
-git checkout asma-week-17-verification
+git checkout dev
 ```
 
 Everything runs from the repository root. All commands use `venv/bin/python`
@@ -26,7 +103,7 @@ ls -la experiments/results/baseline_model.joblib
 venv/bin/python -c "import os;print('GROQ key loaded:', bool(os.getenv('GROQ_API_KEY')) or 'check .env')"
 ```
 
-Expect `118 passed`, and the joblib file present at ~590 MB.
+Expect `171 passed`, and the joblib file present at ~590 MB.
 
 **If Groq is down or out of quota**, everything except Step 2's explanation text
 and Step 4 still works. Say so plainly and continue — that is itself the point
@@ -42,9 +119,9 @@ of the architecture, and Step 6 makes the argument without any network at all.
 venv/bin/python -m pytest tests/ -q
 ```
 
-**Expected:** `118 passed in ~5s`
+**Expected:** `171 passed in ~5s`
 
-**What to say:** 118 tests, up from 33 at Week 15. The new ones cover things that were
+**What to say:** 171 tests, up from 33 at Week 15. The new ones cover things that were
 genuinely unprotected: `guardrails.py` had been in the pipeline since Week 3
 with zero tests, while the *unused* ML guardrail had dedicated ones. There is
 also now a test asserting the language model cannot set a verdict — the
@@ -401,8 +478,8 @@ Fixed this week.
    which is still a `TODO` in the author block.
 2. **GeNIS integration and Wazuh Docker deployment** — pending sign-off since
    Week 10, unchanged.
-3. **PRs #25, #26 and #27 are open and unreviewed**; this week's work is on
-   `asma-week-17-verification`.
+3. **PR #50 (Week 20, M4) is open and unreviewed.** PRs #25-#28, #48 and #49 are
+   merged into `dev`. Issues #35, #36 and #37 are still open pending manual close.
 4. **Three commits on `main`** (`7cbc58b`, `ad02c85`, `61ea961`) carry AI
    co-authorship trailers, which conflicts with the project's attribution
    policy. Rewriting shared history needs his decision.
