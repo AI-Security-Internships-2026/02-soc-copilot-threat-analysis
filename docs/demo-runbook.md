@@ -21,11 +21,12 @@ naturally, do not read this aloud.
 > incident IDs that leaked into its training data.
 
 **Beat 2 — show it working (0:20-1:10).** *Tab 1.* Enter `15723` / `7` /
-`Collection` / `T1078;T1078.004` / `Suspicious` / `Suspicious`, press **run
-triage**. Say three things:
+`CredentialAccess` / `T1110;T1110.003` / `Suspicious` / `Suspicious`, press **run
+triage**. Verified live: verdict `BenignPositive`, margin **0.1067**, held for
+review, MITRE resolves to T1110 (Brute Force). Say three things:
 
 - The Random Forest assigns the verdict; the language model only explains it.
-- The decision margin is below the 0.20 threshold, so it was **held for a human**
+- The margin is **0.11, below the 0.20 threshold**, so it was **held for a human**
   rather than auto-actioned. The system knows when it does not know.
 - The explanation says the verdict rests on a weak signal — it describes the
   classifier's uncertainty instead of manufacturing confidence.
@@ -424,10 +425,19 @@ Opens in a browser. Enter:
 |---|---|
 | AlertTitle | `15723` |
 | DetectorId | `7` |
-| Category | `Collection` |
-| MitreTechniques | `T1078;T1078.004` |
+| Category | `CredentialAccess` |
+| MitreTechniques | `T1110;T1110.003` |
 | SuspicionLevel | `Suspicious` |
 | LastVerdict | `Suspicious` |
+
+These six values land at margin **0.1067**, below the 0.20 threshold, so the
+alert is held for review — the behaviour Beat 2 narrates.
+
+**Do not reuse Step 2's `--scenario evidenced` values here.** That scenario also
+sets `Hour` and `DayOfWeek`, which the form does not collect, so the same-looking
+alert scores a *different* margin through the form (0.2056, auto-accepted) than
+through the CLI (0.0986, held). Same model, different feature vector. The values
+above are chosen to be held on the form's six fields alone.
 
 Shows the verdict, the RF margin, the LLM explanation labelled as *not* deciding
 the verdict, and the MITRE context. Stop with `Ctrl+C`.
