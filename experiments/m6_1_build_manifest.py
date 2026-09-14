@@ -143,6 +143,8 @@ SUPPORTING = {
     "m5_1_burden_sweep.json": "M5.1 PART B -- HITL margin-threshold burden sweep on "
                               "the held-out 15,000",
     "m5_1_burden_sweep.csv": "M5.1 PART B -- the same sweep as a 9-row CSV for Figure 6",
+    "m5_4_latency_cost.json": "M5.2 PART B -- per-stage latency, throughput and API cost",
+    "m5_4_latency_cost.csv": "M5.2 PART B -- per-stage timing as a CSV",
     "deepteam_redteam_fullgraph_llm_reached.json": "Sec 4.9 -- adversarial red-team evaluation",
     "week15_rf_benchmark.json": "Tab 9 and Fig 3",
     "m2_1_overlap_scatter.csv": "Sec 4.12 -- 4-point overlap scatter (M2.1 Pearson)",

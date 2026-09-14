@@ -207,3 +207,36 @@ def test_rf_margin_gate_is_correctly_oriented_unlike_the_llm_confidence_gate():
 def test_wazuh_transfer_retention_within_20_points():
     t = load("m5_3_wazuh_t1.json")
     assert abs(t["delta"]) <= 0.20
+
+
+# ===================================================================
+# Category 5 — operational cost (M5.2 PART B, issue #43)
+# ===================================================================
+
+def test_routed_path_throughput_agrees_with_the_committed_benchmark():
+    """The composed per-stage figure must land just under the independently
+    measured end-to-end throughput -- adding stages can only slow it down."""
+    c = load("m5_4_latency_cost.json")
+    composed = c["end_to_end"]["routed_path_throughput_alerts_per_sec"]
+    measured = c["llm_stage"]["throughput_alerts_per_second"]
+    assert composed <= measured, "composition is faster than the measured whole"
+    assert abs(composed - measured) / measured < 0.05, (composed, measured)
+
+
+def test_the_llm_call_dominates_the_routed_path():
+    """The premise the evidence-density router exists to exploit."""
+    c = load("m5_4_latency_cost.json")
+    assert c["end_to_end"]["llm_share_of_routed_path"] > 0.95
+
+
+def test_router_reduces_api_cost():
+    c = load("m5_4_latency_cost.json")["cost"]
+    assert c["usd_per_day_with_router"] < c["usd_per_day_all_routed"]
+    assert c["router_cost_reduction_factor"] > 1.0
+
+
+def test_cost_figures_are_labelled_as_unverified_pricing():
+    """A dollar figure quoted from an unverified price list must say so, or it
+    will be read as measured."""
+    c = load("m5_4_latency_cost.json")["pricing"]
+    assert "not verified" in c["source"].lower()
