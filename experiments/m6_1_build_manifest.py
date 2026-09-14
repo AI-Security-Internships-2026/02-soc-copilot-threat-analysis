@@ -138,6 +138,8 @@ SUPPORTING = {
     "field_inclusion_audit.json": "Sec 3.2 -- which fields reach the model",
     "m6_1_effect_sizes.json": "M6.1 PART C -- McNemar odds ratios and Holm-Bonferroni "
                               "correction backfilled for the compliance audit",
+    "m6_3_ci_backfill.json": "M6.3 PART B -- percentile-bootstrap and Clopper-Pearson "
+                             "CIs backfilled onto Sections 4.1-4.9 and Tab 18",
     "deepteam_redteam_fullgraph_llm_reached.json": "Sec 4.9 -- adversarial red-team evaluation",
     "week15_rf_benchmark.json": "Tab 9 and Fig 3",
     "m2_1_overlap_scatter.csv": "Sec 4.12 -- 4-point overlap scatter (M2.1 Pearson)",
