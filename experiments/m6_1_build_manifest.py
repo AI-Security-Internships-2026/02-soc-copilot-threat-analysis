@@ -165,6 +165,19 @@ def git_sha():
                           text=True).stdout.strip()
 
 
+def check():
+    """Cross-check only: which referenced artifacts are missing, and which
+    artifacts no entry claims. Writes nothing -- the test calls this, so running
+    the suite cannot dirty the working tree by regenerating a file whose header
+    embeds the current commit SHA."""
+    claimed = {s for _, _, srcs, _, _, _ in ENTRIES for s in srcs}
+    claimed |= set(SUPPORTING) | set(PENDING)
+    missing = sorted(s for s in claimed
+                     if s not in PENDING and not (RESULTS / s).exists())
+    on_disk = {p.name for p in RESULTS.glob("*.json")} | {p.name for p in RESULTS.glob("*.csv")}
+    return missing, sorted(on_disk - claimed)
+
+
 def build():
     missing, claimed = [], set()
     lines = [

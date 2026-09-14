@@ -19,7 +19,9 @@ def _load(name):
 
 
 def test_every_result_artifact_is_claimed_by_the_manifest():
-    missing, unclaimed = _load("m6_1_build_manifest").build()
+    # check(), not build() -- build() rewrites the manifest, whose header carries
+    # the current commit SHA, so running the suite would dirty the working tree.
+    missing, unclaimed = _load("m6_1_build_manifest").check()
     assert not missing, f"manifest names artifacts that do not exist: {missing}"
     assert not unclaimed, (
         f"these artifacts exist but no manifest entry claims them: {unclaimed}. "
@@ -28,6 +30,8 @@ def test_every_result_artifact_is_claimed_by_the_manifest():
 
 
 def test_statistical_compliance_has_no_open_items():
+    # audit() also writes; it is deterministic and carries no SHA, so the
+    # rewrite is byte-identical and leaves the tree clean.
     pct, compliant, checked, exempt, open_items = _load("m6_1_compliance_audit").audit()
     assert not open_items, f"open statistical compliance items: {open_items}"
     assert pct == 100.0, f"compliance dropped to {pct:.1f}%"
