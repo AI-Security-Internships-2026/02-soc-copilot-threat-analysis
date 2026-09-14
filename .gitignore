@@ -114,3 +114,9 @@ catboost_info/
 models/
 models/best_classifier.joblib
 models/best_grouped_classifier.joblib
+
+# Large GUIDE files and the sample fixture live only in the primary checkout;
+# a git worktree needs them symlinked in to run the full suite. Ignore those
+# links so `git add -A` from a worktree cannot commit a path that resolves to
+# one machine's filesystem.
+/datasets/sample
