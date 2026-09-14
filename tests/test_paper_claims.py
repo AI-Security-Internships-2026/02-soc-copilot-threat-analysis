@@ -168,13 +168,38 @@ def test_deployed_regex_filter_is_reported_honestly_as_weak():
 
 
 def test_recommended_operating_point_auto_accepts_most_alerts():
-    """M5.1 PART B fixes T*=0.12; until that sweep exists, check the shape holds
-    on the 209-alert control set computed in M6.3 PART B."""
-    sweep = load("m6_3_ci_backfill.json")["tab6_rf_margin_sweep"]
-    assert sweep["T=0.10"]["auto_accepted_pct"] >= 0.60
-    # monotone: raising the threshold can only auto-accept fewer alerts
-    pcts = [sweep[k]["auto_accepted_pct"] for k in sorted(sweep)]
-    assert pcts == sorted(pcts, reverse=True), sweep
+    """M5.1 PART B, on the held-out 15,000."""
+    d = load("m5_1_burden_sweep.json")
+    rec = d["recommended_operating_point"]
+    assert rec["T"] == 0.12
+    assert rec["auto_accepted_pct"] >= 0.60, rec
+
+
+def test_burden_sweep_is_monotone_and_anchors_to_the_held_out_figure():
+    """Raising the threshold can only auto-accept fewer alerts, and T=0 must
+    reproduce the published ungated held-out accuracy -- that anchor is what
+    makes the rest of the curve trustworthy."""
+    d = load("m5_1_burden_sweep.json")
+    rows = sorted(d["sweep"], key=lambda r: r["T"])
+    pcts = [r["auto_accepted_pct"] for r in rows]
+    assert pcts == sorted(pcts, reverse=True), pcts
+    t0 = rows[0]
+    assert t0["T"] == 0.0 and t0["auto_accepted_pct"] == 1.0
+    assert abs(t0["auto_accepted_accuracy"] - 0.6998) <= 1e-3, (
+        "T=0 must equal the published held-out accuracy")
+
+
+def test_rf_margin_gate_is_correctly_oriented_unlike_the_llm_confidence_gate():
+    """The paper's confidence-inversion finding was that the LLM gate escalated
+    its BETTER predictions. The RF margin gate must not repeat that: escalated
+    alerts should be ones the model gets wrong more often."""
+    d = load("m5_1_burden_sweep.json")
+    for r in d["sweep"]:
+        esc = r["escalated_accuracy_model_would_have_given"]
+        if r["escalated_n"] >= 100:
+            assert esc < r["auto_accepted_accuracy"], (
+                f"at T={r['T']} the gate escalates alerts the model gets RIGHT "
+                f"more often ({esc} vs {r['auto_accepted_accuracy']}) -- inverted")
 
 
 @pytest.mark.skip(reason="M5.2 PART A (issue #43) has not run; no Wazuh transfer "

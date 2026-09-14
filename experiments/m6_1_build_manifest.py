@@ -140,6 +140,9 @@ SUPPORTING = {
                               "correction backfilled for the compliance audit",
     "m6_3_ci_backfill.json": "M6.3 PART B -- percentile-bootstrap and Clopper-Pearson "
                              "CIs backfilled onto Sections 4.1-4.9 and Tab 18",
+    "m5_1_burden_sweep.json": "M5.1 PART B -- HITL margin-threshold burden sweep on "
+                              "the held-out 15,000",
+    "m5_1_burden_sweep.csv": "M5.1 PART B -- the same sweep as a 9-row CSV for Figure 6",
     "deepteam_redteam_fullgraph_llm_reached.json": "Sec 4.9 -- adversarial red-team evaluation",
     "week15_rf_benchmark.json": "Tab 9 and Fig 3",
     "m2_1_overlap_scatter.csv": "Sec 4.12 -- 4-point overlap scatter (M2.1 Pearson)",
