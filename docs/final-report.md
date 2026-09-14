@@ -854,6 +854,64 @@ detector still leaves about one attack in twelve undetected and the union one in
 thirty, so the property that a successful injection cannot alter a verdict
 (Section 5.4) remains the load-bearing mitigation.
 
+### 5.13 The review gate as an operating decision
+
+Source: `experiments/results/m5_1_burden_sweep.json`.
+
+Everything above measures accuracy. A SOC manager asks a different question: how
+much analyst time does this save, and at what cost in correctness? The review
+gate makes that one tunable — the RF margin threshold `T`, below which a verdict
+is held for a human. Swept on the held-out sample (n=15,000, 0% incident
+overlap), chosen over a train-sampled set because an operating point tuned on
+leaked data would not survive deployment.
+
+| `T` | Auto-accepted | Accuracy on those (95% CI) | Escalated | Model's accuracy on escalated |
+|---|---|---|---|---|
+| 0.00 | 100.0% | 0.6998 [0.6923, 0.7071] | 0.0% | — |
+| 0.05 | 95.2% | 0.7129 [0.7054, 0.7204] | 4.9% | 0.4423 |
+| 0.12 | 89.2% | 0.7302 [0.7230, 0.7377] | 10.8% | 0.4485 |
+| **0.20** (deployed) | **82.0%** | **0.7517 [0.7440, 0.7592]** | **18.1%** | **0.4640** |
+| 0.30 | 74.1% | 0.7799 [0.7726, 0.7876] | 25.9% | 0.4705 |
+| 0.50 | 56.8% | 0.8463 [0.8386, 0.8541] | 43.2% | 0.5073 |
+
+`T = 0` reproduces **0.6998** exactly — the held-out figure of Section 5.8 —
+anchoring the sweep to an independently committed number, and the curve is
+monotone throughout.
+
+**The gate is correctly oriented, and that is not automatic.** At every
+threshold the escalated alerts are ones the model handles *worse* (0.44–0.51 vs
+0.73–0.85). That is the opposite of the LLM's self-reported confidence in
+Section 5.3, which was inverted. No single recommended operating point is given:
+collapsing this to one system accuracy needs an assumption about human accuracy
+that this project has not measured.
+
+### 5.14 Operational cost, per stage
+
+Source: `experiments/results/m5_4_latency_cost.json`.
+
+| Stage | Time |
+|---|---|
+| Random Forest inference | 13,448 µs |
+| Feature encoding | 4,259 µs |
+| Regex guardrail | 2.45 µs |
+| Review gate | 1.12 µs |
+| Tie-break and label | 0.87 µs |
+| MITRE lookup (cached) | 0.47 µs |
+| Schema guardrail | 0.27 µs |
+| **LLM call** | **1,762,900 µs** |
+
+Fast path **56 alerts/s**; routed path **0.562 alerts/s**. The LLM is **99.0%**
+of the routed path — the premise the evidence-density router exploits — and the
+composed figure lands just below the independently measured 0.567 alerts/s of
+Section 5.6, the direction a correct composition must go. At 345 prompt and 40
+completion tokens per call and 10,000 alerts/day, routing only the evidence-rich
+20.9% cuts API spend **4.78×**, \$0.77 → \$0.16 per day.
+
+Caveats: timings are best-of-7 on one laptop; token counts use a proxy
+tokeniser; and the per-token price comes from the issue tracker and is **not**
+verified against the vendor's live price list, so the dollar figures are
+illustrative rather than quotable.
+
 ## 6. Discussion and Limitations
 
 ### 6.1 Interpretation
@@ -1037,6 +1095,10 @@ supervisor's direction.
 | `m3_1_benchmark_generation.json` | SOC injection benchmark v1.0 — 400 attacks, 7 families, 100 real controls |
 | `m3_2_heuristic_detectors.json` | Heuristic detectors (regex, schema, SOC-aware) on that benchmark |
 | `m3_2_learned_detectors.json` | **Learned detectors (TF-IDF, Prompt Guard 2, LLM self-check) on that benchmark** |
+| `m5_1_burden_sweep.json` / `.csv` | **Review-gate burden sweep on the held-out 15,000** |
+| `m5_4_latency_cost.json` / `.csv` | Per-stage latency, throughput and API cost |
+| `m6_1_effect_sizes.json` | McNemar odds ratios and Holm-Bonferroni correction |
+| `m6_3_ci_backfill.json` | **95% CIs backfilled onto 31 headline cells** |
 
 Every file above is produced by a committed script in `experiments/`, and every
 figure in this report is read from one of them.
