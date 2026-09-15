@@ -1,0 +1,320 @@
+{
+  "tab4": {
+    "rf_accuracy": {
+      "point": 0.6555,
+      "ci_lower": 0.5885,
+      "ci_upper": 0.7177,
+      "confidence": 0.95,
+      "n": 209,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "rf_macro_f1": {
+      "point": 0.6035,
+      "ci_lower": 0.5263,
+      "ci_upper": 0.6739,
+      "confidence": 0.95,
+      "n": 209,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "llm_accuracy": {
+      "point": 0.2823,
+      "ci_lower": 0.2249,
+      "ci_upper": 0.3445,
+      "confidence": 0.95,
+      "n": 209,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "llm_macro_f1": {
+      "point": 0.2121,
+      "ci_lower": 0.1675,
+      "ci_upper": 0.2564,
+      "confidence": 0.95,
+      "n": 209,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "majority_floor": {
+      "point": 0.4928,
+      "ci_lower": 0.4258,
+      "ci_upper": 0.5598,
+      "confidence": 0.95,
+      "n": 209,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    }
+  },
+  "tab5_llm_confidence_bands": {
+    "high": {
+      "point": 0.2562,
+      "ci_lower": 0.1906,
+      "ci_upper": 0.3312,
+      "confidence": 0.95,
+      "n": 160,
+      "k": 41,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "low": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.8419,
+      "confidence": 0.95,
+      "n": 2,
+      "k": 0,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "medium": {
+      "point": 0.383,
+      "ci_lower": 0.2451,
+      "ci_upper": 0.5362,
+      "confidence": 0.95,
+      "n": 47,
+      "k": 18,
+      "method": "exact Clopper-Pearson binomial interval"
+    }
+  },
+  "tab6_rf_margin_sweep": {
+    "T=0.00": {
+      "auto_accepted_n": 209,
+      "auto_accepted_pct": 1.0,
+      "point": 0.6555,
+      "ci_lower": 0.5868,
+      "ci_upper": 0.7197,
+      "confidence": 0.95,
+      "n": 209,
+      "k": 137,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "T=0.05": {
+      "auto_accepted_n": 197,
+      "auto_accepted_pct": 0.9426,
+      "point": 0.6447,
+      "ci_lower": 0.5735,
+      "ci_upper": 0.7114,
+      "confidence": 0.95,
+      "n": 197,
+      "k": 127,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "T=0.10": {
+      "auto_accepted_n": 187,
+      "auto_accepted_pct": 0.8947,
+      "point": 0.6578,
+      "ci_lower": 0.585,
+      "ci_upper": 0.7254,
+      "confidence": 0.95,
+      "n": 187,
+      "k": 123,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "T=0.15": {
+      "auto_accepted_n": 177,
+      "auto_accepted_pct": 0.8469,
+      "point": 0.6723,
+      "ci_lower": 0.5979,
+      "ci_upper": 0.7409,
+      "confidence": 0.95,
+      "n": 177,
+      "k": 119,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "T=0.20": {
+      "auto_accepted_n": 169,
+      "auto_accepted_pct": 0.8086,
+      "point": 0.6864,
+      "ci_lower": 0.6107,
+      "ci_upper": 0.7555,
+      "confidence": 0.95,
+      "n": 169,
+      "k": 116,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "T=0.30": {
+      "auto_accepted_n": 135,
+      "auto_accepted_pct": 0.6459,
+      "point": 0.7111,
+      "ci_lower": 0.6269,
+      "ci_upper": 0.7858,
+      "confidence": 0.95,
+      "n": 135,
+      "k": 96,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "T=0.50": {
+      "auto_accepted_n": 92,
+      "auto_accepted_pct": 0.4402,
+      "point": 0.7609,
+      "ci_lower": 0.6606,
+      "ci_upper": 0.8437,
+      "confidence": 0.95,
+      "n": 92,
+      "k": 70,
+      "method": "exact Clopper-Pearson binomial interval"
+    }
+  },
+  "tab7": {
+    "rf_primary_accuracy": {
+      "point": 0.7347,
+      "ci_lower": 0.7067,
+      "ci_upper": 0.7618,
+      "confidence": 0.95,
+      "n": 999,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "rf_primary_macro_f1": {
+      "point": 0.7307,
+      "ci_lower": 0.7024,
+      "ci_upper": 0.7578,
+      "confidence": 0.95,
+      "n": 999,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    },
+    "legacy_hybrid_accuracy": {
+      "point": 0.6456,
+      "ci_lower": 0.6156,
+      "ci_upper": 0.6747,
+      "confidence": 0.95,
+      "n": 999,
+      "n_resamples": 10000,
+      "method": "percentile bootstrap, resampling paired (y_true, y_pred) rows with replacement"
+    }
+  },
+  "tab1_tab2_soc_domain": {
+    "n_rows": 40,
+    "n_injection": 20,
+    "accuracy_by_threshold": {
+      "threshold=0.3": {
+        "point": 0.525,
+        "ci_lower": 0.3613,
+        "ci_upper": 0.6849,
+        "confidence": 0.95,
+        "n": 40,
+        "k": 21,
+        "method": "exact Clopper-Pearson binomial interval"
+      },
+      "threshold=0.5": {
+        "point": 0.5,
+        "ci_lower": 0.338,
+        "ci_upper": 0.662,
+        "confidence": 0.95,
+        "n": 40,
+        "k": 20,
+        "method": "exact Clopper-Pearson binomial interval"
+      },
+      "threshold=0.7": {
+        "point": 0.525,
+        "ci_lower": 0.3613,
+        "ci_upper": 0.6849,
+        "confidence": 0.95,
+        "n": 40,
+        "k": 21,
+        "method": "exact Clopper-Pearson binomial interval"
+      }
+    },
+    "caveat": "40 self-authored examples; the interval quantifies sampling noise only, not the corpus-authorship bias, which is larger. Section 4.14's 400-attack benchmark is the honest measurement."
+  },
+  "tab10_guardrail_layers": {
+    "regex_injection_recall": {
+      "point": 0.05,
+      "ci_lower": 0.0013,
+      "ci_upper": 0.2487,
+      "confidence": 0.95,
+      "n": 20,
+      "k": 1,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "schema_injection_recall": {
+      "point": 1.0,
+      "ci_lower": 0.8316,
+      "ci_upper": 1.0,
+      "confidence": 0.95,
+      "n": 20,
+      "k": 20,
+      "method": "exact Clopper-Pearson binomial interval",
+      "note": "20/20 is true by construction (int(value) rejects all prose), so the upper bound is 1.0 by definition. The lower bound is the honest statement of what 20 observations support."
+    },
+    "regex_benign_false_positives": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.1684,
+      "confidence": 0.95,
+      "n": 20,
+      "k": 0,
+      "method": "exact Clopper-Pearson binomial interval"
+    }
+  },
+  "tab18_detector_recall": {
+    "h1": {
+      "point": 0.0275,
+      "ci_lower": 0.0138,
+      "ci_upper": 0.0487,
+      "confidence": 0.95,
+      "n": 400,
+      "k": 11,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "h2": {
+      "point": 0.105,
+      "ci_lower": 0.0767,
+      "ci_upper": 0.1393,
+      "confidence": 0.95,
+      "n": 400,
+      "k": 42,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "h3": {
+      "point": 0.9125,
+      "ci_lower": 0.8804,
+      "ci_upper": 0.9383,
+      "confidence": 0.95,
+      "n": 400,
+      "k": 365,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "h_union": {
+      "point": 0.9675,
+      "ci_lower": 0.9451,
+      "ci_upper": 0.9826,
+      "confidence": 0.95,
+      "n": 400,
+      "k": 387,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "l1": {
+      "point": 0.0325,
+      "ci_lower": 0.0174,
+      "ci_upper": 0.0549,
+      "confidence": 0.95,
+      "n": 400,
+      "k": 13,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "l2": {
+      "point": 0.3125,
+      "ci_lower": 0.2674,
+      "ci_upper": 0.3604,
+      "confidence": 0.95,
+      "n": 400,
+      "k": 125,
+      "method": "exact Clopper-Pearson binomial interval"
+    },
+    "l4": {
+      "point": 0.59,
+      "ci_lower": 0.54,
+      "ci_upper": 0.6386,
+      "confidence": 0.95,
+      "n": 400,
+      "k": 236,
+      "method": "exact Clopper-Pearson binomial interval"
+    }
+  },
+  "not_backfillable": {
+    "tab3_rf_baseline": "baseline_metrics.json reports aggregates with no per-row array. Not a gap in practice: m2_1_splitmethod_delta_5seeds.json seed 42 reports the identical 0.7718/0.7505 WITH bootstrap CIs, and the paper should cite those.",
+    "tab8_tab9_scalability": "wall-clock throughput from timeit best-of-7 repeats. A bootstrap over 7 timing repeats on one machine would imply a precision the measurement does not have; reported as an order of magnitude.",
+    "tab12_tab13_control_ablation": "two arms are Groq-quota bounded and scored on a subset missing exactly the alerts they existed to test. A CI would describe the wrong population."
+  }
+}

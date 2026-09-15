@@ -57,6 +57,9 @@ logs/
 # committed: it is the evidence that the baselines reproduce from a fresh venv,
 # and it is worthless if a reader cannot open it.
 !docs/reproduce_from_scratch.log
+# Same reasoning for the M6.2 runner dry-run logs (issue #45): committed evidence
+# that the one-click reproduction actually enumerates what it claims.
+!docs/repro_logs/*.log
 
 # Secrets and credentials — NEVER commit these
 .env
@@ -114,3 +117,9 @@ catboost_info/
 models/
 models/best_classifier.joblib
 models/best_grouped_classifier.joblib
+
+# Large GUIDE files and the sample fixture live only in the primary checkout;
+# a git worktree needs them symlinked in to run the full suite. Ignore those
+# links so `git add -A` from a worktree cannot commit a path that resolves to
+# one machine's filesystem.
+/datasets/sample
