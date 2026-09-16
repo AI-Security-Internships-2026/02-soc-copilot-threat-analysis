@@ -281,3 +281,63 @@ def test_wazuh_roundtrip_preserves_most_verdicts():
     assert a["point"] >= 0.90, "schema transfer fidelity regressed"
     assert d["schema_guardrail_pass_rate"]["point"] == 1.0
     assert d["pipeline_completion_rate"]["point"] == 1.0
+
+
+# ===================================================================
+# Category 7 — architecture ablations (M5.1 PART A, issue #42)
+# ===================================================================
+
+def test_no_ablation_changes_a_single_verdict():
+    """The strongest form of the architecture claim, and the one worth pinning.
+
+    classify_with_rf reads raw_alert directly -- not the built context, not
+    mitre_context -- so disabling enrichment, the guardrails, or the review gate
+    must not move ANY label. Exact element-wise identity over 15,000 alerts, not
+    'accuracy within a tolerance', because a tolerance would hide compensating
+    errors.
+    """
+    ident = load("m5_1_ablation_5config.json")["label_identity_vs_full"]
+    for config in ("nomitre", "noguardrails", "nohitl"):
+        assert ident[config]["labels_identical_to_full"] is True, config
+        assert ident[config]["n_label_differences"] == 0, (
+            f"{config} moved {ident[config]['n_label_differences']} labels; "
+            "the classifier is reading something it should not")
+
+
+def test_ablations_reproduce_the_published_held_out_accuracy():
+    cfgs = load("m5_1_ablation_5config.json")["configs"]
+    for name, c in cfgs.items():
+        assert abs(c["accuracy"] - 0.6998) <= 1e-3, (name, c["accuracy"])
+        assert c["n_errors"] == 0, name
+
+
+def test_disabling_the_gate_auto_accepts_everything():
+    """nohitl is the one ablation that must change something observable."""
+    cfgs = load("m5_1_ablation_5config.json")["configs"]
+    assert cfgs["nohitl"]["auto_accept_pct"] == 1.0
+    assert cfgs["full"]["auto_accept_pct"] < 1.0
+    # and it must agree with the M5.1 PART B sweep at T=0
+    t0 = next(r for r in load("m5_1_burden_sweep.json")["sweep"] if r["T"] == 0.0)
+    assert t0["auto_accepted_pct"] == cfgs["nohitl"]["auto_accept_pct"]
+
+
+def test_removing_guardrails_drops_attack_detection_to_zero():
+    g = load("m5_1_ablation_5config.json")["guardrail_tpr"]
+    assert g["noguardrails"]["tpr"] == 0.0
+    assert g["full"]["tpr"] > 0.0
+    # H1 union H2 must lie between the published components and their sum
+    h = load("m3_2_heuristic_detectors.json")
+    h1, h2 = h["h1"]["overall_tpr"], h["h2"]["overall_tpr"]
+    assert max(h1, h2) <= g["full"]["tpr"] <= min(1.0, h1 + h2)
+
+
+def test_mitre_ablation_result_is_reported_with_its_non_confirmation():
+    """Issue #42 predicted D1 groundedness would drop >=10 points. It dropped 8,
+    which is significant but smaller than predicted; D2 dropped more than 10 but
+    is not significant at n=55. Neither prediction fully confirms, and the
+    artifact must keep saying so rather than rounding toward the hypothesis."""
+    sig = load("m5_1_ablation_5config.json")["explanation_study"]["significance"]
+    d1, d2 = sig["d1_groundedness"], sig["d2_mitre_match"]
+    assert d1["significant_at_0_05"] is True and d1["prediction_met"] is False
+    assert d2["prediction_met"] is True and d2["significant_at_0_05"] is False
+    assert d1["full"] > d1["nomitre"] and d2["full"] > d2["nomitre"]

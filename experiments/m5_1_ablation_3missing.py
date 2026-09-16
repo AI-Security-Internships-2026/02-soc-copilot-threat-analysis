@@ -275,14 +275,55 @@ def explanation_study(sample: pd.DataFrame, n: int) -> dict:
             out[name] = {
                 "n_requested": len(subset),
                 "n_explanations_generated": generated,
+                "d1_hits": d1_hits,
                 "d1_grounded_rate": round(d1_hits / generated, 4) if generated else None,
+                "d2_hits": d2_hits,
                 "d2_mitre_match_rate": round(d2_hits / d2_eligible, 4) if d2_eligible else None,
                 "d2_eligible": d2_eligible,
             }
     finally:
         if was is not None:
             os.environ["SOC_COPILOT_SKIP_EXPLANATION"] = was
+
+    out["significance"] = explanation_significance(out)
     return out
+
+
+def explanation_significance(arms: dict) -> dict:
+    """Fisher's exact test on each proxy, full vs nomitre.
+
+    Fisher rather than chi-squared: n is 100 per arm and smaller still for D2,
+    where the expected-count assumption behind chi-squared is not safe. The
+    arms are independent samples of explanations, not paired observations of
+    the same text, so McNemar does not apply.
+    """
+    from scipy.stats import fisher_exact
+
+    f, nm = arms.get("full"), arms.get("nomitre")
+    if not f or not nm:
+        return {}
+    res = {}
+    for metric, hits_key, n_key, predicted_drop in (
+        ("d1_groundedness", "d1_hits", "n_explanations_generated", 0.10),
+        ("d2_mitre_match", "d2_hits", "d2_eligible", 0.10),
+    ):
+        nf, nn = f[n_key], nm[n_key]
+        kf, kn = f[hits_key], nm[hits_key]
+        if not nf or not nn:
+            continue
+        odds, p = fisher_exact([[kf, nf - kf], [kn, nn - kn]])
+        drop = (kf / nf) - (kn / nn)
+        res[metric] = {
+            "full": round(kf / nf, 4), "nomitre": round(kn / nn, 4),
+            "n_full": nf, "n_nomitre": nn,
+            "drop": round(drop, 4),
+            "fisher_exact_p": round(float(p), 4),
+            "odds_ratio": round(float(odds), 4),
+            "significant_at_0_05": bool(p < 0.05),
+            "issue_42_predicted_drop_at_least": predicted_drop,
+            "prediction_met": bool(drop >= predicted_drop),
+        }
+    return res
 
 
 def main() -> None:
