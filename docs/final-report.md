@@ -912,6 +912,71 @@ tokeniser; and the per-token price comes from the issue tracker and is **not**
 verified against the vendor's live price list, so the dollar figures are
 illustrative rather than quotable.
 
+### 5.15 Ablating the non-deciding stages
+
+Source: `experiments/results/m5_1_ablation_5config.json`.
+
+`classify_with_rf` reads the raw alert directly — not the assembled context, not
+the enrichment. If the architecture claim in Section 5.4 holds, disabling any
+non-deciding stage cannot move a single verdict. So the test is **exact
+element-wise label identity** over all 15,000 held-out alerts, not accuracy
+within a tolerance, which would hide compensating errors.
+
+| Configuration | Accuracy | Macro F1 | Auto-accepted | Label diffs vs full |
+|---|---|---|---|---|
+| Full | 0.6998 | 0.6949 | 82.0% | — |
+| − MITRE enrichment | 0.6998 | 0.6949 | 82.0% | **0 / 15,000** |
+| − guardrails | 0.6998 | 0.6949 | 82.0% | **0 / 15,000** |
+| − review gate (`T=0`) | 0.6998 | 0.6949 | 100.0% | **0 / 15,000** |
+
+All four reproduce the held-out 0.6998 exactly, and the `T=0` arm agrees with
+Section 5.13's sweep. Removing the guardrails costs attack detection instead of
+accuracy: benchmark recall falls **0.1300 → 0.0000**.
+
+**The enrichment hypothesis did not confirm.** Two automated proxies over 100
+live explanations per arm:
+
+| Proxy | Full | − MITRE | Drop | Fisher exact *p* |
+|---|---|---|---|---|
+| D1 groundedness | 0.9700 | 0.8900 | 8.0 pts | **0.0489** |
+| D2 MITRE match | 0.9455 | 0.8182 | 12.7 pts | 0.0732 |
+
+D1 is significant but smaller than the 10 points predicted; D2 is larger but not
+significant at *n*=55. `build_context` puts the raw technique identifier into the
+prompt regardless — enrichment only adds the ATT&CK description — so the ceiling
+on how much that stage can matter is lower than assumed. D1/D2 are automated
+proxies, not human judgement.
+
+### 5.16 Cross-domain schema transfer: Wazuh Tier-1
+
+Source: `experiments/results/m5_3_wazuh_t1.json`.
+
+**No transfer-accuracy figure is reported**, because the synthetic generator
+draws its label independently of every feature — verified at **0.3470**
+cross-validated against a **0.4028** majority floor. Both arms of an accuracy
+comparison would be chance and "retention" would land near 100% while measuring
+nothing.
+
+What is measured needs no labels: the same incident scored natively and
+round-tripped GUIDE → Wazuh JSON → adapter → `raw_alert`.
+
+| Measurement | Result (n=10,000) |
+|---|---|
+| **Verdict agreement** | **0.9637** [0.9598, 0.9673] |
+| Schema-guardrail pass rate | 1.0000 |
+| Pipeline completion rate | 1.0000 |
+
+**A defect found by measuring.** `SuspicionLevel` survives at 0%: the adapter
+emits `low`/`medium`/`high`, but the deployed encoder contains only
+`Incriminated`, `Suspicious`, `nan` — verified against real `GUIDE_Test.csv`. All
+three encode to the unknown sentinel, so every Wazuh-origin alert loses that
+signal entirely. The field looks populated end to end, which is why counting
+field survival alone would not have caught it.
+
+Tier-1 only: synthetic alerts, labels unused, and 0.9637 is agreement between
+two encodings of one alert — not accuracy. Tier-2 needs real labelled Wazuh data
+and is not done.
+
 ## 6. Discussion and Limitations
 
 ### 6.1 Interpretation
@@ -1099,6 +1164,8 @@ supervisor's direction.
 | `m5_4_latency_cost.json` / `.csv` | Per-stage latency, throughput and API cost |
 | `m6_1_effect_sizes.json` | McNemar odds ratios and Holm-Bonferroni correction |
 | `m6_3_ci_backfill.json` | **95% CIs backfilled onto 31 headline cells** |
+| `m5_1_ablation_5config.json` / `.csv` | **Three ablation arms; 0 label differences over 15,000** |
+| `m5_3_wazuh_t1.json` | Wazuh Tier-1 schema-transfer fidelity (agreement, not accuracy) |
 
 Every file above is produced by a committed script in `experiments/`, and every
 figure in this report is read from one of them.
