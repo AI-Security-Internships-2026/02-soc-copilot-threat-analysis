@@ -1,0 +1,118 @@
+{
+  "experiment": "M5.1 PART A -- nomitre / noguardrails / nohitl ablations",
+  "generated_at_utc": "2026-09-16T13:46:58.495690+00:00",
+  "git_sha": "1651563652b382974c201cd8696f420235c7f489",
+  "evaluation_set": "experiments/results/evaluation_samples/guide_test_balanced_333_per_class_seed_42.csv",
+  "configs": {
+    "full": {
+      "config": "full",
+      "n": 999,
+      "n_scored": 999,
+      "n_errors": 0,
+      "accuracy": 0.7047,
+      "accuracy_ci": [
+        0.6767,
+        0.7327
+      ],
+      "macro_f1": 0.7001,
+      "true_positive_recall": 0.7568,
+      "auto_accept_pct": 0.8278,
+      "latency_p50_ms": 20.356,
+      "latency_p95_ms": 21.608,
+      "delta_acc_vs_full": 0.0
+    },
+    "nomitre": {
+      "config": "nomitre",
+      "n": 999,
+      "n_scored": 999,
+      "n_errors": 0,
+      "accuracy": 0.7047,
+      "accuracy_ci": [
+        0.6767,
+        0.7327
+      ],
+      "macro_f1": 0.7001,
+      "true_positive_recall": 0.7568,
+      "auto_accept_pct": 0.8278,
+      "latency_p50_ms": 20.2,
+      "latency_p95_ms": 21.082,
+      "delta_acc_vs_full": 0.0
+    },
+    "noguardrails": {
+      "config": "noguardrails",
+      "n": 999,
+      "n_scored": 999,
+      "n_errors": 0,
+      "accuracy": 0.7047,
+      "accuracy_ci": [
+        0.6767,
+        0.7327
+      ],
+      "macro_f1": 0.7001,
+      "true_positive_recall": 0.7568,
+      "auto_accept_pct": 0.8278,
+      "latency_p50_ms": 19.837,
+      "latency_p95_ms": 20.69,
+      "delta_acc_vs_full": 0.0
+    },
+    "nohitl": {
+      "config": "nohitl",
+      "n": 999,
+      "n_scored": 999,
+      "n_errors": 0,
+      "accuracy": 0.7047,
+      "accuracy_ci": [
+        0.6767,
+        0.7327
+      ],
+      "macro_f1": 0.7001,
+      "true_positive_recall": 0.7568,
+      "auto_accept_pct": 1.0,
+      "latency_p50_ms": 20.277,
+      "latency_p95_ms": 21.53,
+      "delta_acc_vs_full": 0.0
+    }
+  },
+  "label_identity_vs_full": {
+    "full": {
+      "labels_identical_to_full": true,
+      "n_label_differences": 0,
+      "first_differing_indices": []
+    },
+    "nomitre": {
+      "labels_identical_to_full": true,
+      "n_label_differences": 0,
+      "first_differing_indices": []
+    },
+    "noguardrails": {
+      "labels_identical_to_full": true,
+      "n_label_differences": 0,
+      "first_differing_indices": []
+    },
+    "nohitl": {
+      "labels_identical_to_full": true,
+      "n_label_differences": 0,
+      "first_differing_indices": []
+    }
+  },
+  "guardrail_tpr": {
+    "full": {
+      "n_attacks": 400,
+      "blocked": 52,
+      "tpr": 0.13,
+      "note": "H1 regex union H2 schema, via M3.2's own alert builder"
+    },
+    "noguardrails": {
+      "n_attacks": 400,
+      "blocked": 0,
+      "tpr": 0.0,
+      "note": "guardrail stages removed; nothing inspects the payload, so every attack reaches the classifier by construction"
+    }
+  },
+  "explanation_study": null,
+  "explanation_proxy_caveat": "D1 and D2 are automated proxies, not human judgement. D1 asks whether the text cites a concrete value from this alert; D2 whether it names an ATT&CK technique the alert carries. The human study that would validate them is issue #40 PART A and has not run.",
+  "configs_not_rerun": {
+    "full_A4": "Section 4.7, accuracy 0.7347 on n=999 -- already published",
+    "no_llm_explanation": "Section 4.11 arm (b), 0 verdict mismatches over 999 alerts -- already published; re-running would spend LLM budget to reproduce a known result"
+  }
+}

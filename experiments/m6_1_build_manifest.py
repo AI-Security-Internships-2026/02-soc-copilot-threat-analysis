@@ -145,6 +145,10 @@ SUPPORTING = {
     "m5_1_burden_sweep.csv": "M5.1 PART B -- the same sweep as a 9-row CSV for Figure 6",
     "m5_4_latency_cost.json": "M5.2 PART B -- per-stage latency, throughput and API cost",
     "m5_4_latency_cost.csv": "M5.2 PART B -- per-stage timing as a CSV",
+    "m5_3_wazuh_t1.json": "M5.2 PART A -- Wazuh Tier-1 schema-transfer fidelity "
+                          "(verdict agreement; deliberately NOT an accuracy figure)",
+    "m5_1_ablation_5config.json": "M5.1 PART A -- nomitre/noguardrails/nohitl ablations",
+    "m5_1_ablation_5config.csv": "M5.1 PART A -- the same ablations as a CSV",
     "deepteam_redteam_fullgraph_llm_reached.json": "Sec 4.9 -- adversarial red-team evaluation",
     "week15_rf_benchmark.json": "Tab 9 and Fig 3",
     "m2_1_overlap_scatter.csv": "Sec 4.12 -- 4-point overlap scatter (M2.1 Pearson)",

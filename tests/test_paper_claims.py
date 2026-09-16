@@ -202,11 +202,11 @@ def test_rf_margin_gate_is_correctly_oriented_unlike_the_llm_confidence_gate():
                 f"more often ({esc} vs {r['auto_accepted_accuracy']}) -- inverted")
 
 
-@pytest.mark.skip(reason="M5.2 PART A (issue #43) has not run; no Wazuh transfer "
-                         "figure exists to assert against")
-def test_wazuh_transfer_retention_within_20_points():
-    t = load("m5_3_wazuh_t1.json")
-    assert abs(t["delta"]) <= 0.20
+# The issue's original "Wazuh transfer retention within +/-0.20" assertion is
+# deliberately absent. M5.2 PART A established that the synthetic generator's
+# labels carry no signal, so a retention figure would compare chance with
+# chance. The four assertions in Category 6 replace it and check something
+# real: verdict agreement, which needs no labels at all.
 
 
 # ===================================================================
@@ -240,3 +240,44 @@ def test_cost_figures_are_labelled_as_unverified_pricing():
     will be read as measured."""
     c = load("m5_4_latency_cost.json")["pricing"]
     assert "not verified" in c["source"].lower()
+
+
+# ===================================================================
+# Category 6 — cross-domain transfer (M5.2 PART A, issue #43)
+# ===================================================================
+
+def test_wazuh_tier1_reports_agreement_not_accuracy():
+    """The synthetic labels are noise, so an accuracy figure here would be
+    meaningless. Guard against someone 'helpfully' adding one later."""
+    d = load("m5_3_wazuh_t1.json")
+    assert "verdict_agreement_native_vs_roundtripped" in d
+    assert "accuracy_comparison_not_reported" in d
+    blob = json.dumps(d).lower()
+    assert "transfer_acc" not in blob and "retention_ref_acc" not in blob
+
+
+def test_synthetic_labels_are_demonstrably_unlearnable():
+    """The justification for the above, verified rather than asserted."""
+    ev = load("m5_3_wazuh_t1.json")["accuracy_comparison_not_reported"]["evidence"]
+    assert ev["labels_are_learnable"] is False
+    assert ev["cv_accuracy_mean"] < ev["majority_class_floor"], (
+        "a RandomForest now beats the majority floor on synthetic labels -- the "
+        "generator changed, and the reasoning in this experiment needs revisiting")
+
+
+def test_wazuh_adapter_suspicionlevel_defect_is_recorded():
+    """A real defect found by measurement: the adapter emits a vocabulary the
+    model's encoder does not contain. If someone fixes the adapter, this test
+    should be updated together with it -- not deleted."""
+    v = load("m5_3_wazuh_t1.json")["encoder_vocabulary_compatibility"]["SuspicionLevel"]
+    assert v["all_adapter_values_unknown"] is True
+    assert set(v["adapter_values_unknown_to_encoder"]) == {"low", "medium", "high"}
+
+
+def test_wazuh_roundtrip_preserves_most_verdicts():
+    d = load("m5_3_wazuh_t1.json")
+    a = d["verdict_agreement_native_vs_roundtripped"]
+    assert a["n"] >= 1000
+    assert a["point"] >= 0.90, "schema transfer fidelity regressed"
+    assert d["schema_guardrail_pass_rate"]["point"] == 1.0
+    assert d["pipeline_completion_rate"]["point"] == 1.0
