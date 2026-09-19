@@ -184,6 +184,95 @@
 
 ## Tools and Datasets Identified
 
+## Paper 9 — Context Contamination in LLM Analysis of Network Security Logs
+
+| Field | Content |
+|---|---|
+| **Full title** | Context Contamination in LLM Analysis of Network Security Logs: Poison with Passive Prompt Injection and Mitigation Evaluation |
+| **Authors** | Karanjai, R.; Lu, Y.; Hegadehalli Madhavarao, H.; Xu, L.; Shi, W. |
+| **Year** | 2026 |
+| **Venue** | 35th USENIX Security Symposium (USENIX Security 26), Baltimore MD |
+| **URL / DOI** | https://www.usenix.org/conference/usenixsecurity26/presentation/karanjai |
+| **Method** | *Passive* prompt injection: payloads embedded in log-generating fields persist in storage and execute later, when an analyst queries the LLM. Introduces the LogInject framework and an adversarial log benchmark. |
+| **Dataset** | LogInject-1.0 — log entries including adversarial samples; three production LLMs evaluated |
+| **Key result** | Production LLMs used for log analysis are vulnerable across attack objectives including activity concealment and output hijacking |
+| **Limitation** | Targets the model's analysis output; does not evaluate an architecture where a non-LLM component owns the decision |
+| **Relevance to our project** | **The closest prior work to our §4.14 benchmark.** Same threat shape — payload arrives inside a telemetry field, not an analyst's prompt. Differs in what an attack can win: our §4.7 architecture means a successful injection corrupts an explanation but cannot change a verdict. Their unit is the log line; ours is the alert schema. |
+
+**Notes:** Metadata verified against the USENIX programme page 2026-09-19, not recalled.
+
+---
+
+## Paper 10 — Let the Alerts Speak
+
+| Field | Content |
+|---|---|
+| **Full title** | Let the Alerts Speak: LLM-Based IDS Alert Interpretation for SOC Triage |
+| **Authors** | Schärmer, A.; Landauer, M.; Skopik, F.; Wurzenberger, M.; Squarcina, M. |
+| **Year** | 2026 |
+| **Venue** | ARES 2026 International Workshops, LNCS, pp. 346–364, Springer Nature Switzerland |
+| **URL / DOI** | https://doi.org/10.1007/978-3-032-35579-9_19 |
+| **Method** | LLM classification of IDS alerts to assist analysts during triage |
+| **Dataset** | IDS alert data (not GUIDE) |
+| **Key result** | LLMs can assist interpretation of high-volume IDS alerts, addressing analyst fatigue and false-positive burden |
+| **Limitation** | IDS alerts carry human-readable rule descriptions — a far more favourable input than anonymised codes |
+| **Relevance to our project** | Nearest comparable SOC-triage system. The contrast is the point: GUIDE's `AlertTitle` is a numeric ID, not prose, which §3.3 shows is decisive for what a language model can contribute. |
+
+**Notes:** Metadata verified via Crossref 2026-09-19.
+
+---
+
+## Paper 11 — Datasheets for Datasets
+
+| Field | Content |
+|---|---|
+| **Full title** | Datasheets for datasets |
+| **Authors** | Gebru, T.; Morgenstern, J.; Vecchione, B.; Wortman Vaughan, J.; Wallach, H.; Daumé III, H.; Crawford, K. |
+| **Year** | 2021 |
+| **Venue** | Communications of the ACM 64(12), 86–92 |
+| **URL / DOI** | https://doi.org/10.1145/3458723 |
+| **Method** | Proposes a standard documentation record for datasets: motivation, composition, collection, preprocessing, uses, distribution, maintenance |
+| **Key result** | Standardised dataset documentation improves transparency and reduces misuse |
+| **Relevance to our project** | `docs/soc-injection-benchmark-datasheet.md` follows this format for our 400-attack benchmark. Cited, not merely gestured at. |
+
+**Notes:** Metadata verified via Crossref 2026-09-19.
+
+---
+
+## Paper 12 — Dos and Don'ts of Machine Learning in Computer Security
+
+| Field | Content |
+|---|---|
+| **Full title** | Dos and Don'ts of Machine Learning in Computer Security |
+| **Authors** | Arp, D.; Quiring, E.; Pendlebury, F.; Warnecke, A.; Pierazzi, F.; Wressnegger, C.; Cavallaro, L.; Rieck, K. |
+| **Year** | 2022 |
+| **Venue** | 31st USENIX Security Symposium |
+| **URL / DOI** | https://www.usenix.org/conference/usenixsecurity22/presentation/arp |
+| **Method** | Identifies recurring pitfalls in learning-based security systems; reviews 30 papers from top-tier security venues |
+| **Key result** | Sampling bias and data snooping are widespread in the security ML literature |
+| **Relevance to our project** | The security-specific framing for §4.12. Our incident-level leakage is an instance of exactly the data-snooping pitfall catalogued here — and our own earlier numbers carried it undetected, which is the ordinary way this goes. |
+
+**Notes:** Metadata verified against the USENIX programme page 2026-09-19.
+
+---
+
+## Paper 13 — Leakage and the Reproducibility Crisis in ML-based Science
+
+| Field | Content |
+|---|---|
+| **Full title** | Leakage and the reproducibility crisis in machine-learning-based science |
+| **Authors** | Kapoor, S.; Narayanan, A. |
+| **Year** | 2023 |
+| **Venue** | Patterns 4(9), 100804 (Elsevier) |
+| **URL / DOI** | https://doi.org/10.1016/j.patter.2023.100804 |
+| **Method** | Taxonomy of leakage types across scientific ML; survey of affected published work |
+| **Key result** | Leakage is a leading cause of irreproducible ML results; non-independence between train and test rows is among the hardest variants to detect, because conventional checks still pass |
+| **Relevance to our project** | The general framing for §4.12. Our contribution is a *measurement* on a specific corpus — +0.2433 from a labelled sibling, +0.0302 from the split rule over seven seeds — rather than another warning. |
+
+**Notes:** Metadata verified via Crossref 2026-09-19.
+
+---
+
 | Name | Type | URL | Notes |
 |---|---|---|---|
 | GUIDE | Dataset | https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction | Largest public real-world SOC alert/incident dataset — 1.6M alerts, 1M analyst-triaged incidents from 6,100+ orgs, released 2024 (CDLA-2.0). Replaces CICIDS2017, which is outdated network-flow data not designed for SOC/LLM triage. |
