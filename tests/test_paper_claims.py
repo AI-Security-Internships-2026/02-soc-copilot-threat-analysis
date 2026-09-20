@@ -341,3 +341,45 @@ def test_mitre_ablation_result_is_reported_with_its_non_confirmation():
     assert d1["significant_at_0_05"] is True and d1["prediction_met"] is False
     assert d2["prediction_met"] is True and d2["significant_at_0_05"] is False
     assert d1["full"] > d1["nomitre"] and d2["full"] > d2["nomitre"]
+
+
+# ===================================================================
+# Category 8 — the deployed operating threshold (issue #30)
+# ===================================================================
+
+def test_deployed_threshold_matches_the_documented_decision():
+    from config.config import HITL_AUTO_ACCEPT_MARGIN, HITL_THRESHOLD_DECISION
+    assert HITL_AUTO_ACCEPT_MARGIN == 0.20
+    assert "0.12 is not adopted" in HITL_THRESHOLD_DECISION
+
+
+def test_020_is_the_smallest_threshold_clearing_the_train_sampled_claim():
+    """The anchor the paper's justification rests on. If a future re-run moves
+    the sweep so that a different T is the smallest one whose CI clears the
+    train-sampled figure, the paper's argument for 0.20 no longer holds and
+    must be rewritten -- not silently left in place."""
+    train_sampled = load("large_train_sampled_rf_eval.json")["train_sampled"]["accuracy"]
+    rows = sorted(load("m5_1_burden_sweep.json")["sweep"], key=lambda r: r["T"])
+    clearing = [r["T"] for r in rows
+                if r["auto_accepted_accuracy_ci"][0] > train_sampled]
+    assert clearing, "no threshold clears the train-sampled figure at 95%"
+    assert min(clearing) == 0.20, (
+        f"smallest clearing threshold is {min(clearing)}, not 0.20; the paper's "
+        "justification in Section 4.15 needs revisiting")
+
+
+def test_no_pareto_knee_exists_in_the_burden_sweep():
+    """The paper states plainly that marginal efficiency is flat and there is no
+    optimum. Guard the claim: if a pronounced knee ever appears, the honest
+    framing changes from 'policy choice' to 'tuned value'."""
+    rows = sorted(load("m5_1_burden_sweep.json")["sweep"], key=lambda r: r["T"])
+    effs = []
+    for prev, cur in zip(rows, rows[1:]):
+        d_burden = cur["escalated_pct"] - prev["escalated_pct"]
+        if d_burden > 0:
+            effs.append((cur["auto_accepted_accuracy"]
+                         - prev["auto_accepted_accuracy"]) / d_burden)
+    assert effs
+    assert max(effs) / min(effs) < 2.0, (
+        f"marginal efficiency now spans {min(effs):.3f}-{max(effs):.3f}; that is "
+        "no longer 'flat' and Section 4.15's argument needs rewriting")
