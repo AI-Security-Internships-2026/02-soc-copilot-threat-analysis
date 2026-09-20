@@ -430,7 +430,8 @@ def test_external_deltas_are_reported_as_measured_not_tuned():
     ext = d["external_comparators"]
     assert ext["kaggle_notebook_1_catboost"]["delta_acc"] == 0.007
     assert ext["kaggle_notebook_2_randomforest"]["delta_acc"] == 0.0092
-    assert "not tuned" in d["no_tuning_note"].lower()
+    note = d["no_tuning_note"].lower()
+    assert "tuned" in note and "0.020" in note, note
 
 
 def test_binarising_reduces_but_does_not_close_the_delta_gap():
