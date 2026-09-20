@@ -417,3 +417,50 @@ def test_control_209_composition_confound_is_recorded():
     assert c["majority_class_floor"] > 0.45          # 0.4928 — a different baseline
     assert c["rf_margin_mean"] < parent["rf_margin_mean"]   # genuinely harder
     assert c["accuracy"] < parent["accuracy"]              # despite shared leakage
+
+
+# ===================================================================
+# Category 10 — external reproduction and task formulation (issue #32)
+# ===================================================================
+
+def test_external_deltas_are_reported_as_measured_not_tuned():
+    """Issue #32 is explicit that +0.020 must not be targeted. The two external
+    results are below it and must stay reported that way."""
+    d = load("m2_2_task_formulation_check.json")
+    ext = d["external_comparators"]
+    assert ext["kaggle_notebook_1_catboost"]["delta_acc"] == 0.007
+    assert ext["kaggle_notebook_2_randomforest"]["delta_acc"] == 0.0092
+    assert "not tuned" in d["no_tuning_note"].lower()
+
+
+def test_binarising_reduces_but_does_not_close_the_delta_gap():
+    """The finding: formulation explains part of the gap, not all of it. If a
+    future run shows binarising closing it entirely, §4.12's conclusion changes."""
+    cells = load("m2_2_task_formulation_check.json")["cells"]
+    for rows in (100000, 300000):
+        three = cells[f"three_class@{rows}"]["delta_acc"]
+        binary = cells[f"binary@{rows}"]["delta_acc"]
+        assert binary < three, f"binarising did not reduce the delta at {rows}"
+    # at the row count matching the notebooks, a clear residual remains
+    assert cells["binary@300000"]["delta_acc"] > 2 * 0.0081, (
+        "our binary delta now matches the external mean; the paper's 'does not "
+        "explain all of it' claim no longer holds")
+
+
+def test_more_rows_raises_leakage_and_the_delta():
+    """Counter-intuitive and load-bearing: sample size moves the wrong way to
+    explain the gap."""
+    cells = load("m2_2_task_formulation_check.json")["cells"]
+    small, large = cells["three_class@100000"], cells["three_class@300000"]
+    assert large["delta_acc"] > small["delta_acc"]
+    assert (large["row_level"]["holdout_incident_leakage_rate"]
+            > small["row_level"]["holdout_incident_leakage_rate"])
+
+
+def test_the_50_upvote_criterion_is_unsatisfiable_and_verified():
+    """Issue #32 asks why no >=50-upvote notebook was used. Re-verified live
+    against the Kaggle API rather than carried over as an assertion."""
+    v = load("m2_2_task_formulation_check.json")["kaggle_vote_count_reverification"]
+    assert v["notebooks_clearing_50_votes"] == 0
+    assert v["top_vote_count"] == 39
+    assert v["requirement_satisfiable"] is False

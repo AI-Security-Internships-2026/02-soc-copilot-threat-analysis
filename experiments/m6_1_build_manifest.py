@@ -126,6 +126,8 @@ SUPPORTING = {
     "m2_2_kaggle_baselines.json": "Sec 4.12 -- third-party Kaggle notebook reproduction",
     "m2_2_kaggle_notebook_1.json": "Sec 4.12 -- Kaggle notebook 1, both split methods",
     "m2_2_kaggle_notebook_2.json": "Sec 4.12 -- Kaggle notebook 2, both split methods",
+    "m2_2_task_formulation_check.json": "Sec 4.12 -- binary vs three-class as an "
+                                        "explanation for the delta gap (issue #32)",
     "m2_3_grouped_deployed.json": "Sec 4.12 -- incident-grouped model deployment check",
     "m2_4_best_model_selection.json": "Sec 4.13 -- classifier suite selection",
     "m2_4_heldout_n15k.json": "Sec 4.13 -- classifier suite on held-out n=15,000",
