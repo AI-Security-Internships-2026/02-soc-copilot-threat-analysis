@@ -383,3 +383,37 @@ def test_no_pareto_knee_exists_in_the_burden_sweep():
     assert max(effs) / min(effs) < 2.0, (
         f"marginal efficiency now spans {min(effs):.3f}-{max(effs):.3f}; that is "
         "no longer 'flat' and Section 4.15's argument needs rewriting")
+
+
+# ===================================================================
+# Category 9 — the overlap-correlation null (issue #31)
+# ===================================================================
+
+def test_overlap_correlation_null_is_reported_not_tuned():
+    """Issue #31 is explicit that the r>=0.90 expectation must not be chased.
+    Guard that the null stays reported as measured."""
+    d = load("m2_1_overlap_correlation_analysis.json")
+    assert d["n_observations"] == 4
+    assert abs(d["pearson"]["r"] - 0.1139) < 1e-3
+    assert d["pearson"]["p_value"] > 0.05
+    assert d["expected_min_r_not_met_and_not_pursued"]["expected"] == 0.9
+
+
+def test_overlap_correlation_is_unidentified_not_merely_weak():
+    """The finding that matters: one observation swings r across its full range,
+    so neither sign is supportable."""
+    loo = load("m2_1_overlap_correlation_analysis.json")["leave_one_out"]
+    rs = [e["r"] for e in loo]
+    assert max(rs) > 0.9 and min(rs) < -0.9, rs
+
+
+def test_control_209_composition_confound_is_recorded():
+    """The 209-alert control differs from every other set on class balance and
+    difficulty, not on overlap. If that stops being true the paragraph in §4.12
+    is wrong."""
+    prof = load("m2_1_overlap_correlation_analysis.json")["set_profiles"]
+    c, parent = prof["control_209"], prof["train_sampled_999"]
+    assert parent["majority_class_floor"] == pytest.approx(1 / 3, abs=1e-3)
+    assert c["majority_class_floor"] > 0.45          # 0.4928 — a different baseline
+    assert c["rf_margin_mean"] < parent["rf_margin_mean"]   # genuinely harder
+    assert c["accuracy"] < parent["accuracy"]              # despite shared leakage

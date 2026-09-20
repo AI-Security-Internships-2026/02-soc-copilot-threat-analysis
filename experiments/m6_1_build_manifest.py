@@ -152,6 +152,8 @@ SUPPORTING = {
     "deepteam_redteam_fullgraph_llm_reached.json": "Sec 4.9 -- adversarial red-team evaluation",
     "week15_rf_benchmark.json": "Tab 9 and Fig 3",
     "m2_1_overlap_scatter.csv": "Sec 4.12 -- 4-point overlap scatter (M2.1 Pearson)",
+    "m2_1_overlap_correlation_analysis.json": "Sec 4.12 -- why the overlap scatter's "
+                                              "correlation is unidentified (issue #31)",
     "m3_1_rating_worksheet.csv": "M3.1 -- blind inter-rater worksheet for the benchmark",
     ".m3_1_rating_worksheet_key.csv": "M3.1 -- rater answer key; dot-prefixed so raters "
                                       "cannot see it while scoring the worksheet above",

@@ -1,0 +1,95 @@
+{
+  "experiment": "M2.1 PART C follow-up -- why overlap rate does not correlate with inflation (issue #31)",
+  "generated_at_utc": "2026-09-20T07:50:43.773953+00:00",
+  "git_sha": "3a0a7ed3638b38143bb5c0f82d5012716517e579",
+  "n_observations": 4,
+  "n_observations_note": "four evaluation SETS, not four alerts. This is the number the correlation is computed over.",
+  "distinct_x_values": [
+    0.0,
+    39.23,
+    55.76
+  ],
+  "n_tied_at_zero_overlap": 2,
+  "pearson": {
+    "r": 0.1139,
+    "p_value": 0.8861,
+    "n": 4
+  },
+  "spearman": {
+    "rho": 0.3162,
+    "p_value": 0.6838
+  },
+  "leave_one_out": [
+    {
+      "dropped": "train_sampled_999",
+      "r": -0.9959,
+      "p_value": 0.0576
+    },
+    {
+      "dropped": "control_209",
+      "r": 0.9916,
+      "p_value": 0.0828
+    },
+    {
+      "dropped": "held_out_999",
+      "r": 0.2225,
+      "p_value": 0.8572
+    },
+    {
+      "dropped": "held_out_15000",
+      "r": 0.1531,
+      "p_value": 0.9022
+    }
+  ],
+  "leave_one_out_interpretation": "Dropping control_209 gives r=+0.99; dropping train_sampled_999 gives r=-0.996. The estimate swings the full width of its range on one observation, so it is unidentified rather than weak. No conclusion about the sign of the relationship is supportable from these points.",
+  "set_profiles": {
+    "train_sampled_999": {
+      "n": 999,
+      "accuracy": 0.7347,
+      "rf_margin_mean": 0.5737,
+      "rf_margin_median": 0.59,
+      "class_balance": {
+        "TruePositive": 0.3333,
+        "BenignPositive": 0.3333,
+        "FalsePositive": 0.3333
+      },
+      "majority_class_floor": 0.3333
+    },
+    "control_209": {
+      "n": 209,
+      "accuracy": 0.6555,
+      "rf_margin_mean": 0.479,
+      "rf_margin_median": 0.4316,
+      "class_balance": {
+        "BenignPositive": 0.4928,
+        "TruePositive": 0.2919,
+        "FalsePositive": 0.2153
+      },
+      "majority_class_floor": 0.4928
+    },
+    "held_out_999": {
+      "n": 999,
+      "accuracy": 0.7047,
+      "rf_margin_mean": 0.5728,
+      "rf_margin_median": 0.57,
+      "class_balance": {
+        "TruePositive": 0.3333,
+        "BenignPositive": 0.3333,
+        "FalsePositive": 0.3333
+      },
+      "majority_class_floor": 0.3333
+    }
+  },
+  "control_209_is_a_subset_of_train_sampled_999": true,
+  "composition_confounds": {
+    "class_balance": "control_209 is {'BenignPositive': 0.4928, 'TruePositive': 0.2919, 'FalsePositive': 0.2153}, against an exactly balanced {'TruePositive': 0.3333, 'BenignPositive': 0.3333, 'FalsePositive': 0.3333} for every other set. The evidence-density filter selects non-uniformly across classes, so its majority-class floor is 0.4928 rather than 0.3333 -- a different baseline, not a different amount of leakage.",
+    "intrinsic_difficulty": "control_209's mean RF decision margin is 0.479 against 0.5737 for its own parent set, a gap of -0.0947. The evidence-rich filter selects alerts the classifier is less certain about.",
+    "net_effect": "Within one leakage regime -- same parent sample -- the evidence-rich subset scores -0.0792 accuracy. That swamps the effect the scatter was built to detect, in the opposite direction."
+  },
+  "conclusion": "Overlap rate alone does not explain inflation magnitude across these evaluation sets, and this analysis does not attempt to make it. The four sets differ in construction as well as in overlap, and with n=4 over three distinct x-values the correlation is unidentified. The leakage effect is established instead by the controlled comparison in Section 4.12, which holds class composition fixed and yields +0.2433 with a 95% CI excluding zero.",
+  "expected_min_r_not_met_and_not_pursued": {
+    "expected": 0.9,
+    "observed": 0.1139,
+    "note": "Per issue #31, no attempt was made to tune the experiment toward the expected value. The null is reported as measured."
+  }
+}
