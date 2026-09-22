@@ -159,6 +159,9 @@ SUPPORTING = {
     "m3_1_rating_worksheet.csv": "M3.1 -- blind inter-rater worksheet for the benchmark",
     ".m3_1_rating_worksheet_key.csv": "M3.1 -- rater answer key; dot-prefixed so raters "
                                       "cannot see it while scoring the worksheet above",
+    "m3_1_rating_sheet_raterA.csv": "M3.1 -- rater A's copy of the blind worksheet, for "
+                                    "distribution with docs/m3-1-rater-instructions.md",
+    "m3_1_rating_sheet_raterB.csv": "M3.1 -- rater B's copy; identical items to rater A's",
 }
 
 # Artifacts that a still-open PR introduces. Listed so the cross-check does not

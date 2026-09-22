@@ -93,21 +93,41 @@ binary attack/benign label plus a 7-way family label for every attack row.
 
 **Interrater reliability.** A blinded 100-row subset (50 attack / 50 benign,
 `experiments/results/m3_1_rating_worksheet.csv`) and a Cohen's-kappa scoring
-script (`experiments/m3_1_interrater_kappa.py`) exist. **The actual two-rater
-labelling pass has not been done as of this datasheet's initial commit** — it
-needs two independent human raters, and a single rater (or an AI system)
-re-checking its own generated labels would not be independent by
-construction. Target once both raters complete the worksheet: κ ≥ 0.75 (issue
-#35's acceptance criterion). This is stated as pending rather than filled
-with an invented number, consistent with how issue #32 (Kaggle tooling
-access) was handled elsewhere in this project before it was resolved.
-Raters and timeline requested from the supervisors in
+script (`experiments/m3_1_interrater_kappa.py`) exist. Per the supervisor's
+request of 21 Sep, the subset is also issued as two per-rater sheets
+(`experiments/results/m3_1_rating_sheet_raterA.csv` and `…raterB.csv`,
+identical items in identical order, blank `verdict` column) alongside a
+self-contained rater packet, `docs/m3-1-rater-instructions.md`. Neither sheet
+carries `benchmark_id`, `family`, `is_benign_control`, or the modified field
+name — `tests/test_m3_1_rating_sheets.py` asserts that on every build.
+Scoring reports raw agreement, Cohen's κ, the disagreement count, and the
+disagreement distribution across benign/F1–F7.
+
+**The actual two-rater labelling pass has not been done as of this
+datasheet's initial commit** — it needs two independent human raters, and a
+single rater (or an AI system) re-checking its own generated labels would not
+be independent by construction. Target once both raters complete the
+worksheet: κ ≥ 0.75 (issue #35's acceptance criterion). This is stated as
+pending rather than filled with an invented number, consistent with how issue
+#32 (Kaggle tooling access) was handled elsewhere in this project before it
+was resolved. Raters and timeline requested from the supervisors in
 [issue #35's comments](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/issues/35);
 this section will be updated with the real κ once both rating passes land.
 
+**What κ from this subset can and cannot establish.** Read bias 5 below
+before quoting the number. All 50 benign rows in the subset are numeric GUIDE
+field codes and all 50 attack rows are natural-language payloads, so the two
+classes are separable on surface form alone. A high κ therefore confirms that
+the binary labels are unambiguous to independent readers; it does **not**
+establish that the rubric discriminates well on hard cases, and it is not
+evidence about detector difficulty. The informative rows are the F3
+(passive/buried) items, where the payload is plausible analyst prose — the
+per-family disagreement breakdown is reported precisely so this can be read
+directly rather than hidden inside the pooled statistic.
+
 ## 5. Known biases
 
-At least four, stated plainly:
+At least five, stated plainly:
 
 1. **The attack rows are template-generated, not drawn from real attacker
    traffic.** Phrasing diversity is bounded by the template banks in
@@ -124,6 +144,20 @@ At least four, stated plainly:
    other five targetable fields, so a detector's false-positive rate on
    genuinely free-text-bearing non-AlertTitle fields is not directly
    measured here.
+5. **Benign and attack rows differ in surface form, not only in intent.**
+   GUIDE stores its categorical fields as integer codes, so every one of the
+   100 BCONTROL rows is a bare number, while every attack row carries
+   natural-language (or encoded-natural-language) text. "Contains prose" is
+   therefore an almost perfect separator on this benchmark, independent of
+   whether the prose is adversarial. Two consequences, both of which bound
+   how the results should be read: reported detector FPR is measured against
+   benign inputs that no realistic detector would flag, so it is a floor
+   rather than a representative estimate; and interrater κ on the blinded
+   subset has an artificial ceiling (§4). Closing this needs benign controls
+   that are legitimate free-text analyst prose — a v1.1 change to the
+   generator, out of scope for v1.0 and not applied retroactively here,
+   since changing the corpus after results are reported against it would
+   invalidate the M3.2 comparison.
 
 ## 6. License
 

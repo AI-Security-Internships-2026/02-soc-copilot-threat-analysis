@@ -22,6 +22,7 @@ import csv
 import json
 import subprocess
 import sys
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -42,6 +43,29 @@ def git_sha() -> str:
         ).strip()
     except Exception:
         return "unknown"
+
+
+def disagreement_distribution(
+    key_rows: list[dict], disagreements: list[str]
+) -> dict[str, dict]:
+    """Spread the disagreeing rows across benign/F1-F7 (issue #35, supervisor
+    request 2). The category is the benchmark_id prefix in the answer key --
+    raters never see it, so this is a post-hoc breakdown only, and it can only
+    ever redistribute disagreements that already happened, never change them."""
+    by_category: dict[str, dict] = defaultdict(
+        lambda: {"n_items": 0, "n_disagreements": 0, "worksheet_ids": []}
+    )
+    disagreed = set(disagreements)
+    for row in key_rows:
+        category = row["benchmark_id"].rsplit("_", 1)[0]
+        bucket = by_category[category]
+        bucket["n_items"] += 1
+        if row["worksheet_id"] in disagreed:
+            bucket["n_disagreements"] += 1
+            bucket["worksheet_ids"].append(row["worksheet_id"])
+    for bucket in by_category.values():
+        bucket["disagreement_rate"] = round(bucket["n_disagreements"] / bucket["n_items"], 4)
+    return dict(sorted(by_category.items()))
 
 
 def _load_ratings(path: Path) -> dict[str, str]:
@@ -84,7 +108,10 @@ def main() -> None:
     true_labels = [r["true_label"] for r in key_rows]
 
     kappa = float(cohen_kappa_score(a_labels, b_labels))
-    raw_agreement = sum(1 for a, b in zip(a_labels, b_labels) if a == b) / len(ids)
+    disagreements = [i for i, a, b in zip(ids, a_labels, b_labels) if a != b]
+    raw_agreement = (len(ids) - len(disagreements)) / len(ids)
+
+    by_category = disagreement_distribution(key_rows, disagreements)
     a_accuracy = sum(1 for a, t in zip(a_labels, true_labels) if a == t) / len(ids)
     b_accuracy = sum(1 for b, t in zip(b_labels, true_labels) if b == t) / len(ids)
     n_attack = sum(1 for t in true_labels if t == "injection")
@@ -99,6 +126,9 @@ def main() -> None:
         "n_benign": n_benign,
         "cohen_kappa": round(kappa, 4),
         "raw_agreement": round(raw_agreement, 4),
+        "n_disagreements": len(disagreements),
+        "disagreement_worksheet_ids": disagreements,
+        "disagreement_distribution": by_category,
         "rater_a_accuracy_vs_true_label": round(a_accuracy, 4),
         "rater_b_accuracy_vs_true_label": round(b_accuracy, 4),
         "target": "kappa >= 0.75 (issue #35 acceptance criterion)",
@@ -109,7 +139,13 @@ def main() -> None:
     OUTPUT_PATH.write_text(json.dumps(output, indent=2))
 
     print(f"Cohen's kappa: {kappa:.4f} (target >= 0.75, {'MET' if kappa >= 0.75 else 'NOT MET'})")
-    print(f"raw agreement: {raw_agreement:.4f}")
+    print(f"raw agreement: {raw_agreement:.4f} ({len(disagreements)} disagreements of {len(ids)})")
+    print("disagreements by category:")
+    for category, bucket in by_category.items():
+        print(
+            f"  {category:<10} {bucket['n_disagreements']:>3}/{bucket['n_items']:<3} "
+            f"({bucket['disagreement_rate']:.1%})"
+        )
     print(f"saved {OUTPUT_PATH}")
 
 
