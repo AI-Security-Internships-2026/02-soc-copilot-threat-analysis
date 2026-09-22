@@ -47,7 +47,7 @@ def test_h3_does_not_flag_short_categorical_values():
     assert reasons == []
 
 
-def test_l4_topical_gate_only_covers_alerttitle():
+def test_l3_topical_gate_only_covers_alerttitle():
     assert TOPICAL_FIELDS == {"AlertTitle"}
 
 

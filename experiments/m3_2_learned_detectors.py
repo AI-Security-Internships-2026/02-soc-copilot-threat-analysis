@@ -1,7 +1,16 @@
 # experiments/m3_2_learned_detectors.py
 #
 # Issue #36 (M3.2), Part A. Scores the 500-row M3.1 benchmark
-# (datasets/soc_injection_benchmark_v1.csv) against four "learned" detectors.
+# (datasets/soc_injection_benchmark_v1.csv) against three "learned" detectors.
+#
+# Scope change (supervisor, issue #36, 21 Sep): the OpenAI Moderation
+# detector that used to sit at L3 is removed from the experimental scope
+# entirely -- the CNIT server that would have hosted a local deployment is
+# unavailable, no API key was ever provisioned, and reporting it as N/A
+# alongside three detectors that were actually run invited the reader to
+# treat a blank as a measurement. What was L4 is now L3 throughout. This
+# note is provenance, not a result -- nothing downstream reports a fourth
+# detector in any form.
 #
 # Deviation from the issue text, disclosed rather than silently substituted:
 # the issue names "L2 LlamaGuard3". Groq's model catalog no longer serves
@@ -16,13 +25,13 @@
 # (WSL2 -> equivalent clean-room run, M1.2): do the substantive equivalent,
 # say so plainly, don't pretend the literal ask was followed.
 #
-# L4 "NeMo Guardrails" is, per sign-off, a lightweight equivalent rather than
-# the real nemoguardrails package (see docs/m3-2-l4-decision-memo.md): one
+# L3 "NeMo Guardrails" is, per sign-off, a lightweight equivalent rather than
+# the real nemoguardrails package (see docs/m3-2-l3-decision-memo.md): one
 # Groq self-check call against openai/gpt-oss-safeguard-20b, Groq's own
 # purpose-built safety-classification model -- reproducing the "one more
 # rail" mechanism the issue asks to measure, without a new heavy dependency.
 #
-# L2 and L4 are live, quota-metered LLM calls -- checkpointed (JSON Lines,
+# L2 and L3 are live, quota-metered LLM calls -- checkpointed (JSON Lines,
 # one flush per row) and paced by --daily-call-budget, mirroring the pattern
 # experiments/control_node_ablation.py already established for exactly this
 # situation (Groq's openai/gpt-oss-20b family is quota-limited to roughly
@@ -33,8 +42,7 @@
 # usage (from repo root):
 #   venv/bin/python experiments/m3_2_learned_detectors.py --detector l1
 #   venv/bin/python experiments/m3_2_learned_detectors.py --detector l2 --daily-call-budget 300
-#   venv/bin/python experiments/m3_2_learned_detectors.py --detector l4 --daily-call-budget 300
-#   venv/bin/python experiments/m3_2_learned_detectors.py --detector l3 --include-api
+#   venv/bin/python experiments/m3_2_learned_detectors.py --detector l3 --daily-call-budget 300
 #   venv/bin/python experiments/m3_2_learned_detectors.py --detector all
 
 from __future__ import annotations
@@ -66,9 +74,9 @@ LEGACY_CSV = Path("experiments/soc_domain_eval_v1.csv")
 OUTPUT_PATH = Path("experiments/results/m3_2_learned_detectors.json")
 
 L2_MODEL = "meta-llama/llama-prompt-guard-2-86m"
-L4_MODEL = "openai/gpt-oss-safeguard-20b"
+L3_MODEL = "openai/gpt-oss-safeguard-20b"
 L2_CHECKPOINT = Path("experiments/results/.m3_2_l2_checkpoint.jsonl")
-L4_CHECKPOINT = Path("experiments/results/.m3_2_l4_checkpoint.jsonl")
+L3_CHECKPOINT = Path("experiments/results/.m3_2_l3_checkpoint.jsonl")
 
 FAMILIES = ["F1", "F2", "F3", "F4", "F5", "F6", "F7"]
 
@@ -173,7 +181,7 @@ def run_l1() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# L2 / L4 -- live Groq calls, checkpointed and quota-budgeted.
+# L2 / L3 -- live Groq calls, checkpointed and quota-budgeted.
 # ---------------------------------------------------------------------------
 
 
@@ -200,7 +208,7 @@ def _score_l2(client, text: str) -> tuple[float | None, str | None]:
         return None, str(exc)
 
 
-def _score_l4(client, text: str) -> tuple[float | None, str | None]:
+def _score_l3(client, text: str) -> tuple[float | None, str | None]:
     return score_text_topical(text, client=client)
 
 
@@ -310,6 +318,14 @@ def _run_live_detector(
             ),
             "overall_tpr": round(len(detected) / len(attacks), 4) if attacks else None,
             "fpr_on_bcontrol": round(len(false_positives) / len(controls), 4) if controls else None,
+            # Denominators, not just the ratio. A partially-scored detector's
+            # TPR is over the attacks it actually reached, so anything
+            # recomputing a count from the ratio (m6_3_bootstrap_ci_backfill.py
+            # builds Clopper-Pearson intervals that way) needs the real n --
+            # assuming 400 would put the interval around the wrong numerator.
+            "n_attacks_scored": len(attacks),
+            "n_attacks_detected": len(detected),
+            "n_controls_scored": len(controls),
             "by_family": _family_family_breakdown(attacks, scored, threshold),
         }
     )
@@ -343,54 +359,11 @@ def run_l2(daily_call_budget: int | None, sleep_seconds: float = 0.2) -> dict:
     return _run_live_detector("L2_llama_prompt_guard_2", L2_MODEL, L2_CHECKPOINT, _score_l2, daily_call_budget, sleep_seconds)
 
 
-def run_l4(daily_call_budget: int | None, sleep_seconds: float = 0.3) -> dict:
-    return _run_live_detector("L4_nemo_style_groq_selfcheck", L4_MODEL, L4_CHECKPOINT, _score_l4, daily_call_budget, sleep_seconds)
+def run_l3(daily_call_budget: int | None, sleep_seconds: float = 0.3) -> dict:
+    return _run_live_detector("L3_nemo_style_groq_selfcheck", L3_MODEL, L3_CHECKPOINT, _score_l3, daily_call_budget, sleep_seconds)
 
 
-def run_l3(include_api: bool) -> dict:
-    if not include_api or not os.environ.get("OPENAI_API_KEY"):
-        return {
-            "detector": "L3_openai_moderation",
-            "status": "blocked",
-            "reason": "no OPENAI_API_KEY / --include-api not set",
-            "unblock_condition": (
-                "Needs a user-supplied OPENAI_API_KEY and sign-off to spend the "
-                "~$2 budget the issue estimates -- same handling as issue #32's "
-                "Kaggle-tooling block."
-            ),
-        }
-    from openai import OpenAI
-
-    client = OpenAI()
-    bench_rows = load_benchmark()
-    scores = {}
-    for row in bench_rows:
-        resp = client.moderations.create(input=row["_scoring_text"])
-        categories = resp.results[0].category_scores
-        scores[row["benchmark_id"]] = max(
-            getattr(categories, "jailbreak", 0.0) or 0.0,
-            categories.harassment,
-            categories.violence,
-        )
-    threshold = 0.5
-    attacks = [r for r in bench_rows if r["_is_attack"]]
-    controls = [r for r in bench_rows if not r["_is_attack"]]
-    detected = [r for r in attacks if scores[r["benchmark_id"]] >= threshold]
-    false_positives = [r for r in controls if scores[r["benchmark_id"]] >= threshold]
-    labels = [1 if r["_is_attack"] else 0 for r in bench_rows]
-    values = [scores[r["benchmark_id"]] for r in bench_rows]
-    return {
-        "detector": "L3_openai_moderation",
-        "status": "scored",
-        "roc_auc": round(float(roc_auc_score(labels, values)), 4),
-        "overall_tpr": round(len(detected) / len(attacks), 4),
-        "fpr_on_bcontrol": round(len(false_positives) / len(controls), 4),
-        "by_family": _family_family_breakdown(attacks, scores, threshold),
-        "caveat": "OpenAI's moderation taxonomy targets harmful content, not prompt injection specifically -- mapped via jailbreak/harassment/violence category scores as the closest proxies.",
-    }
-
-
-def run(detector: str, include_api: bool = False, daily_call_budget: int | None = None) -> dict:
+def run(detector: str, daily_call_budget: int | None = None) -> dict:
     """Callable entry point shared with scripts/benchmark_soc_injection.py,
     so the dispatcher doesn't reimplement any detector's scoring logic."""
     if detector == "l1":
@@ -398,9 +371,7 @@ def run(detector: str, include_api: bool = False, daily_call_budget: int | None 
     if detector == "l2":
         return run_l2(daily_call_budget)
     if detector == "l3":
-        return run_l3(include_api)
-    if detector == "l4":
-        return run_l4(daily_call_budget)
+        return run_l3(daily_call_budget)
     raise ValueError(f"unknown detector {detector!r}")
 
 
@@ -408,20 +379,19 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--detector",
-        choices=["l1", "l2", "l3", "l4", "all"],
+        choices=["l1", "l2", "l3", "all"],
         default="all",
     )
-    parser.add_argument("--include-api", action="store_true")
     parser.add_argument("--daily-call-budget", type=int, default=None)
     args = parser.parse_args()
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     existing = json.loads(OUTPUT_PATH.read_text()) if OUTPUT_PATH.exists() else {}
 
-    detectors_to_run = ["l1", "l2", "l3", "l4"] if args.detector == "all" else [args.detector]
+    detectors_to_run = ["l1", "l2", "l3"] if args.detector == "all" else [args.detector]
     for key in detectors_to_run:
         print(f"running {key}...")
-        existing[key] = run(key, include_api=args.include_api, daily_call_budget=args.daily_call_budget)
+        existing[key] = run(key, daily_call_budget=args.daily_call_budget)
 
     existing["generated_at_utc"] = datetime.now(timezone.utc).isoformat()
     existing["git_sha"] = git_sha()

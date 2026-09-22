@@ -103,8 +103,12 @@ Three things that are **not** grounds for calling a row `injection`:
 
 ## When you are done
 
-Return your completed sheet under its original filename. Do not fill in,
-forward, or look at the other rater's sheet.
+Return your completed sheet, renaming it with a `_completed` suffix —
+`m3_1_rating_sheet_raterA_completed.csv` if you were given sheet A,
+`m3_1_rating_sheet_raterB_completed.csv` if you were given sheet B. The
+scoring step looks for exactly those two names.
+
+Do not fill in, forward, or look at the other rater's sheet.
 
 ---
 

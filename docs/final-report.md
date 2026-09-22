@@ -796,7 +796,7 @@ fields as well (`AlertTitle`, `MitreTechniques`, `City`, `State`) costs a furthe
 8.2 points held-out, which puts a floor under how much of this task is learnable
 from low-cardinality metadata alone.
 
-### 5.12 A SOC-domain injection benchmark, and eight detectors measured on it
+### 5.12 A SOC-domain injection benchmark, and seven detectors measured on it
 
 Sources: `experiments/results/m3_1_benchmark_generation.json`,
 `m3_2_heuristic_detectors.json`, `m3_2_learned_detectors.json`; benchmark at
@@ -822,7 +822,10 @@ likely to trip a detector into a false positive.
 | F7 | Output-format / JSON manipulation | 60 |
 | BCONTROL | real benign GUIDE alerts | 100 |
 
-Recall is over the 400 attacks; FPR is over the 100 real controls.
+Recall is over the 400 attacks; FPR is over the 100 real controls. L3 is the
+one exception, noted in its row: five encoded payloads return a reproducibly
+unparseable response from the model, so its recall is over the 395 attacks it
+scored rather than crediting it with five rows it never resolved.
 
 | Detector | Recall | FPR on real alerts |
 |---|---|---|
@@ -832,8 +835,7 @@ Recall is over the 400 attacks; FPR is over the 100 real controls.
 | H-union (H1 ∪ H2 ∪ H3) | **96.75%** | 0% |
 | L1 TF-IDF + logistic regression | 3.25% | 10% |
 | L2 Llama Prompt Guard 2 (86M) | 31.25% | 0% |
-| L3 OpenAI Moderation | not run — no API key | — |
-| L4 NeMo-style LLM self-check | 58.99% | 0% |
+| L3 NeMo-style LLM self-check | 58.99% (233/395) | 0% |
 
 Three findings. First, **the deployed regex filter is worse than Section 5.5
 suggested** — 2.75% against 5% — which is the expected direction once the corpus
@@ -844,10 +846,9 @@ SOC-aware detector reaches 91.25% at no false positives. The TF-IDF baseline is
 both the weakest detector and the only one that fires on real alerts (10% FPR),
 because generic chat-jailbreak vocabulary does not transfer to alert-field
 payloads. Third, **failures are structured by family**: F3 (passive/buried)
-defeats both L2 and L4 completely (0%) because the payload reads as an ordinary
+defeats both L2 and L3 completely (0%) because the payload reads as an ordinary
 analyst note, and F4 (encoded) is the only family the heuristic union fails to
-close, at 76%. L3 was not run — no OpenAI key was available — and is reported as
-not run rather than as a zero.
+close, at 76% — the same family that breaks L3's parsing outright.
 
 This sharpens rather than changes Section 5.5's conclusion. The best single
 detector still leaves about one attack in twelve undetected and the union one in

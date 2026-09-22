@@ -1,11 +1,17 @@
-# Decision memo: L4's "NeMo Guardrails" detector
+# Decision memo: L3's "NeMo Guardrails" detector
 
 **M3.2 Part A (issue #36) · 2026-09-09 · branch `asma-week-19-m3-benchmark`**
+
+> Renumbered 2026-09-22. This detector was reported as **L4** when the memo
+> was written. The OpenAI Moderation detector that occupied the L3 slot was
+> removed from scope on the supervisor's instruction (issue #36) and this one
+> moved down to L3. The decision recorded below is unchanged; only the label
+> moved.
 
 ## Decision: **(b) lightweight equivalent, not the real `nemoguardrails` package**
 
 Signed off before implementation, not discovered as a workaround afterward.
-L4 is `src/agent/nemo_style_guardrail.py`: a topical field allowlist plus one
+L3 is `src/agent/nemo_style_guardrail.py`: a topical field allowlist plus one
 Groq self-check call against `openai/gpt-oss-safeguard-20b`. It reproduces
 the mechanism the issue asks to measure — an LLM-driven rail sitting behind a
 deterministic gate — without adding the real dependency.
@@ -27,9 +33,9 @@ The concern isn't dependency count for its own sake — it's that
 model artifact (`experiments/results/baseline_model.joblib`) depends on the
 exact `numpy==2.2.6` / `scikit-learn==1.7.1` pair already pinned in
 `requirements.txt`. A version collision in a new framework touching only one
-of eight detectors would risk the other seven, and the deployed pipeline,
-over a comparison the issue itself allows to be gated behind a flag
-(`--include-api`-style opt-in, per M3.2's own Part A task list).
+of seven detectors would risk the other six, and the deployed pipeline,
+over a comparison the issue itself allows to be gated behind an opt-in
+flag, per M3.2's own Part A task list.
 
 ## Why the lightweight equivalent now anyway
 

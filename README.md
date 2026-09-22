@@ -87,11 +87,9 @@ against it:
 venv/bin/python scripts/benchmark_soc_injection.py --detector all
 ```
 
-Offline detectors (L1, H1, H2, H3, H-union) run immediately. L2/L4 make live, quota-metered Groq
+Offline detectors (L1, H1, H2, H3, H-union) run immediately. L2/L3 make live, quota-metered Groq
 calls and checkpoint their progress, so a run can be resumed across invocations
-(`--daily-call-budget N` to pace one). L3 (OpenAI Moderation) is off by default — pass `--include-api`
-with your own `OPENAI_API_KEY` set to run it; without one it reports itself as blocked rather than
-silently skipping. See [`docs/soc-injection-benchmark-datasheet.md`](docs/soc-injection-benchmark-datasheet.md)
+(`--daily-call-budget N` to pace one). See [`docs/soc-injection-benchmark-datasheet.md`](docs/soc-injection-benchmark-datasheet.md)
 and [`docs/m3-2-detector-family-matrix.md`](docs/m3-2-detector-family-matrix.md) for the results.
 
 ---
