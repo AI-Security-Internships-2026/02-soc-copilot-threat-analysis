@@ -2674,3 +2674,101 @@ incident-level effects replicated across multiple seeds), #33 (EVAL_PROTOCOL.md 
 deliberately-deferred grouped retrain), #34 (the seven-classifier suite the paper's Table 1
 needed, with an explicit answer to the LabelEncoder-ordinality question). #32 is the one
 sub-issue left open, on tooling grounds stated above, not measurement grounds.
+
+---
+
+## Week 22 — the κ rating pass made distributable, and L3 removed from scope (issues #35, #36)
+
+**Branch:** `asma-week-22-m3-followup` (based on `dev`, which now carries M2/M3/M5/M6)
+**PR link:** pending.
+
+Two supervisor instructions from 21 September drive this week, both on M3.
+
+On **#35**, the request was concrete: prepare two identical blinded rating sheets plus a short
+annotation rubric, for distribution to two independent raters, with ground truth, attack/control
+status, and the other rater's responses all withheld. On **#36**, L3 (OpenAI Moderation) is to be
+removed from the experimental scope entirely — not reported as N/A — with L4 renumbered to L3 and
+every table, figure, and claim updated to match. The CNIT server that would have hosted a local
+LLM for it is unavailable, so the question of running it locally is closed.
+
+### Completed this week
+
+- [x] #35: `experiments/m3_1_build_rating_worksheet.py` now emits
+      `m3_1_rating_sheet_raterA.csv` and `…raterB.csv` — the same 100 items in the same order,
+      differing only in a pre-filled `rater` column so a returned file is self-identifying
+- [x] #35: `docs/m3-1-rater-instructions.md`, the distributable rater packet — definitions and
+      edge cases, minus the 50/50 class balance, the family labels, and every internal path
+- [x] #35: `experiments/m3_1_interrater_kappa.py` now reports the disagreement count and the
+      disagreement distribution across benign/F1–F7, alongside raw agreement and κ
+- [x] #35: `tests/test_m3_1_rating_sheets.py` — asserts the blinding holds on every build
+- [x] #36: removed the OpenAI Moderation detector and its `--include-api` path; renumbered L4 → L3
+      across module, results key, checkpoint path, decision memo, matrix, datasheet, final report,
+      README, figure manifest, and all three paper drafts
+- [x] #36: corrected three things the sweep turned up that were wrong independently of the rename
+      (below)
+- [x] Full suite green: 235 passed, 6 skipped
+
+### Finding 1: the κ subset has a ceiling, and it needs saying before the raters spend their time
+
+Every one of the 100 benign controls is an `AlertTitle` row whose value is a bare GUIDE integer
+code; every attack row carries natural language. "Contains prose" separates the two classes almost
+perfectly, without reading a word of the prose. Two consequences.
+
+For the rating pass: a high pooled κ will confirm the labels are unambiguous to independent
+readers, and will *not* show the rubric discriminates on hard cases. The F3 (passive/buried) rows
+are where the rubric is actually tested, which is why the per-family disagreement breakdown is now
+reported next to the pooled number rather than folded into it.
+
+For the detector table: the 0% false-positive rates are a floor measured against benign inputs no
+realistic detector would flag, not a representative estimate.
+
+Closing this needs benign controls that are themselves legitimate free-text analyst prose — a v1.1
+change to the generator. Not applied retroactively: changing the corpus after M3.2's results are
+reported against it would invalidate that comparison. Recorded as bias 5 in the datasheet, in the
+rubric's methodology section, and as a stated limitation in all three paper drafts.
+
+The field name is withheld from the sheets for the same class of reason: every benign control
+targets `AlertTitle` and only attack rows carry `ALL`, so showing it would have handed over 13 of
+the 50 sampled attack rows outright.
+
+### Finding 2: the datasheet's L4 row had gone stale against its own JSON
+
+It reported 321/500 coverage, 0.8265 AUC, 65.29% TPR. The run has since reached 495/500 and the
+real figures are 0.7949 and 58.99%. The five rows that remain unscored — `F4_004`, `F4_026`,
+`F4_030`, `F4_040`, `F4_053`, all encoded payloads — are not a quota cap. They return an empty,
+unparseable response reproducibly, across separate invocations and after the rate limit that
+briefly affected one of them had cleared. More budget will not finish them, and the datasheet now
+says so instead of implying a resume command would.
+
+### Finding 3: the CI backfill was centring an interval on a numerator never observed
+
+`m6_3_bootstrap_ci_backfill.py` rebuilt every detector's success count as `round(tpr * 400)`. For
+the one detector that did not reach all 400 attack rows that gives 236/400 — a count nothing
+measured. The runner now records `n_attacks_scored` and `n_attacks_detected` at the point of
+scoring, and the backfill uses them: 233/395. A regression test asserts the recall and its
+interval share a denominator.
+
+### Finding 4: both one-click reproduction runners were broken
+
+`scripts/reproduce_all.{sh,ps1}` would have died at M3.2 either way. Without `--include-api` they
+ran every learned detector including the two that need a live Groq key; with it they passed
+`--include-api` down to a script whose flag this week deletes. The offline branch now runs L1 only.
+The same scripts also invoked the κ script with no rater files, which exits non-zero by design — it
+refuses to manufacture a number from one rater — so the whole run aborted there. That step is now
+skipped until both completed sheets exist, and the sheet builder was added as a step of its own.
+
+This is issue #45's deliverable, and it had never been run end to end.
+
+### Problems / blockers
+
+1. **The κ pass still needs two people.** The sheets and the packet are ready to distribute;
+   nothing further can happen on #35 until both completed sheets come back.
+2. **`elsarticle.cls` is not installed locally**, so the Elsevier draft's compilation could not be
+   verified after this week's edits. They are table-row and prose changes only.
+3. **The weekly log has no Week 19 or Week 21 entry**, and Week 20's sits on the unmerged PR #50
+   branch. Not backfilled here rather than reconstructed after the fact.
+
+### Carried forward, still open
+
+Unchanged from Week 18 except where noted: paper declarations (funding, ORCID, co-authorship),
+GeNIS/Wazuh Docker sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.
