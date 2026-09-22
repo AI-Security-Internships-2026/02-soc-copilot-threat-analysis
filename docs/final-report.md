@@ -854,6 +854,129 @@ detector still leaves about one attack in twelve undetected and the union one in
 thirty, so the property that a successful injection cannot alter a verdict
 (Section 5.4) remains the load-bearing mitigation.
 
+### 5.13 The review gate as an operating decision
+
+Source: `experiments/results/m5_1_burden_sweep.json`.
+
+Everything above measures accuracy. A SOC manager asks a different question: how
+much analyst time does this save, and at what cost in correctness? The review
+gate makes that one tunable — the RF margin threshold `T`, below which a verdict
+is held for a human. Swept on the held-out sample (n=15,000, 0% incident
+overlap), chosen over a train-sampled set because an operating point tuned on
+leaked data would not survive deployment.
+
+| `T` | Auto-accepted | Accuracy on those (95% CI) | Escalated | Model's accuracy on escalated |
+|---|---|---|---|---|
+| 0.00 | 100.0% | 0.6998 [0.6923, 0.7071] | 0.0% | — |
+| 0.05 | 95.2% | 0.7129 [0.7054, 0.7204] | 4.9% | 0.4423 |
+| 0.12 | 89.2% | 0.7302 [0.7230, 0.7377] | 10.8% | 0.4485 |
+| **0.20** (deployed) | **82.0%** | **0.7517 [0.7440, 0.7592]** | **18.1%** | **0.4640** |
+| 0.30 | 74.1% | 0.7799 [0.7726, 0.7876] | 25.9% | 0.4705 |
+| 0.50 | 56.8% | 0.8463 [0.8386, 0.8541] | 43.2% | 0.5073 |
+
+`T = 0` reproduces **0.6998** exactly — the held-out figure of Section 5.8 —
+anchoring the sweep to an independently committed number, and the curve is
+monotone throughout.
+
+**The gate is correctly oriented, and that is not automatic.** At every
+threshold the escalated alerts are ones the model handles *worse* (0.44–0.51 vs
+0.73–0.85). That is the opposite of the LLM's self-reported confidence in
+Section 5.3, which was inverted. No single recommended operating point is given:
+collapsing this to one system accuracy needs an assumption about human accuracy
+that this project has not measured.
+
+### 5.14 Operational cost, per stage
+
+Source: `experiments/results/m5_4_latency_cost.json`.
+
+| Stage | Time |
+|---|---|
+| Random Forest inference | 13,448 µs |
+| Feature encoding | 4,259 µs |
+| Regex guardrail | 2.45 µs |
+| Review gate | 1.12 µs |
+| Tie-break and label | 0.87 µs |
+| MITRE lookup (cached) | 0.47 µs |
+| Schema guardrail | 0.27 µs |
+| **LLM call** | **1,762,900 µs** |
+
+Fast path **56 alerts/s**; routed path **0.562 alerts/s**. The LLM is **99.0%**
+of the routed path — the premise the evidence-density router exploits — and the
+composed figure lands just below the independently measured 0.567 alerts/s of
+Section 5.6, the direction a correct composition must go. At 345 prompt and 40
+completion tokens per call and 10,000 alerts/day, routing only the evidence-rich
+20.9% cuts API spend **4.78×**, \$0.77 → \$0.16 per day.
+
+Caveats: timings are best-of-7 on one laptop; token counts use a proxy
+tokeniser; and the per-token price comes from the issue tracker and is **not**
+verified against the vendor's live price list, so the dollar figures are
+illustrative rather than quotable.
+
+### 5.15 Ablating the non-deciding stages
+
+Source: `experiments/results/m5_1_ablation_5config.json`.
+
+`classify_with_rf` reads the raw alert directly — not the assembled context, not
+the enrichment. If the architecture claim in Section 5.4 holds, disabling any
+non-deciding stage cannot move a single verdict. So the test is **exact
+element-wise label identity** over all 15,000 held-out alerts, not accuracy
+within a tolerance, which would hide compensating errors.
+
+| Configuration | Accuracy | Macro F1 | Auto-accepted | Label diffs vs full |
+|---|---|---|---|---|
+| Full | 0.6998 | 0.6949 | 82.0% | — |
+| − MITRE enrichment | 0.6998 | 0.6949 | 82.0% | **0 / 15,000** |
+| − guardrails | 0.6998 | 0.6949 | 82.0% | **0 / 15,000** |
+| − review gate (`T=0`) | 0.6998 | 0.6949 | 100.0% | **0 / 15,000** |
+
+All four reproduce the held-out 0.6998 exactly, and the `T=0` arm agrees with
+Section 5.13's sweep. Removing the guardrails costs attack detection instead of
+accuracy: benchmark recall falls **0.1300 → 0.0000**.
+
+**The enrichment hypothesis did not confirm.** Two automated proxies over 100
+live explanations per arm:
+
+| Proxy | Full | − MITRE | Drop | Fisher exact *p* |
+|---|---|---|---|---|
+| D1 groundedness | 0.9700 | 0.8900 | 8.0 pts | **0.0489** |
+| D2 MITRE match | 0.9455 | 0.8182 | 12.7 pts | 0.0732 |
+
+D1 is significant but smaller than the 10 points predicted; D2 is larger but not
+significant at *n*=55. `build_context` puts the raw technique identifier into the
+prompt regardless — enrichment only adds the ATT&CK description — so the ceiling
+on how much that stage can matter is lower than assumed. D1/D2 are automated
+proxies, not human judgement.
+
+### 5.16 Cross-domain schema transfer: Wazuh Tier-1
+
+Source: `experiments/results/m5_3_wazuh_t1.json`.
+
+**No transfer-accuracy figure is reported**, because the synthetic generator
+draws its label independently of every feature — verified at **0.3470**
+cross-validated against a **0.4028** majority floor. Both arms of an accuracy
+comparison would be chance and "retention" would land near 100% while measuring
+nothing.
+
+What is measured needs no labels: the same incident scored natively and
+round-tripped GUIDE → Wazuh JSON → adapter → `raw_alert`.
+
+| Measurement | Result (n=10,000) |
+|---|---|
+| **Verdict agreement** | **0.9637** [0.9598, 0.9673] |
+| Schema-guardrail pass rate | 1.0000 |
+| Pipeline completion rate | 1.0000 |
+
+**A defect found by measuring.** `SuspicionLevel` survives at 0%: the adapter
+emits `low`/`medium`/`high`, but the deployed encoder contains only
+`Incriminated`, `Suspicious`, `nan` — verified against real `GUIDE_Test.csv`. All
+three encode to the unknown sentinel, so every Wazuh-origin alert loses that
+signal entirely. The field looks populated end to end, which is why counting
+field survival alone would not have caught it.
+
+Tier-1 only: synthetic alerts, labels unused, and 0.9637 is agreement between
+two encodings of one alert — not accuracy. Tier-2 needs real labelled Wazuh data
+and is not done.
+
 ## 6. Discussion and Limitations
 
 ### 6.1 Interpretation
@@ -1037,6 +1160,12 @@ supervisor's direction.
 | `m3_1_benchmark_generation.json` | SOC injection benchmark v1.0 — 400 attacks, 7 families, 100 real controls |
 | `m3_2_heuristic_detectors.json` | Heuristic detectors (regex, schema, SOC-aware) on that benchmark |
 | `m3_2_learned_detectors.json` | **Learned detectors (TF-IDF, Prompt Guard 2, LLM self-check) on that benchmark** |
+| `m5_1_burden_sweep.json` / `.csv` | **Review-gate burden sweep on the held-out 15,000** |
+| `m5_4_latency_cost.json` / `.csv` | Per-stage latency, throughput and API cost |
+| `m6_1_effect_sizes.json` | McNemar odds ratios and Holm-Bonferroni correction |
+| `m6_3_ci_backfill.json` | **95% CIs backfilled onto 31 headline cells** |
+| `m5_1_ablation_5config.json` / `.csv` | **Three ablation arms; 0 label differences over 15,000** |
+| `m5_3_wazuh_t1.json` | Wazuh Tier-1 schema-transfer fidelity (agreement, not accuracy) |
 
 Every file above is produced by a committed script in `experiments/`, and every
 figure in this report is read from one of them.

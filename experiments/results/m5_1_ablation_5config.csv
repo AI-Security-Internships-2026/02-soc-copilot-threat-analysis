@@ -1,0 +1,5 @@
+config,acc,acc_ci_low,acc_ci_high,macrof1,tprecall,d1_grounded,d2_mitrematch,guardrail_tpr_m3,latency_p50_ms,auto_accept_pct,delta_acc_vs_full_within_ci
+full,0.6998,0.6923,0.7071,0.6949,0.757,0.97,0.9455,0.13,20.346,0.8195,0.0
+nomitre,0.6998,0.6923,0.7071,0.6949,0.757,0.89,0.8182,0.13,21.429,0.8195,0.0
+noguardrails,0.6998,0.6923,0.7071,0.6949,0.757,,,0.0,20.443,0.8195,0.0
+nohitl,0.6998,0.6923,0.7071,0.6949,0.757,,,0.13,20.354,1.0,0.0
