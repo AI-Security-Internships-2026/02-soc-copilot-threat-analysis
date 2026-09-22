@@ -35,8 +35,24 @@ def _active_data_path() -> Path:
 
 
 def _data_signature(path: Path) -> dict:
+    """Describe the source file, tolerating its absence.
+
+    This is called at the *end* of run_evaluation, after every alert has been
+    scored -- so raising here throws away a completed run, and for a live LLM
+    run that is real money already spent. Neither dataset is committed (both
+    are gitignored), so a fresh clone hits exactly that. Record the absence
+    as provenance instead: a result whose source file is gone is still a
+    result, it just cannot claim which bytes produced it.
+    """
+    if not path.exists():
+        return {"path": str(path), "size_bytes": None, "modified_ns": None, "exists": False}
     stat = path.stat()
-    return {"path": str(path), "size_bytes": stat.st_size, "modified_ns": stat.st_mtime_ns}
+    return {
+        "path": str(path),
+        "size_bytes": stat.st_size,
+        "modified_ns": stat.st_mtime_ns,
+        "exists": True,
+    }
 
 
 def _cache_matches(recorded: dict, expected: dict) -> bool:
@@ -77,18 +93,24 @@ def _data_provenance() -> dict:
     which files existed on disk at the time.
     """
     path = _active_data_path()
-    is_synthetic = path == SAMPLE_DATA_PATH
-    return {
-        **_data_signature(path),
-        "is_synthetic": is_synthetic,
-        "warning": (
+    signature = _data_signature(path)
+    is_synthetic = path == SAMPLE_DATA_PATH and signature["exists"]
+    if not signature["exists"]:
+        warning = (
+            "SOURCE FILE ABSENT: neither the real nor the sample dataset was on "
+            "disk when this ran, so the rows scored here came from somewhere "
+            "this record cannot name. Do not cite this run as evidence about "
+            "either dataset."
+        )
+    elif is_synthetic:
+        warning = (
             "SYNTHETIC DATA: labels in this sample are drawn at random and are "
             "independent of the features. Accuracy from this run measures "
             "nothing about model quality and must not be reported as a result."
-            if is_synthetic
-            else None
-        ),
-    }
+        )
+    else:
+        warning = None
+    return {**signature, "is_synthetic": is_synthetic, "warning": warning}
 
 
 def load_balanced_evaluation_sample(sample_size: int, seed: int = SAMPLE_SEED) -> pd.DataFrame:
