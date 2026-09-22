@@ -32,7 +32,7 @@ Set-Location (Join-Path $PSScriptRoot '..')
 $PY = if (Test-Path 'venv\Scripts\python.exe') { 'venv\Scripts\python.exe' } else { 'venv/bin/python' }
 $OUT = 'experiments/paper_ready'
 $script:Step = 0
-$TOTAL = 28
+$TOTAL = 29
 
 if ($Gpu) { $env:SOC_COPILOT_USE_GPU = '1' }
 
@@ -99,15 +99,25 @@ if ($SkipHeavy) {
 
 Invoke-Step 'M3.1 build injection benchmark v1.0' @('experiments/m3_1_generate_benchmark.py')
 Invoke-Step 'M3.2 heuristic detectors'            @('experiments/m3_2_heuristic_detectors.py')
+Invoke-Step 'M3.1 blinded rater sheets'           @('experiments/m3_1_build_rating_worksheet.py')
 
 if ($IncludeApi) {
-    Invoke-Step 'M3.2 learned detectors (API)'          @('experiments/m3_2_learned_detectors.py', '--include-api')
+    Invoke-Step 'M3.2 learned detectors (L1 + live Groq L2/L3)' @('experiments/m3_2_learned_detectors.py', '--detector', 'all')
 } else {
-    Invoke-Step 'M3.2 learned detectors (offline only)' @('experiments/m3_2_learned_detectors.py')
+    # L2 and L3 are live Groq calls; only L1 reproduces offline.
+    Invoke-Step 'M3.2 learned detectors (L1, offline only)' @('experiments/m3_2_learned_detectors.py', '--detector', 'l1')
 }
 
 Invoke-Step 'M3.2 detector x family matrix'  @('experiments/m3_2_build_detector_matrix.py')
-Invoke-Step 'M3.1 inter-rater agreement'     @('experiments/m3_1_interrater_kappa.py')
+
+# M3.1 kappa needs two returned human rating sheets (issue #35).
+$RaterA = 'experiments/results/m3_1_rating_sheet_raterA_completed.csv'
+$RaterB = 'experiments/results/m3_1_rating_sheet_raterB_completed.csv'
+if ((Test-Path $RaterA) -and (Test-Path $RaterB)) {
+    Invoke-Step 'M3.1 inter-rater agreement' @('experiments/m3_1_interrater_kappa.py', '--rater-a', $RaterA, '--rater-b', $RaterB)
+} else {
+    Skip-Step 'M3.1 inter-rater agreement' "needs both completed rating sheets at $RaterA and $RaterB"
+}
 Invoke-Step 'Held-out GUIDE_Test evaluation' @('experiments/guide_test_holdout_eval.py')
 Invoke-Step 'Paired RF vs LLM control'       @('experiments/rf_vs_llm_control.py')
 Invoke-Step 'Guardrail layer evaluation'     @('experiments/guardrail_layer_eval.py')

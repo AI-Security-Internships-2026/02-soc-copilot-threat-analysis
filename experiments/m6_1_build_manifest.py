@@ -91,12 +91,12 @@ ENTRIES = [
      ["classifier_improvement_study.json"],
      "venv/bin/python experiments/classifier_improvement_study.py", DET,
      "no -- part of the Tab 16 run"),
-    ("Tab 18", "Eight detectors on the 400-attack SOC injection benchmark",
+    ("Tab 18", "Seven detectors on the 400-attack SOC injection benchmark",
      ["m3_2_heuristic_detectors.json", "m3_2_learned_detectors.json",
       "m3_1_benchmark_generation.json", "m3_2_familywise_failure_analysis.json"],
      "venv/bin/python experiments/m3_2_heuristic_detectors.py && "
      "venv/bin/python experiments/m3_2_learned_detectors.py", DET,
-     "partial -- L3 needs OPENAI_API_KEY (--include-api); heuristics and L1/L2 run offline"),
+     "L1 and the heuristics run offline; L2/L3 are live quota-metered Groq calls"),
     ("Fig 1", "Triage pipeline control flow (TikZ, transcribed from graph.py)",
      [], "n/a -- hand-transcribed from src/agent/graph.py, verified by tests/test_graph_wiring.py",
      DET, "n/a -- no numeric content"),
@@ -159,6 +159,9 @@ SUPPORTING = {
     "m3_1_rating_worksheet.csv": "M3.1 -- blind inter-rater worksheet for the benchmark",
     ".m3_1_rating_worksheet_key.csv": "M3.1 -- rater answer key; dot-prefixed so raters "
                                       "cannot see it while scoring the worksheet above",
+    "m3_1_rating_sheet_raterA.csv": "M3.1 -- rater A's copy of the blind worksheet, for "
+                                    "distribution with docs/m3-1-rater-instructions.md",
+    "m3_1_rating_sheet_raterB.csv": "M3.1 -- rater B's copy; identical items to rater A's",
 }
 
 # Artifacts that a still-open PR introduces. Listed so the cross-check does not

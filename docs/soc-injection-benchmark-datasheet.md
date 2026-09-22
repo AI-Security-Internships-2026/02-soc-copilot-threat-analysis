@@ -93,21 +93,41 @@ binary attack/benign label plus a 7-way family label for every attack row.
 
 **Interrater reliability.** A blinded 100-row subset (50 attack / 50 benign,
 `experiments/results/m3_1_rating_worksheet.csv`) and a Cohen's-kappa scoring
-script (`experiments/m3_1_interrater_kappa.py`) exist. **The actual two-rater
-labelling pass has not been done as of this datasheet's initial commit** — it
-needs two independent human raters, and a single rater (or an AI system)
-re-checking its own generated labels would not be independent by
-construction. Target once both raters complete the worksheet: κ ≥ 0.75 (issue
-#35's acceptance criterion). This is stated as pending rather than filled
-with an invented number, consistent with how issue #32 (Kaggle tooling
-access) was handled elsewhere in this project before it was resolved.
-Raters and timeline requested from the supervisors in
+script (`experiments/m3_1_interrater_kappa.py`) exist. Per the supervisor's
+request of 21 Sep, the subset is also issued as two per-rater sheets
+(`experiments/results/m3_1_rating_sheet_raterA.csv` and `…raterB.csv`,
+identical items in identical order, blank `verdict` column) alongside a
+self-contained rater packet, `docs/m3-1-rater-instructions.md`. Neither sheet
+carries `benchmark_id`, `family`, `is_benign_control`, or the modified field
+name — `tests/test_m3_1_rating_sheets.py` asserts that on every build.
+Scoring reports raw agreement, Cohen's κ, the disagreement count, and the
+disagreement distribution across benign/F1–F7.
+
+**The actual two-rater labelling pass has not been done as of this
+datasheet's initial commit** — it needs two independent human raters, and a
+single rater (or an AI system) re-checking its own generated labels would not
+be independent by construction. Target once both raters complete the
+worksheet: κ ≥ 0.75 (issue #35's acceptance criterion). This is stated as
+pending rather than filled with an invented number, consistent with how issue
+#32 (Kaggle tooling access) was handled elsewhere in this project before it
+was resolved. Raters and timeline requested from the supervisors in
 [issue #35's comments](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/issues/35);
 this section will be updated with the real κ once both rating passes land.
 
+**What κ from this subset can and cannot establish.** Read bias 5 below
+before quoting the number. All 50 benign rows in the subset are numeric GUIDE
+field codes and all 50 attack rows are natural-language payloads, so the two
+classes are separable on surface form alone. A high κ therefore confirms that
+the binary labels are unambiguous to independent readers; it does **not**
+establish that the rubric discriminates well on hard cases, and it is not
+evidence about detector difficulty. The informative rows are the F3
+(passive/buried) items, where the payload is plausible analyst prose — the
+per-family disagreement breakdown is reported precisely so this can be read
+directly rather than hidden inside the pooled statistic.
+
 ## 5. Known biases
 
-At least four, stated plainly:
+At least five, stated plainly:
 
 1. **The attack rows are template-generated, not drawn from real attacker
    traffic.** Phrasing diversity is bounded by the template banks in
@@ -124,6 +144,20 @@ At least four, stated plainly:
    other five targetable fields, so a detector's false-positive rate on
    genuinely free-text-bearing non-AlertTitle fields is not directly
    measured here.
+5. **Benign and attack rows differ in surface form, not only in intent.**
+   GUIDE stores its categorical fields as integer codes, so every one of the
+   100 BCONTROL rows is a bare number, while every attack row carries
+   natural-language (or encoded-natural-language) text. "Contains prose" is
+   therefore an almost perfect separator on this benchmark, independent of
+   whether the prose is adversarial. Two consequences, both of which bound
+   how the results should be read: reported detector FPR is measured against
+   benign inputs that no realistic detector would flag, so it is a floor
+   rather than a representative estimate; and interrater κ on the blinded
+   subset has an artificial ceiling (§4). Closing this needs benign controls
+   that are legitimate free-text analyst prose — a v1.1 change to the
+   generator, out of scope for v1.0 and not applied retroactively here,
+   since changing the corpus after results are reported against it would
+   invalidate the M3.2 comparison.
 
 ## 6. License
 
@@ -142,8 +176,7 @@ figures, from `experiments/results/m3_2_learned_detectors.json` and
 |---|---|---|---|---|
 | L1 TF-IDF+LogReg | 500/500 | 0.1978 (500-row) vs. 0.46 (legacy 40-row sanity) | 3.25% | 10.0% |
 | L2 Llama Prompt Guard 2 | 500/500 | 0.779 | 31.25% | 0.0% |
-| L3 OpenAI Moderation | blocked | — | — | — |
-| L4 NeMo-style Groq self-check | 321/500 (quota-capped, resumable) | 0.8265 | 65.29% | 0.0% |
+| L3 NeMo-style Groq self-check | 495/500 | 0.7949 | 58.99% (233/395) | 0.0% |
 | H1 regex | 500/500 | — | 2.75% | 0.0% |
 | H2 schema (AlertTitle/DetectorId subset) | 500/500 | — | 100% (subset) / 10.5% (overall) | 0.0% |
 | H3 SOC-aware (new) | 500/500 | — | 91.25% | 0.0% |
@@ -155,13 +188,24 @@ corpus's 0.46 AUC (within the ±0.05 tolerance) and drops to 0.1978 on the
 detector carries no usable signal on this domain (issue #36's own
 `≤0.55` bar for "confirms negative transfer at scale").
 
-**L4 is quota-capped, not abandoned.** It's a live call against a 20B
-reasoning model sharing this project's daily Groq quota with every other
-experiment; 321/500 is a deliberate stopping point to protect that shared
-resource, using the same resumable-checkpoint pattern already established by
-`experiments/control_node_ablation.py`'s M7 arm (which stopped at 241/500 for
-an identical reason). `experiments/results/m3_2_learned_detectors.json`'s
-`l4.incomplete_run_note` gives the exact resume command.
+**L3's five unscored rows are a detector limitation, not a quota cap.** The
+run reached 495/500. The five that remain (`F4_004`, `F4_026`, `F4_030`,
+`F4_040`, `F4_053` — all encoded/obfuscated payloads) return an empty,
+unparseable response from the model, reproducibly, across separate
+invocations and after the rate limit that briefly affected one of them had
+cleared. More budget will not resolve them, so its recall is reported over
+the 395 attack rows it actually scored rather than assuming the missing five
+would have been detected: 233/395. The 95% Clopper-Pearson interval in
+`experiments/results/m6_3_ci_backfill.json` uses that same denominator.
+`experiments/results/m3_2_learned_detectors.json`'s `l3.persistent_errors`
+lists the five.
+
+**L3 was L4 until 22 Sep.** An OpenAI Moderation detector occupied the L3
+slot and was never run — no API key was provisioned, and the CNIT server that
+would have hosted a local deployment is unavailable. On the supervisor's
+instruction (issue #36) it is removed from the benchmark's scope entirely
+rather than carried as a blank row, and this detector moved down to L3. Seven
+detectors are reported here because seven were measured.
 
 **The union of heuristic layers outperforms every learned detector here**
 (96.75% TPR at 0% FPR) — including on families the issue's own text expected

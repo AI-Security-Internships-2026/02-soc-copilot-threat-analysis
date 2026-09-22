@@ -104,11 +104,11 @@ experiments/results/evaluation_samples/*
 # paper draft kept out of the public repo per supervisor guidance
 docs/paper/
 experiments/results/.control_node_ablation_checkpoints/
-# M3.2 live-detector checkpoints (L2/L4) -- working state superseded by the
+# M3.2 live-detector checkpoints (L2/L3) -- working state superseded by the
 # aggregated experiments/results/m3_2_learned_detectors.json, same reasoning
 # as the control_node_ablation checkpoints above.
 experiments/results/.m3_2_l2_checkpoint.jsonl
-experiments/results/.m3_2_l4_checkpoint.jsonl
+experiments/results/.m3_2_l3_checkpoint.jsonl
 experiments/results/.m2_4_m7_checkpoint.jsonl
 catboost_info/
 

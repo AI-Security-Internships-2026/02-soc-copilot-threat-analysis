@@ -302,14 +302,15 @@
       "k": 125,
       "method": "exact Clopper-Pearson binomial interval"
     },
-    "l4": {
-      "point": 0.59,
-      "ci_lower": 0.54,
-      "ci_upper": 0.6386,
+    "l3": {
+      "point": 0.5899,
+      "ci_lower": 0.5396,
+      "ci_upper": 0.6388,
       "confidence": 0.95,
-      "n": 400,
-      "k": 236,
-      "method": "exact Clopper-Pearson binomial interval"
+      "n": 395,
+      "k": 233,
+      "method": "exact Clopper-Pearson binomial interval",
+      "note": "denominator is 395, not 400: 5 attack row(s) are unscored for this detector (see its persistent_errors block)."
     }
   },
   "not_backfillable": {

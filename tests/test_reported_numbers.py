@@ -96,17 +96,34 @@ def test_injection_benchmark_composition():
         ("h_union", 0.9675, "m3_2_heuristic_detectors.json"),
         ("l1", 0.0325, "m3_2_learned_detectors.json"),
         ("l2", 0.3125, "m3_2_learned_detectors.json"),
-        ("l4", 0.5899, "m3_2_learned_detectors.json"),
+        ("l3", 0.5899, "m3_2_learned_detectors.json"),
     ],
 )
 def test_detector_recalls_match_the_reported_table(key, tpr, source):
     assert round(load(source)[key]["overall_tpr"], 4) == tpr
 
 
-def test_l3_is_reported_as_not_run_never_as_zero():
+def test_only_detectors_that_were_actually_run_are_reported():
+    """Issue #36: the OpenAI Moderation detector is out of scope, not pending.
+    A blank row is the failure mode this guards -- a reader treats "not run" in
+    a results table as a measurement of something."""
+    learned = load("m3_2_learned_detectors.json")
+    detectors = {k: v for k, v in learned.items() if k.startswith("l")}
+    assert set(detectors) == {"l1", "l2", "l3"}
+    for key, node in detectors.items():
+        assert node.get("overall_tpr") is not None, f"{key} is reported without a score"
+        assert "moderation" not in node["detector"].lower()
+
+
+def test_partial_detector_recall_is_over_the_rows_it_actually_scored():
+    """L3's five unscorable F4 rows must not be silently credited or debited --
+    its recall denominator is 395, and the reported CI has to use the same one."""
     l3 = load("m3_2_learned_detectors.json")["l3"]
-    assert l3["status"] == "blocked"
-    assert "overall_tpr" not in l3, "a blocked detector must not carry a score"
+    assert l3["n_attacks_scored"] == 400 - len(l3["persistent_errors"]) == 395
+    assert round(l3["n_attacks_detected"] / l3["n_attacks_scored"], 4) == l3["overall_tpr"]
+
+    ci = load("m6_3_ci_backfill.json")["tab18_detector_recall"]["l3"]
+    assert (ci["k"], ci["n"]) == (l3["n_attacks_detected"], l3["n_attacks_scored"])
 
 
 def test_paired_control_numbers():

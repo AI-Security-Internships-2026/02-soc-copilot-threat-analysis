@@ -9,7 +9,7 @@ each detector's implementation.
 usage (from repo root):
     python scripts/benchmark_soc_injection.py --detector all
     python scripts/benchmark_soc_injection.py --detector l2 --daily-call-budget 300
-    python scripts/benchmark_soc_injection.py --detector l3 --include-api
+    python scripts/benchmark_soc_injection.py --detector l3 --daily-call-budget 300
     python scripts/benchmark_soc_injection.py --reproduce_only_checksum
 """
 
@@ -29,7 +29,7 @@ from experiments import m3_2_learned_detectors as learned
 from experiments import m3_2_heuristic_detectors as heuristic
 from experiments import m3_2_build_detector_matrix as matrix
 
-LEARNED_DETECTORS = {"l1", "l2", "l3", "l4"}
+LEARNED_DETECTORS = {"l1", "l2", "l3"}
 HEURISTIC_DETECTORS = {"h1", "h2", "h3", "h_union"}
 ALL_DETECTORS = LEARNED_DETECTORS | HEURISTIC_DETECTORS
 
@@ -64,8 +64,7 @@ def main() -> None:
         choices=sorted(ALL_DETECTORS | {"all"}),
         default="all",
     )
-    parser.add_argument("--include-api", action="store_true", help="also run L3 (OpenAI Moderation); needs OPENAI_API_KEY")
-    parser.add_argument("--daily-call-budget", type=int, default=None, help="cap live Groq calls for L2/L4 this invocation")
+    parser.add_argument("--daily-call-budget", type=int, default=None, help="cap live Groq calls for L2/L3 this invocation")
     parser.add_argument("--reproduce_only_checksum", action="store_true", help="print SHA-256 of existing outputs, no re-scoring")
     parser.add_argument("--skip-matrix", action="store_true", help="skip rebuilding the Part C failure matrix after scoring")
     args = parser.parse_args()
@@ -83,7 +82,7 @@ def main() -> None:
         output = json.loads(learned.OUTPUT_PATH.read_text()) if learned.OUTPUT_PATH.exists() else {}
         for key in learned_to_run:
             print(f"running {key}...")
-            output[key] = learned.run(key, include_api=args.include_api, daily_call_budget=args.daily_call_budget)
+            output[key] = learned.run(key, daily_call_budget=args.daily_call_budget)
         output["generated_at_utc"] = datetime.now(timezone.utc).isoformat()
         output["git_sha"] = learned.git_sha()
         learned.OUTPUT_PATH.write_text(json.dumps(output, indent=2))
