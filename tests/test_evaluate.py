@@ -173,3 +173,28 @@ def test_no_crashes_reports_zero_errors(monkeypatch, tmp_path):
 
     assert output["routing_summary"]["error_count"] == 0
     assert output["routing_summary"]["scored_count"] == 2
+
+
+def test_a_completed_run_survives_a_missing_source_dataset(monkeypatch, tmp_path):
+    """Neither GUIDE nor the synthetic sample is committed, so on a fresh clone
+    _data_provenance() used to raise FileNotFoundError from path.stat() -- at
+    the very END of run_evaluation, discarding a run that had already scored
+    every alert. For a live LLM run that is spent money thrown away.
+
+    Provenance must record the absence and say the run cannot be attributed,
+    rather than destroying the result it exists to annotate."""
+    _install_fakes(
+        monkeypatch,
+        sample_rows=[{"IncidentGrade": "TruePositive", "AlertTitle": 1}],
+        outcomes=[{"predicted_label": "TruePositive", "triage_path": "llm"}],
+    )
+    monkeypatch.setattr(evaluate, "REAL_DATA_PATH", tmp_path / "absent_real.csv")
+    monkeypatch.setattr(evaluate, "SAMPLE_DATA_PATH", tmp_path / "absent_sample.csv")
+
+    output = evaluate.run_evaluation(sample_size=1, output_path=str(tmp_path / "out.json"))
+
+    source = output["data_source"]
+    assert source["exists"] is False
+    assert source["size_bytes"] is None
+    assert source["is_synthetic"] is False, "an absent file is not evidence of synthetic labels"
+    assert "SOURCE FILE ABSENT" in source["warning"]
