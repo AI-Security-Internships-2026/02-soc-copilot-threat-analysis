@@ -1,7 +1,7 @@
 # Weekly Progress Log: SOC Co-pilot: LLM-Assisted Threat Analysis and Alert Triage
 
 **Student:** Asma
-**GitHub username:** urpinklipbalm
+**GitHub username:** asmaic
 
 ---
 
