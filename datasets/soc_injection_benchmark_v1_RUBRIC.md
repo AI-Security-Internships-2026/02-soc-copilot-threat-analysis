@@ -78,16 +78,23 @@ contain the word "override" as a normal system term without being one.
 - Target: κ ≥ 0.75. Below that, disagreements are reviewed together, this
   rubric is sharpened wherever the disagreement traces to an ambiguous rule
   above, and both raters re-label only the disputed rows. Returned ratings
-  are never edited, and the pass is not re-run to move the statistic.
-- **Ceiling caveat.** All 50 benign rows in the subset are numeric GUIDE
-  field codes and all 50 attack rows are natural language, so the classes are
-  separable on surface form alone. A high pooled κ confirms the labels are
-  unambiguous; it does not show the rubric discriminates on hard cases. The
-  F3 (passive/buried) rows are where the rubric is actually tested, which is
-  why the per-family disagreement breakdown is reported alongside the pooled
-  number — see `docs/soc-injection-benchmark-datasheet.md` §5 bias 5.
-- **Status as of this benchmark's initial commit: the sheets and scoring
-  script exist; the two rating passes have not yet been done.** This needs
-  two people, not one, and is tracked as pending rather than represented with
-  an invented number — see `docs/soc-injection-benchmark-datasheet.md`,
-  Annotation section.
+  are never edited, and the pass is not re-run to move the statistic. The
+  completed pass came in above the target, so that protocol was not
+  triggered: no row was re-labelled and no rule below was changed.
+- **Ceiling caveat, now confirmed by the returned ratings.** All 50 benign
+  rows in the subset are numeric GUIDE field codes and all 50 attack rows are
+  natural language, so the classes are separable on surface form alone. The
+  raters agreed on 50/50 of the benign controls and **all 9 disagreements are
+  attack rows** — so the pooled κ confirms the labels are unambiguous and does
+  not show the rubric discriminates on hard cases. The F3 (passive/buried)
+  rows are where the rubric is actually tested, and they carry the most
+  disagreements of any family (4 of 8), which is why the per-family
+  disagreement breakdown is reported alongside the pooled number — see
+  `docs/soc-injection-benchmark-datasheet.md` §5 bias 5.
+- **Result: Cohen's κ = 0.8178** (raw agreement 91/100, 9 disagreements),
+  above the 0.75 target. Both completed sheets are committed as
+  `experiments/results/m3_1_rating_sheet_raterA_completed.csv` and
+  `…raterB_completed.csv`, the figures as
+  `experiments/results/m3_1_interrater_kappa.json`, and the report plus the
+  100-subset disagreement resolution log as
+  `docs/m3-1-kappa-results.md`.

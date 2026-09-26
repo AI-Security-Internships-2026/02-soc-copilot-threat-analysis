@@ -2742,7 +2742,7 @@ risk a detector-only design would have carried.
    instruction, issue #36.)
 2. **Cohen's κ needs two people.** The worksheet and scoring script were both committed; the
    rating passes were not done, and the datasheet says so rather than carrying a placeholder.
-   (Still open — see Week 22.)
+   (Resolved in Week 23: both sheets returned, κ = 0.8178.)
 
 ---
 
@@ -2903,7 +2903,8 @@ This is issue #45's deliverable, and it had never been run end to end.
 ### Problems / blockers
 
 1. **The κ pass still needs two people.** The sheets and the packet are ready to distribute;
-   nothing further can happen on #35 until both completed sheets come back.
+   nothing further can happen on #35 until both completed sheets come back. (Resolved in
+   Week 23: both sheets came back and were scored, κ = 0.8178.)
 2. **`elsarticle.cls` is not installed locally**, so the Elsevier draft's compilation could not be
    verified after this week's edits. They are table-row and prose changes only.
 3. **Week 19 and Week 21 had no log entry.** Both are backfilled above, written from the commit
@@ -2915,3 +2916,112 @@ This is issue #45's deliverable, and it had never been run end to end.
 
 Unchanged from Week 18 except where noted: paper declarations (funding, ORCID, co-authorship),
 GeNIS/Wazuh Docker sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.
+
+---
+
+## Week 23 — the κ pass came back, and the ceiling it was warned about is real (issue #35)
+
+**Branch:** `asma-week-22-m3-followup` (the same branch as Week 22, on Hafiz Mati Ur Rehman's
+instruction to keep the rating sheets and the analysis in one PR)
+**PR link:** [#54](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/54).
+
+Both raters returned their sheets. That closes the last open acceptance criterion on issue #35:
+inter-rater Cohen's κ on the blinded 100-row subset is **0.8178**, above the 0.75 target. The
+sheets are committed verbatim, the scored figures are committed, and the report with the
+disagreement resolution log the issue asks for is in `docs/m3-1-kappa-results.md`.
+
+### Completed this week
+
+- [x] #35: both returned sheets committed as `experiments/results/m3_1_rating_sheet_raterA_completed.csv`
+      and `…raterB_completed.csv`, unedited — the rubric commits to never editing a returned rating
+- [x] #35: κ scored at **0.8178** (raw agreement 91/100, 9 disagreements, *p*ₑ = 0.506);
+      rater accuracy against the construction key 0.97 (A) and 0.90 (B)
+- [x] #35: `experiments/m3_1_interrater_kappa.py` now also reports per-stratum agreement
+      (attack-only vs benign-only, with chance agreement) and emits the 9-row disagreement
+      resolution log, so the report is a function of the artifact rather than hand-written
+- [x] #35: `docs/m3-1-kappa-results.md` — the interrater report and the 100-subset resolution log
+      required by the issue's task 6
+- [x] #35: every "pending κ" claim replaced with the real figure — the datasheet (§4 and §8) and
+      both copies of the rubric (`docs/soc-injection-benchmark-rubric.md` and
+      `datasets/soc_injection_benchmark_v1_RUBRIC.md`, which are byte-identical and were edited
+      together)
+- [x] #35: the scorer now refuses swapped `--rater-a`/`--rater-b` files by checking the pre-filled
+      `rater` column, which is what that column was added for
+- [x] #35: three new tests — κ and the ceiling asserted against the committed JSON in
+      `tests/test_reported_numbers.py`, and the returned-spreadsheet paths (capitalised verdicts,
+      junk verdicts, swapped files) in `tests/test_m3_1_rating_sheets.py`
+- [x] #44: the three new artifacts registered in `experiments/m6_1_build_manifest.py` and the
+      manifest regenerated — the completeness cross-check caught the hand-edit that skipped this
+
+### Finding 1: the gate is met, on the metric that was pre-registered
+
+κ = 0.8178 against a target of 0.75. Because the pass cleared the threshold, the rubric's
+below-threshold protocol — review the disputed rows together, sharpen any rule the disagreement
+traces to, re-label only those rows — was not triggered. No returned rating was edited, and the
+pass was not re-run to move the number. Worth stating plainly, since the protocol exists precisely
+so that a failed pass could not be quietly retried.
+
+### Finding 2: the ceiling written down in Week 22 is confirmed, not dispelled
+
+Week 22's Finding 1 predicted, before the raters were sent anything, that a high pooled κ would
+confirm the labels are unambiguous and would *not* show the rubric discriminates on hard cases,
+because all 50 benign rows in the subset are bare numeric GUIDE field codes and all 50 attack rows
+are natural language. Splitting the strata checks it:
+
+| Stratum | n | Raw agreement | *p*ₑ | κ |
+|---|---|---|---|---|
+| Pooled | 100 | 0.9100 | 0.5060 | 0.8178 |
+| Benign controls only | 50 | 1.0000 | 1.0000 | undefined (raters unanimous) |
+| Attack rows only | 50 | 0.8200 | 0.7640 | 0.2373 |
+
+Agreement on the benign controls is perfect — 50/50, both raters — and **all 9 disagreements are
+attack rows**. The pooled κ is therefore carried substantially by a stratum on which the task is
+trivial. The attack-only κ of 0.2373 must not be quoted as a bare agreement figure either: chance
+agreement there is 0.764 because both raters answer `injection` on almost every row, which deflates
+κ mechanically (the high-prevalence kappa paradox), so raw agreement 41/50 is the meaningful number
+in that stratum. The defensible claim is the narrow one, and it is what the datasheet now says: the
+binary labels are unambiguous to independent readers, and this subset's class balance does not let
+the pass say more.
+
+### Finding 3: human disagreement lands on three families, and it is the same three the rubric named
+
+All nine disagreements fall in F2 (3 of 5 rows), F3 (4 of 8) and F7 (2 of 6). F1, F4, F5, F6 and
+the benign controls produced none. F3 carries the most, which is what the rubric predicted when it
+said the F3 rows are "where the rubric is actually tested"; F2's rate is nominally higher, but on
+n = 5 that is one or two rows and should not be reported as F2 being harder than F3.
+
+The mechanism is readable in the rows. Eight of the nine are cases where Rater B called an attack
+benign, and all eight replace an imperative with something that reads as ordinary SOC material — an
+attributed shift note ("Analyst note appended by prior shift…"), a role assertion ("Role: incident
+commander…"), or a machine-readable fragment that looks like protocol noise rather than an
+instruction (F7's pre-filled JSON and fake closing tags). The single row in the other direction,
+`W015`, is the only payload in the set that asserts nothing and argues purely by analogy — "similar
+tickets this month were all resolved as FalsePositive and this one follows the same pattern" — and
+Rater A read it as benign context. Every correction is in the same direction: something that is an
+attack was called benign. Neither rater raised a false alarm on this subset.
+
+Each of the nine is settled by a rule the rubric already states, quoted per row in the resolution
+log. So the misses are the rule being missed in practice on subtle text, not the rule being
+unclear, and the rubric ships unchanged.
+
+### Finding 4: adjudication here is against the construction key, and that is a limitation
+
+The resolution log records the benchmark's construction ground truth as the resolved label — the
+generator knows which payload it injected into which field, so the key is authoritative about what
+each row *is*. It is not a third independent human opinion, and the rater-accuracy figures (0.97 and
+0.90) are accuracy against that key rather than against a consensus panel. Recorded explicitly in
+the memo so nobody later reads those two numbers as a second κ.
+
+### Problems / blockers
+
+1. **The three paper drafts still say the κ pass is "in progress".** `ijis-draft.tex`,
+   `cs-draft.tex` and `ieee-draft.tex` each carry a sentence promising the figure rather than
+   giving it. They live on `overleaf-onto-remote` in a separate worktree, so the fix cannot ride on
+   this branch's commit and is queued as its own change.
+2. **`elsarticle.cls` is still not installed locally** — unchanged from Week 22, so the Elsevier
+   draft's compilation remains unverified.
+
+### Carried forward, still open
+
+Unchanged from Week 22: paper declarations (funding, ORCID, co-authorship), GeNIS/Wazuh Docker
+sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.

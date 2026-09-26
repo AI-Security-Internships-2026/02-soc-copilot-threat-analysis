@@ -91,39 +91,49 @@ recorded in `experiments/results/m3_1_benchmark_generation.json`.
 **Is there a label?** `is_benign_control` (bool) and `family` together give a
 binary attack/benign label plus a 7-way family label for every attack row.
 
-**Interrater reliability.** A blinded 100-row subset (50 attack / 50 benign,
-`experiments/results/m3_1_rating_worksheet.csv`) and a Cohen's-kappa scoring
-script (`experiments/m3_1_interrater_kappa.py`) exist. Per the supervisor's
-request of 21 Sep, the subset is also issued as two per-rater sheets
+**Interrater reliability.** Two independent human raters labelled a blinded
+100-row subset (50 attack / 50 benign,
+`experiments/results/m3_1_rating_worksheet.csv`) as `injection` or `benign`,
+neither seeing the other's sheet. Per the supervisor's request of 21 Sep the
+subset was issued as two per-rater sheets
 (`experiments/results/m3_1_rating_sheet_raterA.csv` and `…raterB.csv`,
 identical items in identical order, blank `verdict` column) alongside a
 self-contained rater packet, `docs/m3-1-rater-instructions.md`. Neither sheet
 carries `benchmark_id`, `family`, `is_benign_control`, or the modified field
-name — `tests/test_m3_1_rating_sheets.py` asserts that on every build.
-Scoring reports raw agreement, Cohen's κ, the disagreement count, and the
-disagreement distribution across benign/F1–F7.
+name — `tests/test_m3_1_rating_sheets.py` asserts that on every build. The
+returned sheets are committed verbatim as `…raterA_completed.csv` and
+`…raterB_completed.csv` and scored by
+`experiments/m3_1_interrater_kappa.py`, which reports raw agreement, Cohen's
+κ, chance agreement, the per-stratum breakdown, the disagreement distribution
+across benign/F1–F7, and the disagreement resolution log.
 
-**The actual two-rater labelling pass has not been done as of this
-datasheet's initial commit** — it needs two independent human raters, and a
-single rater (or an AI system) re-checking its own generated labels would not
-be independent by construction. Target once both raters complete the
-worksheet: κ ≥ 0.75 (issue #35's acceptance criterion). This is stated as
-pending rather than filled with an invented number, consistent with how issue
-#32 (Kaggle tooling access) was handled elsewhere in this project before it
-was resolved. Raters and timeline requested from the supervisors in
-[issue #35's comments](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/issues/35);
-this section will be updated with the real κ once both rating passes land.
+**Result: Cohen's κ = 0.8178 on the 100-row subset, above issue #35's κ ≥
+0.75 acceptance criterion.** Raw agreement 91/100; 9 disagreements; rater
+accuracy against the benchmark's construction key 0.9700 (A) and 0.9000 (B).
+Because the pass cleared the threshold, the rubric's below-threshold protocol
+(review the disputed rows, sharpen any ambiguous rule, re-label only those
+rows) was not triggered; no returned rating was edited and the pass was not
+re-run. Full figures in `experiments/results/m3_1_interrater_kappa.json`; the
+report, the per-family breakdown and the 9-row resolution log are in
+[`docs/m3-1-kappa-results.md`](m3-1-kappa-results.md).
 
 **What κ from this subset can and cannot establish.** Read bias 5 below
 before quoting the number. All 50 benign rows in the subset are numeric GUIDE
 field codes and all 50 attack rows are natural-language payloads, so the two
-classes are separable on surface form alone. A high κ therefore confirms that
-the binary labels are unambiguous to independent readers; it does **not**
-establish that the rubric discriminates well on hard cases, and it is not
-evidence about detector difficulty. The informative rows are the F3
-(passive/buried) items, where the payload is plausible analyst prose — the
-per-family disagreement breakdown is reported precisely so this can be read
-directly rather than hidden inside the pooled statistic.
+classes are separable on surface form alone. The returned ratings confirm that
+ceiling rather than dispelling it: agreement on the 50 benign controls is
+perfect (50/50, κ undefined because both raters are unanimous) and **all 9
+disagreements are attack rows** (attack-only raw agreement 41/50). So κ =
+0.8178 confirms that the binary labels are unambiguous to independent readers;
+it does **not** establish that the rubric discriminates well on hard cases,
+and it is not evidence about detector difficulty. The informative rows are the
+F3 (passive/buried) items, where the payload is plausible analyst prose, and
+they carry the most disagreements of any family (4 of 8 rows) — the per-family
+breakdown is reported precisely so this can be read directly rather than
+hidden inside the pooled statistic. The attack-only κ of 0.2373 should not be
+quoted as a bare agreement figure: chance agreement on that stratum is 0.764,
+which deflates κ mechanically, so raw agreement is the meaningful number
+there.
 
 ## 5. Known biases
 
@@ -225,6 +235,8 @@ above disclosed to any downstream user.
 
 Not a source of real attacker signatures for a production intrusion-
 detection system — it is a synthetic, template-generated corpus, not a
-capture of real adversary behaviour. Not a substitute for the interrater-
-validated release once the pending kappa pass (Section 4) completes; treat
-the current release as v1.0-pre-validation until that number is committed.
+capture of real adversary behaviour. Not a basis for any claim that the rubric
+separates hard cases: the interrater pass reported in Section 4 (κ = 0.8178)
+establishes that the binary labels are unambiguous to independent readers and
+nothing beyond that, since all 9 disagreements fall on the attack rows and the
+benign controls are separable on surface form alone.
