@@ -87,6 +87,35 @@ def test_injection_benchmark_composition():
     assert fam["BCONTROL"] == 100
 
 
+def test_interrater_kappa_matches_what_the_documents_quote():
+    """The κ the datasheet, the rubric and the report all state (issue #35)."""
+    d = load("m3_1_interrater_kappa.json")
+    assert round(d["cohen_kappa"], 4) == 0.8178
+    assert d["meets_target"] is True
+    assert d["n_disagreements"] == 9
+    assert len(d["resolution_log"]) == d["n_disagreements"], "every disagreement is logged"
+
+    for doc in ("soc-injection-benchmark-datasheet.md", "m3-1-kappa-results.md",
+                "soc-injection-benchmark-rubric.md"):
+        assert "0.8178" in (DOCS / doc).read_text(), f"{doc} does not quote the committed κ"
+
+
+def test_kappa_ceiling_holds_the_pooled_number_up():
+    """The ceiling the datasheet and rubric state: the benign controls are
+    separable on surface form, so the pooled κ says nothing about hard cases.
+    This fails the moment a rating pass makes that claim untrue."""
+    d = load("m3_1_interrater_kappa.json")
+    assert d["disagreement_distribution"]["BCONTROL"]["n_disagreements"] == 0
+    assert d["agreement_by_stratum"]["benign"]["raw_agreement"] == 1.0
+    # ...so every disagreement is an attack row, which is what makes the
+    # pooled figure uninformative about detector-relevant difficulty.
+    assert d["agreement_by_stratum"]["injection"]["raw_agreement"] < 1.0
+    assert (
+        sum(b["n_disagreements"] for b in d["disagreement_distribution"].values())
+        == d["n_disagreements"]
+    )
+
+
 @pytest.mark.parametrize(
     "key, tpr, source",
     [

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from experiments.m3_1_interrater_kappa import disagreement_distribution
+from experiments.m3_1_interrater_kappa import _load_ratings, disagreement_distribution
 
 SHEETS = [
     Path("experiments/results/m3_1_rating_sheet_raterA.csv"),
@@ -70,6 +70,40 @@ def test_sheets_cover_exactly_the_scored_key():
     key = _rows(KEY)
     for sheet in SHEETS:
         assert [r["worksheet_id"] for r in _rows(sheet)] == [r["worksheet_id"] for r in key]
+
+
+def _write_sheet(tmp_path, rows):
+    path = tmp_path / "returned.csv"
+    with open(path, "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["rater", "worksheet_id", "verdict"])
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
+
+
+def test_returned_verdicts_survive_a_spreadsheet_round_trip(tmp_path):
+    """Rater B really did return `Benign`/`Injection` -- a returned sheet has
+    been through someone's spreadsheet, so case and whitespace are not the
+    rater disagreeing with the instructions."""
+    path = _write_sheet(tmp_path, [
+        {"rater": "B", "worksheet_id": "W001", "verdict": "Benign"},
+        {"rater": "B", "worksheet_id": "W002", "verdict": " Injection "},
+    ])
+    assert _load_ratings(path, "B") == {"W001": "benign", "W002": "injection"}
+
+
+def test_a_verdict_outside_the_two_allowed_values_is_refused(tmp_path):
+    path = _write_sheet(tmp_path, [{"rater": "A", "worksheet_id": "W001", "verdict": "maybe"}])
+    with pytest.raises(ValueError, match="W001"):
+        _load_ratings(path, "A")
+
+
+def test_swapped_rater_files_are_refused_rather_than_scored(tmp_path):
+    """The pre-filled `rater` column exists so the two passes cannot be
+    silently swapped; that only holds if the scorer checks it."""
+    path = _write_sheet(tmp_path, [{"rater": "B", "worksheet_id": "W001", "verdict": "benign"}])
+    with pytest.raises(ValueError, match="swapped"):
+        _load_ratings(path, "A")
 
 
 def test_disagreement_distribution_splits_by_family_and_totals_correctly():

@@ -162,6 +162,13 @@ SUPPORTING = {
     "m3_1_rating_sheet_raterA.csv": "M3.1 -- rater A's copy of the blind worksheet, for "
                                     "distribution with docs/m3-1-rater-instructions.md",
     "m3_1_rating_sheet_raterB.csv": "M3.1 -- rater B's copy; identical items to rater A's",
+    "m3_1_rating_sheet_raterA_completed.csv": "M3.1 -- rater A's returned ratings, committed "
+                                             "verbatim; input to the kappa score",
+    "m3_1_rating_sheet_raterB_completed.csv": "M3.1 -- rater B's returned ratings, committed "
+                                             "verbatim; input to the kappa score",
+    "m3_1_interrater_kappa.json": "M3.1 -- Cohen's kappa = 0.8178, per-stratum agreement and "
+                                  "the disagreement resolution log; reported in "
+                                  "docs/m3-1-kappa-results.md",
 }
 
 # Artifacts that a still-open PR introduces. Listed so the cross-check does not

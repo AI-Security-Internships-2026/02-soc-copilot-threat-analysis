@@ -6,14 +6,21 @@
 # This script cannot manufacture its own input: a single rater labelling their
 # own generated data isn't "independent" by construction, so the two
 # --rater-a/--rater-b files this script reads have to come from two actual
-# people. Until both exist, there is no kappa to report -- see
-# docs/soc-injection-benchmark-datasheet.md's Annotation section, which
-# states that plainly rather than filling in a number.
+# people. Both passes came back on 26 Sep 2025 and are committed alongside
+# this script; see docs/m3-1-kappa-results.md for the report and the
+# disagreement resolution log built from this script's output.
 #
-# usage (from repo root, once both rating passes are done):
+# Three things are reported, not one. The pooled kappa is the pre-registered
+# acceptance criterion (issue #35), but the benign controls and the attack
+# payloads differ in surface form, so the pooled number has a ceiling that
+# was written down before the pass ran. The per-stratum breakdown is emitted
+# next to it so that ceiling can be read directly instead of being hidden
+# inside the pooled statistic.
+#
+# usage (from repo root):
 #   venv/bin/python experiments/m3_1_interrater_kappa.py \
-#       --rater-a path/to/rater_a_completed.csv \
-#       --rater-b path/to/rater_b_completed.csv
+#       --rater-a experiments/results/m3_1_rating_sheet_raterA_completed.csv \
+#       --rater-b experiments/results/m3_1_rating_sheet_raterB_completed.csv
 
 from __future__ import annotations
 
@@ -31,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from sklearn.metrics import cohen_kappa_score
 
 KEY_PATH = Path("experiments/results/.m3_1_rating_worksheet_key.csv")
+BENCHMARK_CSV = Path("datasets/soc_injection_benchmark_v1.csv")
 OUTPUT_PATH = Path("experiments/results/m3_1_interrater_kappa.json")
 
 VALID_VERDICTS = {"injection", "benign"}
@@ -68,11 +76,82 @@ def disagreement_distribution(
     return dict(sorted(by_category.items()))
 
 
-def _load_ratings(path: Path) -> dict[str, str]:
+def agreement(a_labels: list[str], b_labels: list[str]) -> dict[str, float | None]:
+    """Raw agreement, chance agreement and kappa over one set of rows.
+
+    p_e is reported alongside kappa because this benchmark's strata have very
+    different marginals: pooled it sits near 0.5, but on the attack-only rows
+    both raters say "injection" almost every time, which drives p_e high and
+    deflates kappa regardless of how well they actually agree (the
+    high-prevalence kappa paradox). Without p_e in the output, a low
+    per-stratum kappa reads as poor agreement when it is really a thin
+    margin over chance -- so raw agreement is the figure to quote there."""
+    n = len(a_labels)
+    observed = sum(1 for a, b in zip(a_labels, b_labels) if a == b) / n
+    expected = sum(
+        (a_labels.count(label) / n) * (b_labels.count(label) / n)
+        for label in set(a_labels) | set(b_labels)
+    )
+    # Both raters unanimous on every row -> p_e == 1 and kappa is undefined
+    # (0/0), which is exactly what happens on the benign controls here.
+    kappa = None if expected >= 1.0 else float(cohen_kappa_score(a_labels, b_labels))
+    return {
+        "n": n,
+        "raw_agreement": round(observed, 4),
+        "chance_agreement_p_e": round(expected, 4),
+        "cohen_kappa": None if kappa is None else round(kappa, 4),
+    }
+
+
+def resolution_log(
+    key_rows: list[dict], disagreements: list[str], ratings: dict[str, dict[str, str]]
+) -> list[dict]:
+    """The 100-subset disagreement resolution log required by issue #35, task 6.
+
+    The adjudicated label is the benchmark's construction ground truth -- the
+    generator knows what it injected into which field. That is recorded
+    explicitly as the basis, because it is *not* a third independent human
+    opinion, and a reader comparing rater accuracies needs to know which of
+    the two is being measured against what."""
+    with open(BENCHMARK_CSV) as handle:
+        benchmark = {row["benchmark_id"]: row for row in csv.DictReader(handle)}
+    by_id = {row["worksheet_id"]: row for row in key_rows}
+
+    log = []
+    for worksheet_id in disagreements:
+        key = by_id[worksheet_id]
+        row = benchmark[key["benchmark_id"]]
+        log.append(
+            {
+                "worksheet_id": worksheet_id,
+                "benchmark_id": key["benchmark_id"],
+                "family": row["family"],
+                "modified_field": row["modified_field"],
+                "text_shown": row["injected_payload"] or row["original_value_snippet"],
+                "rater_a": ratings["A"][worksheet_id],
+                "rater_b": ratings["B"][worksheet_id],
+                "adjudicated_label": key["true_label"],
+                "adjudication_basis": "construction key (not a third human rater)",
+                "rater_corrected": "A" if ratings["A"][worksheet_id] != key["true_label"] else "B",
+            }
+        )
+    return log
+
+
+def _load_ratings(path: Path, expected_rater: str) -> dict[str, str]:
     with open(path) as handle:
         rows = list(csv.DictReader(handle))
     ratings = {}
     for row in rows:
+        # The build script pre-fills `rater` so a returned sheet is
+        # self-identifying; checking it here is what actually stops the two
+        # passes being swapped on the command line.
+        if row.get("rater", "").strip().upper() != expected_rater:
+            raise ValueError(
+                f"{path}: worksheet_id={row['worksheet_id']} is rater "
+                f"{row.get('rater')!r}, but was passed as rater {expected_rater} "
+                f"-- check the --rater-a/--rater-b arguments are not swapped"
+            )
         verdict = row["verdict"].strip().lower()
         if verdict not in VALID_VERDICTS:
             raise ValueError(
@@ -89,8 +168,8 @@ def main() -> None:
     parser.add_argument("--rater-b", required=True, type=Path)
     args = parser.parse_args()
 
-    rater_a = _load_ratings(args.rater_a)
-    rater_b = _load_ratings(args.rater_b)
+    rater_a = _load_ratings(args.rater_a, "A")
+    rater_b = _load_ratings(args.rater_b, "B")
     with open(KEY_PATH) as handle:
         key_rows = list(csv.DictReader(handle))
 
@@ -111,6 +190,18 @@ def main() -> None:
     disagreements = [i for i, a, b in zip(ids, a_labels, b_labels) if a != b]
     raw_agreement = (len(ids) - len(disagreements)) / len(ids)
 
+    # Per-stratum agreement. The rubric's ceiling caveat says the pooled
+    # number is carried by the benign controls, whose text is bare numeric
+    # GUIDE field codes while every attack row is natural language; splitting
+    # the strata is how that claim gets checked rather than asserted.
+    strata = {
+        label: agreement(
+            [a for a, t in zip(a_labels, true_labels) if t == label],
+            [b for b, t in zip(b_labels, true_labels) if t == label],
+        )
+        for label in ("injection", "benign")
+    }
+
     by_category = disagreement_distribution(key_rows, disagreements)
     a_accuracy = sum(1 for a, t in zip(a_labels, true_labels) if a == t) / len(ids)
     b_accuracy = sum(1 for b, t in zip(b_labels, true_labels) if b == t) / len(ids)
@@ -126,9 +217,20 @@ def main() -> None:
         "n_benign": n_benign,
         "cohen_kappa": round(kappa, 4),
         "raw_agreement": round(raw_agreement, 4),
+        "chance_agreement_p_e": round(
+            sum(
+                (a_labels.count(label) / len(ids)) * (b_labels.count(label) / len(ids))
+                for label in VALID_VERDICTS
+            ),
+            4,
+        ),
         "n_disagreements": len(disagreements),
         "disagreement_worksheet_ids": disagreements,
         "disagreement_distribution": by_category,
+        "agreement_by_stratum": strata,
+        "resolution_log": resolution_log(
+            key_rows, disagreements, {"A": rater_a, "B": rater_b}
+        ),
         "rater_a_accuracy_vs_true_label": round(a_accuracy, 4),
         "rater_b_accuracy_vs_true_label": round(b_accuracy, 4),
         "target": "kappa >= 0.75 (issue #35 acceptance criterion)",
@@ -140,6 +242,13 @@ def main() -> None:
 
     print(f"Cohen's kappa: {kappa:.4f} (target >= 0.75, {'MET' if kappa >= 0.75 else 'NOT MET'})")
     print(f"raw agreement: {raw_agreement:.4f} ({len(disagreements)} disagreements of {len(ids)})")
+    print("by stratum (the pooled kappa's ceiling, see the rubric's ceiling caveat):")
+    for label, stat in strata.items():
+        shown = "undefined (raters unanimous)" if stat["cohen_kappa"] is None else f"{stat['cohen_kappa']:.4f}"
+        print(
+            f"  {label:<10} n={stat['n']:<4} agreement={stat['raw_agreement']:.4f} "
+            f"p_e={stat['chance_agreement_p_e']:.4f} kappa={shown}"
+        )
     print("disagreements by category:")
     for category, bucket in by_category.items():
         print(
