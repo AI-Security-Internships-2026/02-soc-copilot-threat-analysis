@@ -87,6 +87,37 @@ def test_injection_benchmark_composition():
     assert fam["BCONTROL"] == 100
 
 
+def test_demo_runbook_margins_still_hold_against_the_live_model():
+    """The runbook tells a presenter exactly what the screen will show. These
+    three margins are computed live from baseline_model.joblib, so nothing else
+    in the suite would notice if the model or the feature pipeline moved and the
+    demo started contradicting its own script in front of an audience."""
+    from src.agent.fallback_classifier import predict_with_margin
+
+    form_six = {
+        "AlertTitle": "15723", "DetectorId": "7", "Category": "CredentialAccess",
+        "MitreTechniques": "T1110;T1110.003", "SuspicionLevel": "Suspicious",
+        "LastVerdict": "Suspicious",
+    }
+    label, _, margin = predict_with_margin(form_six)
+    assert label == "BenignPositive"
+    assert round(margin, 4) == 0.1067, "Beat 2's headline margin moved"
+    assert margin < 0.20, "the runbook narrates this alert as held for review"
+
+    # The runbook warns these two score differently on purpose: the CLI scenario
+    # also sets Hour/DayOfWeek, which the form does not collect. If they ever
+    # coincide, that warning becomes misleading rather than merely unnecessary.
+    evidenced = dict(form_six, Category="Collection", MitreTechniques="T1078;T1078.004")
+    _, _, form_margin = predict_with_margin(evidenced)
+    _, _, cli_margin = predict_with_margin(dict(evidenced, Hour=2, DayOfWeek=0))
+    assert round(form_margin, 4) == 0.2056 and form_margin >= 0.20
+    assert round(cli_margin, 4) == 0.0986 and cli_margin < 0.20
+
+    text = (DOCS / "demo-runbook.md").read_text()
+    for value in ("0.1067", "0.2056", "0.0986"):
+        assert value in text, f"demo-runbook.md no longer quotes {value}"
+
+
 def test_per_class_leakage_deltas_are_derived_from_the_artifact_not_transcribed():
     """The per-class leakage deltas are computed, not stored, which is how three
     of them drifted: the documents quoted +0.4045/+0.2635/+0.0615 for a year and
