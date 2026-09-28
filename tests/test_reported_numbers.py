@@ -87,6 +87,30 @@ def test_injection_benchmark_composition():
     assert fam["BCONTROL"] == 100
 
 
+def test_per_class_leakage_deltas_are_derived_from_the_artifact_not_transcribed():
+    """The per-class leakage deltas are computed, not stored, which is how three
+    of them drifted: the documents quoted +0.4045/+0.2635/+0.0615 for a year and
+    no committed run produces those. Derive them here so a transcription error
+    cannot survive again."""
+    audit = load("incident_leakage_audit.json")
+    blocks = re.findall(r'"per_class_recall":\s*(\{[^}]*\})', json.dumps(audit))
+    assert len(blocks) == 2, "expected a leaked block and a clean block"
+    leaked, clean = (json.loads(b) for b in blocks)
+    deltas = {k: round(leaked[k] - clean[k], 4) for k in leaked}
+
+    assert deltas == {
+        "TruePositive": 0.4035,
+        "FalsePositive": 0.2660,
+        "BenignPositive": 0.0605,
+    }, deltas
+    # ...and the ordering the claim actually rests on
+    assert deltas["TruePositive"] > deltas["FalsePositive"] > deltas["BenignPositive"]
+
+    text = (DOCS / "final-report.md").read_text()
+    for value in ("+0.4035", "+0.2660", "+0.0605"):
+        assert value in text, f"final-report.md does not quote the measured {value}"
+
+
 def test_interrater_kappa_matches_what_the_documents_quote():
     """The κ the datasheet, the rubric and the report all state (issue #35)."""
     d = load("m3_1_interrater_kappa.json")

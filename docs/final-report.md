@@ -632,8 +632,13 @@ was available:
 | **Difference** | **+0.2433** | +0.2524 | 95% CI [+0.2282, +0.2587] |
 
 The interval excludes zero by a wide margin. The advantage also holds *within
-every class* — TruePositive +0.4045, FalsePositive +0.2635, BenignPositive
-+0.0615 — so no residual class-mix artefact explains it.
+every class* — TruePositive +0.4035, FalsePositive +0.2660, BenignPositive
++0.0605 — so no residual class-mix artefact explains it. (These three were
+quoted as +0.4045 / +0.2635 / +0.0615 until 2026-09-29; those values match no
+committed run and were a transcription error. They are now computed from
+`incident_leakage_audit.json`'s `per_class_recall` blocks and asserted in
+`tests/test_reported_numbers.py`. The ordering and the conclusion are
+unchanged.)
 
 **The baseline's own split rule, corrected.** Section 5.1's 0.7718 comes from a
 row-level stratified split of the same 100,000-row slice the model trains on;

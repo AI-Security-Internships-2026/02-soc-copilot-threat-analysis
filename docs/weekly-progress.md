@@ -2210,6 +2210,10 @@ seen and class-balanced to identical distributions:
 - incident never seen: **0.5898** accuracy
 - difference **+0.2433**, 95% CI [+0.2282, +0.2587], and it holds within every class
   (TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615)
+  — *corrected in Week 23: the per-class figures are **+0.4035 / +0.2660 / +0.0605**. The
+  values above match no committed run and were a transcription error; left in place with this
+  note rather than rewritten, per the convention for past entries. The ordering
+  Δ_TP > Δ_FP > Δ_BP and the conclusion are unchanged.*
 
 This supplies the mechanism for Week 16's held-out gap, which was measured but unexplained: the
 train-sampled reference is 55.8% leaked, the held-out sample is 0% leaked. It does **not** touch
