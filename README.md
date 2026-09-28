@@ -92,6 +92,16 @@ calls and checkpoint their progress, so a run can be resumed across invocations
 (`--daily-call-budget N` to pace one). See [`docs/soc-injection-benchmark-datasheet.md`](docs/soc-injection-benchmark-datasheet.md)
 and [`docs/m3-2-detector-family-matrix.md`](docs/m3-2-detector-family-matrix.md) for the results.
 
+To check a re-run reproduced the committed outputs rather than merely producing some:
+
+```bash
+venv/bin/python scripts/benchmark_soc_injection.py --reproduce_only_checksum
+```
+
+It prints the SHA-256 of each output and compares them against the committed certificate at
+`experiments/results/m3_benchmark_checksums.json`, exiting non-zero on any drift. Hashes are taken
+over content with `generated_at_utc`/`git_sha` stripped, so an unchanged re-run matches exactly.
+
 ---
 
 ## Research Problem

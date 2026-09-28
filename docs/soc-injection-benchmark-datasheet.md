@@ -3,7 +3,7 @@
 **Issues #35/#37 (M3.1/M3.3).** Follows the Gebru et al. (2021), "Datasheets
 for Datasets" template.
 
-## Abstract (200 words)
+## Abstract
 
 This benchmark evaluates prompt-injection detectors in a security-operations-centre
 (SOC) alert-triage setting, where an LLM-assisted pipeline reads structured

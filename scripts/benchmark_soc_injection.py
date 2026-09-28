@@ -41,20 +41,58 @@ CHECKSUM_TARGETS = [
 ]
 
 
+# Keys that change on every run regardless of the result. Hashing a file that
+# carries one makes the certificate drift on a no-op re-run, which is exactly
+# the failure it is supposed to detect -- so they are stripped before hashing
+# and the certificate records that it is over normalised content.
+VOLATILE_KEYS = {"generated_at_utc", "git_sha"}
+
+
 def _sha256(path: Path) -> str | None:
     if not path.exists():
         return None
-    digest = hashlib.sha256()
-    digest.update(path.read_bytes())
-    return digest.hexdigest()
+    raw = path.read_bytes()
+    if path.suffix == ".json":
+        payload = json.loads(raw)
+        if isinstance(payload, dict):
+            stripped = {k: v for k, v in payload.items() if k not in VOLATILE_KEYS}
+            raw = json.dumps(stripped, sort_keys=True).encode()
+    return hashlib.sha256(raw).hexdigest()
 
 
-def reproduce_only_checksum() -> None:
-    manifest = {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "files": {str(p): _sha256(p) for p in CHECKSUM_TARGETS},
-    }
-    print(json.dumps(manifest, indent=2))
+CHECKSUM_CERTIFICATE = Path("experiments/results/m3_benchmark_checksums.json")
+
+
+def reproduce_only_checksum() -> int:
+    """Print the SHA-256 of every benchmark output, and check it against the
+    committed certificate (issue #37).
+
+    Printing alone was not a reproducibility check: without a committed
+    reference there was nothing to reproduce *against*. The certificate
+    deliberately carries no timestamp, so re-running on unchanged outputs
+    rewrites it byte-identically and leaves the tree clean -- the same reason
+    m6_1_compliance_audit.py omits one. Returns a process exit code."""
+    observed = {str(p): _sha256(p) for p in CHECKSUM_TARGETS}
+    print(json.dumps({"files": observed}, indent=2))
+
+    if CHECKSUM_CERTIFICATE.exists():
+        expected = json.loads(CHECKSUM_CERTIFICATE.read_text())["files"]
+        drifted = {
+            name: (expected.get(name), digest)
+            for name, digest in observed.items()
+            if expected.get(name) != digest
+        }
+        if drifted:
+            for name, (was, now) in sorted(drifted.items()):
+                print(f"DRIFT {name}\n  committed {was}\n  observed  {now}")
+            print(f"{len(drifted)} of {len(observed)} outputs differ from {CHECKSUM_CERTIFICATE}")
+            return 1
+        print(f"all {len(observed)} outputs match {CHECKSUM_CERTIFICATE}")
+        return 0
+
+    CHECKSUM_CERTIFICATE.write_text(json.dumps({"files": observed}, indent=2) + "\n")
+    print(f"wrote {CHECKSUM_CERTIFICATE} (no certificate existed; commit it as the reference)")
+    return 0
 
 
 def main() -> None:
@@ -70,8 +108,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.reproduce_only_checksum:
-        reproduce_only_checksum()
-        return
+        sys.exit(reproduce_only_checksum())
 
     detectors = sorted(ALL_DETECTORS) if args.detector == "all" else [args.detector]
     learned_to_run = [d for d in detectors if d in LEARNED_DETECTORS]

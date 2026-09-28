@@ -169,6 +169,14 @@ SUPPORTING = {
     "m3_1_interrater_kappa.json": "M3.1 -- Cohen's kappa = 0.8178, per-stratum agreement and "
                                   "the disagreement resolution log; reported in "
                                   "docs/m3-1-kappa-results.md",
+    "m3_2_detector_family_matrix.csv": "M3.2 Part C -- figure-ready detector x family TPR matrix, "
+                                       "wide form (mirrors the rendered table)",
+    "m3_2_detector_family_matrix_long.csv": "M3.2 Part C -- the same matrix in long/tidy form, "
+                                            "one row per cell, for plotting",
+    "m3_2_detector_summary.csv": "M3.2 Part C -- per-detector overall TPR, FPR on controls, "
+                                 "ROC-AUC and coverage",
+    "m3_benchmark_checksums.json": "M3.3 -- committed SHA-256 certificate the "
+                                   "--reproduce_only_checksum flag verifies against (issue #37)",
 }
 
 # Artifacts that a still-open PR introduces. Listed so the cross-check does not

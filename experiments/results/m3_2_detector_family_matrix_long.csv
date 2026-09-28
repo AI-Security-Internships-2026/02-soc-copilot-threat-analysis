@@ -1,0 +1,50 @@
+detector,detector_label,family,tpr,n,detected
+l1,L1 TF-IDF+LogReg,F1,0.0,60,0
+l1,L1 TF-IDF+LogReg,F2,0.0,55,0
+l1,L1 TF-IDF+LogReg,F3,0.0333,60,2
+l1,L1 TF-IDF+LogReg,F4,0.0,55,0
+l1,L1 TF-IDF+LogReg,F5,0.0,50,0
+l1,L1 TF-IDF+LogReg,F6,0.0,60,0
+l1,L1 TF-IDF+LogReg,F7,0.1833,60,11
+l2,L2 Llama Prompt Guard 2,F1,1.0,60,60
+l2,L2 Llama Prompt Guard 2,F2,0.5273,55,29
+l2,L2 Llama Prompt Guard 2,F3,0.0,60,0
+l2,L2 Llama Prompt Guard 2,F4,0.2545,55,14
+l2,L2 Llama Prompt Guard 2,F5,0.22,50,11
+l2,L2 Llama Prompt Guard 2,F6,0.0,60,0
+l2,L2 Llama Prompt Guard 2,F7,0.1833,60,11
+l3,L3 NeMo-style Groq self-check,F1,1.0,60,60
+l3,L3 NeMo-style Groq self-check,F2,0.9818,55,54
+l3,L3 NeMo-style Groq self-check,F3,0.0,60,0
+l3,L3 NeMo-style Groq self-check,F4,1.0,50,50
+l3,L3 NeMo-style Groq self-check,F5,0.48,50,24
+l3,L3 NeMo-style Groq self-check,F6,0.25,60,15
+l3,L3 NeMo-style Groq self-check,F7,0.5,60,30
+h1,H1 regex,F1,0.1833,60,11
+h1,H1 regex,F2,0.0,55,0
+h1,H1 regex,F3,0.0,60,0
+h1,H1 regex,F4,0.0,55,0
+h1,H1 regex,F5,0.0,50,0
+h1,H1 regex,F6,0.0,60,0
+h1,H1 regex,F7,0.0,60,0
+h2,H2 schema,F1,0.15,60,9
+h2,H2 schema,F2,0.1636,55,9
+h2,H2 schema,F3,0.0833,60,5
+h2,H2 schema,F4,0.2,55,11
+h2,H2 schema,F5,0.0,50,0
+h2,H2 schema,F6,0.0,60,0
+h2,H2 schema,F7,0.1333,60,8
+h3,H3 SOC-aware,F1,0.9,60,54
+h3,H3 SOC-aware,F2,1.0,55,55
+h3,H3 SOC-aware,F3,0.9167,60,55
+h3,H3 SOC-aware,F4,0.5636,55,31
+h3,H3 SOC-aware,F5,1.0,50,50
+h3,H3 SOC-aware,F6,1.0,60,60
+h3,H3 SOC-aware,F7,1.0,60,60
+h_union,H-union,F1,1.0,60,60
+h_union,H-union,F2,1.0,55,55
+h_union,H-union,F3,1.0,60,60
+h_union,H-union,F4,0.7636,55,42
+h_union,H-union,F5,1.0,50,50
+h_union,H-union,F6,1.0,60,60
+h_union,H-union,F7,1.0,60,60

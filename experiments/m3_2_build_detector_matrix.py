@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import subprocess
 import sys
@@ -23,6 +24,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 LEARNED_PATH = Path("experiments/results/m3_2_learned_detectors.json")
 HEURISTIC_PATH = Path("experiments/results/m3_2_heuristic_detectors.json")
 OUTPUT_MD = Path("docs/m3-2-detector-family-matrix.md")
+CSV_LONG = Path("experiments/results/m3_2_detector_family_matrix_long.csv")
+CSV_WIDE = Path("experiments/results/m3_2_detector_family_matrix.csv")
+CSV_SUMMARY = Path("experiments/results/m3_2_detector_summary.csv")
 
 FAMILIES = ["F1", "F2", "F3", "F4", "F5", "F6", "F7"]
 DETECTOR_KEYS = ["l1", "l2", "l3", "h1", "h2", "h3", "h_union"]
@@ -69,6 +73,49 @@ def _cell(detector_key: str, family: str, entry: dict | None) -> dict:
             example = misses[0]
             mechanism += f" e.g. {example['benchmark_id']}: {example['text']!r}"
     return {"tpr": tpr, "mechanism": mechanism}
+
+
+def _write_figure_csvs(combined: dict, matrix: dict) -> None:
+    """Figure-ready CSVs for the three matrices in the markdown (issue #36).
+
+    Long form is what a plotting library actually consumes (one row per cell);
+    wide form mirrors the rendered table so a reader can diff the two; summary
+    carries the per-detector headline numbers the table cannot show. Written
+    from the same `matrix` dict the markdown is rendered from, so the CSV and
+    the document cannot disagree."""
+    with open(CSV_LONG, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["detector", "detector_label", "family", "tpr", "n", "detected"])
+        for key in DETECTOR_KEYS:
+            by_family = (combined.get(key) or {}).get("by_family", {})
+            for family in FAMILIES:
+                entry = by_family.get(family) or {}
+                writer.writerow([
+                    key, DETECTOR_LABELS[key], family,
+                    matrix[key][family]["tpr"],
+                    entry.get("n"), entry.get("detected"),
+                ])
+
+    with open(CSV_WIDE, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["detector"] + FAMILIES)
+        for key in DETECTOR_KEYS:
+            writer.writerow([DETECTOR_LABELS[key]] + [matrix[key][f]["tpr"] for f in FAMILIES])
+
+    with open(CSV_SUMMARY, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["detector", "detector_label", "overall_tpr", "fpr_on_bcontrol",
+                         "roc_auc_500row", "n_scored", "complete"])
+        for key in DETECTOR_KEYS:
+            entry = combined.get(key) or {}
+            writer.writerow([
+                key, DETECTOR_LABELS[key],
+                entry.get("overall_tpr"), entry.get("fpr_on_bcontrol"),
+                entry.get("roc_auc_500row"), entry.get("n_scored"),
+                entry.get("complete"),
+            ])
+    for path in (CSV_LONG, CSV_WIDE, CSV_SUMMARY):
+        print(f"saved {path}")
 
 
 def main() -> None:
@@ -142,6 +189,7 @@ def main() -> None:
 
     OUTPUT_MD.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_MD.write_text("\n".join(lines) + "\n")
+    _write_figure_csvs(combined, matrix)
 
     summary = {
         "experiment": "M3.2 Part C -- detector x family failure matrix",

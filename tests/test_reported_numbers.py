@@ -95,8 +95,10 @@ def test_interrater_kappa_matches_what_the_documents_quote():
     assert d["n_disagreements"] == 9
     assert len(d["resolution_log"]) == d["n_disagreements"], "every disagreement is logged"
 
+    # final-report.md is the public in-repo deliverable and must not drift from
+    # the paper, which quotes this figure.
     for doc in ("soc-injection-benchmark-datasheet.md", "m3-1-kappa-results.md",
-                "soc-injection-benchmark-rubric.md"):
+                "soc-injection-benchmark-rubric.md", "final-report.md"):
         assert "0.8178" in (DOCS / doc).read_text(), f"{doc} does not quote the committed κ"
 
 
