@@ -3041,7 +3041,67 @@ None open on #35. Two carried items from Week 22 closed this week:
    target** — that overrun long predates this week's five added lines and is a trim job of its
    own.
 
+### Also closed this week, from an audit of every open issue against the artifacts on disk
+
+Issue titles are not evidence in this repo — six of them start with "MERGED:" and mean nothing,
+and issues are only ever closed by supervisors. So each open issue's acceptance criteria were
+checked against files rather than against its status. Most were substantially done; these were
+the criteria that genuinely were not, and they were cheap:
+
+- **#36** — figure-ready CSVs for the detector × family matrices did not exist. Now emitted from
+  the same in-memory matrix the markdown table renders from, so the two cannot disagree.
+- **#37** — `--reproduce_only_checksum` printed hashes to stdout with nothing committed to compare
+  against, so the flag could not fail. It now verifies against a committed certificate and exits
+  non-zero on drift. That exposed a second bug: one target carries `generated_at_utc`, so a
+  byte-level hash drifted on every no-op re-run — exactly the false alarm the check exists to
+  avoid. Hashes are now over content with the volatile keys stripped.
+- **#37** — the datasheet's abstract heading claimed 200 words over a 169-word abstract. Fixed the
+  heading rather than padding the abstract.
+- **#47** — abstract was 258 words against a stated 150–250 ceiling; trimmed to 241 by compression
+  only, no claim dropped.
+- **#47** — references 26 → **50**, every one verified against a DOI record, programme page or
+  publisher listing before being written down. See `docs/literature-review.md` references 14–37.
+
+### Finding 6: the most useful references were the ones the paper was already relying on
+
+Seven of the 24 additions are methods the manuscript *used* and did not credit: it reported
+Cohen's κ without citing Cohen or the scale it reads "almost perfect" from, ran exact McNemar
+without citing McNemar or Dietterich, quoted percentile-bootstrap intervals without Efron and
+Tibshirani, and applied a Holm–Bonferroni correction that had **no in-text mention at all** —
+it existed only inside `m6_1_effect_sizes.json`. That last one is the one worth flagging: a
+correction nobody can see in the text is, to a reader, a correction that was not made. The
+Limitations section now states it.
+
+### Problems / blockers — what is open, and what each one actually needs
+
+None of these are engineering gaps I can close alone; they are logged so the reason is visible
+rather than inferred from an issue sitting open.
+
+1. **#51 demo video — needs ~15 minutes of your screen time, and is the cheapest open item.**
+   `docs/demo-runbook.md` is a complete, live-verified beat-by-beat script and no recording
+   exists. Two fixes before recording: it plans 3–5 minutes against a 2–3 minute ask (cutting
+   beats 4–5 lands it in range), and its preflight line says "expect 171 passed" when the suite
+   is now 243. Both deadline (18 Sep) and presentation (21 Sep) have passed.
+2. **#40 PART A — needs real human raters.** Cannot be simulated. Worth noting the M3.1 pass just
+   demonstrated the two-rater apparatus end to end, so the workflow is proven; only the people
+   are missing.
+3. **#39 (M4.2) — 0% complete, and deliberately not started.** It needs ~2,000 Groq calls paced
+   over 2–3 quota days; a partial run just recreates the under-coverage it exists to fix. It is
+   P2-optional and the honest limitation is already carried in the paper, so a rushed partial run
+   would be worse than the current state.
+4. **#41 is blocked by merge topology, not by missing work.** The classifier factory, the graph
+   re-wiring and its three integration tests all exist on `asma-week-20-m4-integrity`. That
+   branch is 24 commits behind `dev` and conflicting, which also blocks PR #55 stacked on it.
+   Rebasing PR #50 onto `dev` unblocks both at once.
+5. **#45 — the PowerShell dry-run still has not run.** No `pwsh` on this machine; the bash log is
+   committed and the two scripts are verified structurally identical, but a genuine PowerShell
+   syntax error remains possible. Already stated in `docs/repro_logs/README.md`.
+6. **#36 leftovers that are not mine to decide.** L2/L3 latency needs live quota-metered calls.
+   And the criterion "H2 = 100% TPR on F1/F2 numeric attacks" is measured at 0.15/0.16 — the only
+   1.0 figure is over a narrower AlertTitle subset. That criterion needs re-scoping or retiring by
+   whoever wrote it; quietly redefining it to the figure that passes is the one thing I will not do.
+
 ### Carried forward, still open
 
-Unchanged from Week 22: paper declarations (funding, ORCID, co-authorship), GeNIS/Wazuh Docker
-sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.
+Unchanged from Week 22: paper declarations (funding, ORCID, co-authorship — held per Dr. Rana),
+GeNIS/Wazuh Docker sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.
