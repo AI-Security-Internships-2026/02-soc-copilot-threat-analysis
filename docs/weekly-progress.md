@@ -3012,14 +3012,34 @@ each row *is*. It is not a third independent human opinion, and the rater-accura
 0.90) are accuracy against that key rather than against a consensus panel. Recorded explicitly in
 the memo so nobody later reads those two numbers as a second κ.
 
+### Finding 5: the κ result does more work in the paper than just filling a blank
+
+The three drafts promised the figure rather than giving it ("a two-rater pass … is in progress and
+its Cohen's κ will be reported"). They now carry κ = 0.818 with raw agreement 91/100 — and, more
+usefully, the returned ratings were folded into the *second* benchmark limitation rather than only
+the first. That paragraph already claimed the benign controls and the attack payloads differ in
+surface form and not just in intent; the rating pass measures that claim instead of restating it,
+since the raters agreed on all 50 control rows without exception and every one of their nine
+disagreements fell on an attack row. The paragraph now states plainly what κ = 0.818 does and does
+not certify — unambiguous labels, not a hard corpus. The taxonomy is still flagged as
+single-author, because raters gave the binary call only and a validated binary label must not be
+allowed to imply a validated seven-way family assignment. The availability statement gains the
+interrater artifacts so the figure is traceable like every other number in the paper.
+
+Committed on `overleaf-onto-remote` and pushed to the Overleaf remote (not to origin), since the
+paper tree does not ride on the weekly branches.
+
 ### Problems / blockers
 
-1. **The three paper drafts still say the κ pass is "in progress".** `ijis-draft.tex`,
-   `cs-draft.tex` and `ieee-draft.tex` each carry a sentence promising the figure rather than
-   giving it. They live on `overleaf-onto-remote` in a separate worktree, so the fix cannot ride on
-   this branch's commit and is queued as its own change.
-2. **`elsarticle.cls` is still not installed locally** — unchanged from Week 22, so the Elsevier
-   draft's compilation remains unverified.
+None open on #35. Two carried items from Week 22 closed this week:
+
+1. ~~The κ pass needs two people.~~ Both sheets returned and scored.
+2. ~~`elsarticle.cls` is not installed locally, so the Elsevier draft's compilation is
+   unverified.~~ Resolved a different way: `tectonic` fetches `elsarticle` on demand, and
+   `cs-draft.tex` now compiles end to end (28 pages, no over/underfull boxes in the edited
+   paragraph). Worth noting separately that **28 pages is over the 22-page Computers & Security
+   target** — that overrun long predates this week's five added lines and is a trim job of its
+   own.
 
 ### Carried forward, still open
 
