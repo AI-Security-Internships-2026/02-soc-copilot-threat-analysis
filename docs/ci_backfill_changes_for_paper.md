@@ -42,7 +42,7 @@ No new experiments were run. Every interval below is computed from an already-co
 | `tab18_detector_recall.h_union` | 0.9675 | [0.9451, 0.9826] | 0.0375 | Clopper-Pearson | print as `0.9675 [0.9451, 0.9826]` |
 | `tab18_detector_recall.l1` | 0.0325 | [0.0174, 0.0549] | 0.0375 | Clopper-Pearson | print as `0.0325 [0.0174, 0.0549]` |
 | `tab18_detector_recall.l2` | 0.3125 | [0.2674, 0.3604] | 0.0930 | Clopper-Pearson | print as `0.3125 [0.2674, 0.3604]` |
-| `tab18_detector_recall.l4` | 0.59 | [0.54, 0.6386] | 0.0986 | Clopper-Pearson | print as `0.59 [0.54, 0.6386]` |
+| `tab18_detector_recall.l3` | 0.5899 | [0.5396, 0.6388] | 0.0992 | Clopper-Pearson | print as `0.5899 [0.5396, 0.6388]` |
 
 ## Not backfillable
 

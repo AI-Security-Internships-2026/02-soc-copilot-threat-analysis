@@ -169,10 +169,20 @@ def cells():
                      ("h_union", "m3_2_heuristic_detectors.json"),
                      ("l1", "m3_2_learned_detectors.json"),
                      ("l2", "m3_2_learned_detectors.json"),
-                     ("l4", "m3_2_learned_detectors.json")):
+                     ("l3", "m3_2_learned_detectors.json")):
         node = load(src)[key]
-        k = round(node["overall_tpr"] * 400)
-        det[key] = clopper_pearson(k, 400)
+        # Not every detector reached all 400 attack rows -- L3's live Groq pass
+        # leaves 5 F4 rows on a persistent unparseable response, so its TPR is
+        # over 395. Multiplying the ratio back out by a flat 400 would centre
+        # the interval on a numerator that was never observed.
+        n = node.get("n_attacks_scored", 400)
+        k = node.get("n_attacks_detected", round(node["overall_tpr"] * n))
+        det[key] = clopper_pearson(k, n)  # already records k and n
+        if n != 400:
+            det[key]["note"] = (
+                f"denominator is {n}, not 400: {400 - n} attack row(s) are unscored "
+                "for this detector (see its persistent_errors block)."
+            )
     out["tab18_detector_recall"] = det
 
     # ---- Cells that genuinely cannot be backfilled -------------------------

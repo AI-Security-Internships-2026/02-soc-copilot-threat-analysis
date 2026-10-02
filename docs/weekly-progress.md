@@ -2210,6 +2210,10 @@ seen and class-balanced to identical distributions:
 - incident never seen: **0.5898** accuracy
 - difference **+0.2433**, 95% CI [+0.2282, +0.2587], and it holds within every class
   (TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615)
+  — *corrected in Week 23: the per-class figures are **+0.4035 / +0.2660 / +0.0605**. The
+  values above match no committed run and were a transcription error; left in place with this
+  note rather than rewritten, per the convention for past entries. The ordering
+  Δ_TP > Δ_FP > Δ_BP and the conclusion are unchanged.*
 
 This supplies the mechanism for Week 16's held-out gap, which was measured but unexplained: the
 train-sampled reference is 55.8% leaked, the held-out sample is 0% leaked. It does **not** touch
@@ -2674,3 +2678,467 @@ incident-level effects replicated across multiple seeds), #33 (EVAL_PROTOCOL.md 
 deliberately-deferred grouped retrain), #34 (the seven-classifier suite the paper's Table 1
 needed, with an explicit answer to the LabelEncoder-ordinality question). #32 is the one
 sub-issue left open, on tooling grounds stated above, not measurement grounds.
+
+---
+
+## Week 19 — M3, the SOC-domain injection benchmark and the detectors measured on it (issues #35–#37)
+
+**Branch:** `asma-week-19-m3-benchmark` (based on `asma-week-18-m2-classifiers-leakage`)
+**PR link:** [#49](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/49) — merged into `dev` 2026-09-13.
+
+> Written retrospectively on 2026-09-22 from the commit history, the PR, and the committed result
+> artifacts. It was not written during the week it covers, so it records what the repository shows
+> rather than what was going through my head at the time.
+
+M3's premise is that Week 9's guardrail figures rest on 40 examples written by the same author as
+the regex patterns they score. That is self-consistency, not generalisation, and it was the
+weakest evidence in the project. The whole of M3 exists to replace it with something an outside
+reader can check.
+
+### Completed this week
+
+- [x] M3.1 (#35): `experiments/m3_1_generate_benchmark.py` and
+      `datasets/soc_injection_benchmark_v1.csv` — 400 attack payloads across seven families
+      (F1 60 / F2 55 / F3 60 / F4 55 / F5 50 / F6 60 / F7 60) plus 100 real `BenignPositive`
+      GUIDE alerts as controls, 500 rows, taxonomy fixed before any detector ran
+- [x] M3.1: the controls are reservoir-sampled unique-incident rows scored with the deployed
+      classifier and taken from the top of the entropy ranking — the genuinely ambiguous alerts,
+      not easy ones
+- [x] M3.1: `datasets/soc_injection_benchmark_v1_RUBRIC.md`, the blinded 100-row worksheet, its
+      undistributed answer key, and `experiments/m3_1_interrater_kappa.py`
+- [x] M3.2 (#36): four learned detectors (L1 TF-IDF+LogReg, L2 Llama Prompt Guard 2, L3 OpenAI
+      Moderation, L4 NeMo-style Groq self-check) and four heuristic ones (H1 regex, H2 schema,
+      H3 SOC-aware, H-union), plus the detector × family failure matrix
+- [x] M3.2: `src/agent/soc_aware_guardrail.py` and `src/agent/nemo_style_guardrail.py`
+- [x] M3.3 (#37): the Gebru-style datasheet, `scripts/benchmark_soc_injection.py` as the one-click
+      reproduction entry point, and the regression tests
+- [x] Two substitutions disclosed rather than made silently: L2's LlamaGuard3 is decommissioned on
+      Groq, so Meta's purpose-built prompt-injection classifier stands in; L4 is a lightweight
+      equivalent of a NeMo topical+input rail rather than the `nemoguardrails` package, with the
+      reasoning written up in a decision memo before implementation
+
+### Finding 1: the deployed regex filter is worse than the self-authored corpus suggested
+
+2.75% recall on this benchmark against 5% on the 40-example corpus — the expected direction once
+the corpus stops being written by the same hand as the patterns.
+
+### Finding 2: general-purpose learned detectors lose to a domain-specific heuristic
+
+A purpose-built 86M injection classifier reaches 31.25%; the SOC-aware heuristic reaches 91.25% at
+no false positives, and the union of the three heuristics 96.75%. The TF-IDF baseline is both the
+weakest detector and the only one that fires on real alerts (10% FPR) — generic chat-jailbreak
+vocabulary does not transfer to alert-field payloads.
+
+### Finding 3: the failures are structured by family, not uniform
+
+F3 (passive/buried) defeats both learned LLM-based detectors completely, because the payload reads
+as an ordinary analyst note. F4 (encoded) is the only family the heuristic union fails to close,
+at 76%.
+
+None of this changes the architectural conclusion — since Week 15 the LLM assigns no verdicts, so
+a successful injection degrades an explanation and not an outcome. It quantifies how much residual
+risk a detector-only design would have carried.
+
+### Problems / blockers
+
+1. **L3 was never run** — no `OPENAI_API_KEY` existed in this environment. Reported as blocked
+   rather than as a zero. (Resolved in Week 22: removed from scope on the supervisor's
+   instruction, issue #36.)
+2. **Cohen's κ needs two people.** The worksheet and scoring script were both committed; the
+   rating passes were not done, and the datasheet says so rather than carrying a placeholder.
+   (Resolved in Week 23: both sheets returned, κ = 0.8178.)
+
+---
+
+## Week 21 — the demo, M5 operational trade-offs, and M6 reproducibility (issues #42–#46)
+
+**Branch:** `asma-week-21-demo`, then `asma-week-21-m5-m6`
+**PR links:** [#52](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/52) and [#53](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/53) — both merged into `dev`.
+
+> Written retrospectively on 2026-09-22, same caveat as Week 19.
+>
+> Week 20 (M4, issues #38/#40/#41) has its own entry, but it lives on the
+> `asma-week-20-m4-integrity` branch behind PR #50, which is still a draft. It will appear in this
+> log in order when that PR merges; it is not duplicated here.
+
+Two distinct pieces of work. The demo for the CNIT professor (#51), and then M5 and M6 — the
+operational trade-offs and the reproducibility apparatus the manuscript needs.
+
+### Completed this week
+
+- [x] Demo (#51): built around the leakage result rather than the accuracy number, with
+      `docs/demo-runbook.md`; fixed the demo form values, which had not actually been tripping the
+      review gate they were meant to illustrate
+- [x] `tests/test_reported_numbers.py` — the final report's numbers now fail a test if they drift
+      from the artifacts they came from
+- [x] M5.1 PART A (#42): the three missing ablation configurations at full scale, n=15,000
+- [x] M5.1 PART B: the HITL burden sweep on the held-out 15,000
+- [x] M5.2 PART A (#43): Wazuh Tier-1 schema transfer, n=10,000 synthetic alerts
+- [x] M5.2 PART B: per-stage latency, throughput and API cost
+- [x] M6.1 (#44): `PAPER_FIGURE_MANIFEST.md`, `docs/data_availability.md`, and the statistical
+      compliance audit
+- [x] M6.2 (#45): the one-click reproduction runner, bash and PowerShell
+- [x] M6.3 (#46): bootstrap CI backfill and the paper-claims regression suite
+- [x] Issues #30, #31, #32 follow-ups: the 0.20 operating threshold justified in the paper, the
+      overlap-correlation null explained without tuning it, and the external delta gap tested
+      against a task-formulation hypothesis
+- [x] Five new references recorded in the literature review
+- [x] Fixed the test suite rewriting the manifest it was supposed to be checking
+
+### Finding 1: the ablations move nothing, and that is the result
+
+`full`, `nomitre` and `noguardrails` all score accuracy 0.6998 and macro F1 0.6949 on the same
+15,000 held-out rows, to four decimal places. MITRE enrichment and the guardrail layer are not
+carrying the classifier's accuracy — they were never supposed to, and now that is measured rather
+than assumed. What differs is latency: p95 goes 22.2 ms → 37.5 ms without the MITRE cache.
+
+### Finding 2: the review gate's operating point is a burden decision, not an accuracy decision
+
+At T=0.12, 89.19% of alerts auto-accept at 0.7302 accuracy and 10.81% escalate. Assuming a human
+reviewer at 0.95, projected total accuracy is 0.754 against 0.6998 with no gate. The gain comes
+from routing, not from the model getting better.
+
+### Finding 3: the router is where the cost is
+
+Routing only 20.92% of alerts to the LLM drops the daily cost at 10,000 alerts/day from $0.77 to
+$0.16 — a 4.78× reduction. The fast path runs at 56.5 alerts/s; the routed path at 0.562, of
+which 99.0% is the LLM call. The architecture's cost profile is entirely a function of how much
+traffic reaches the LLM.
+
+### Finding 4: Wazuh transfer is a schema result, and is labelled as one
+
+Verdict agreement between native and round-tripped encodings of the same alert is 0.9637
+[0.9598, 0.9673] over n=10,000, with schema-guardrail pass and pipeline completion both at 1.0.
+This is agreement between two encodings of one alert — not accuracy on anything, and not evidence
+the pipeline works on real Wazuh traffic. Tier-1 is synthetic by construction and the artifact
+says so in its own field names.
+
+### Problems / blockers
+
+1. **PR #50 (Week 20, M4) is still a draft**, so M4's work is not on `dev` and several tests skip
+   on branches that predate it.
+2. **The reproduction runner was never executed end to end.** Both this week's deliverable and its
+   defects surfaced only in Week 22 — see that entry's Finding 4.
+
+---
+
+## Week 22 — the κ rating pass made distributable, and L3 removed from scope (issues #35, #36)
+
+**Branch:** `asma-week-22-m3-followup` (based on `dev`, which now carries M2/M3/M5/M6)
+**PR link:** pending.
+
+Two supervisor instructions from 21 September drive this week, both on M3.
+
+On **#35**, the request was concrete: prepare two identical blinded rating sheets plus a short
+annotation rubric, for distribution to two independent raters, with ground truth, attack/control
+status, and the other rater's responses all withheld. On **#36**, L3 (OpenAI Moderation) is to be
+removed from the experimental scope entirely — not reported as N/A — with L4 renumbered to L3 and
+every table, figure, and claim updated to match. The CNIT server that would have hosted a local
+LLM for it is unavailable, so the question of running it locally is closed.
+
+### Completed this week
+
+- [x] #35: `experiments/m3_1_build_rating_worksheet.py` now emits
+      `m3_1_rating_sheet_raterA.csv` and `…raterB.csv` — the same 100 items in the same order,
+      differing only in a pre-filled `rater` column so a returned file is self-identifying
+- [x] #35: `docs/m3-1-rater-instructions.md`, the distributable rater packet — definitions and
+      edge cases, minus the 50/50 class balance, the family labels, and every internal path
+- [x] #35: `experiments/m3_1_interrater_kappa.py` now reports the disagreement count and the
+      disagreement distribution across benign/F1–F7, alongside raw agreement and κ
+- [x] #35: `tests/test_m3_1_rating_sheets.py` — asserts the blinding holds on every build
+- [x] #36: removed the OpenAI Moderation detector and its `--include-api` path; renumbered L4 → L3
+      across module, results key, checkpoint path, decision memo, matrix, datasheet, final report,
+      README, figure manifest, and all three paper drafts
+- [x] #36: corrected three things the sweep turned up that were wrong independently of the rename
+      (below)
+- [x] Full suite green: 235 passed, 6 skipped
+
+### Finding 1: the κ subset has a ceiling, and it needs saying before the raters spend their time
+
+Every one of the 100 benign controls is an `AlertTitle` row whose value is a bare GUIDE integer
+code; every attack row carries natural language. "Contains prose" separates the two classes almost
+perfectly, without reading a word of the prose. Two consequences.
+
+For the rating pass: a high pooled κ will confirm the labels are unambiguous to independent
+readers, and will *not* show the rubric discriminates on hard cases. The F3 (passive/buried) rows
+are where the rubric is actually tested, which is why the per-family disagreement breakdown is now
+reported next to the pooled number rather than folded into it.
+
+For the detector table: the 0% false-positive rates are a floor measured against benign inputs no
+realistic detector would flag, not a representative estimate.
+
+Closing this needs benign controls that are themselves legitimate free-text analyst prose — a v1.1
+change to the generator. Not applied retroactively: changing the corpus after M3.2's results are
+reported against it would invalidate that comparison. Recorded as bias 5 in the datasheet, in the
+rubric's methodology section, and as a stated limitation in all three paper drafts.
+
+The field name is withheld from the sheets for the same class of reason: every benign control
+targets `AlertTitle` and only attack rows carry `ALL`, so showing it would have handed over 13 of
+the 50 sampled attack rows outright.
+
+### Finding 2: the datasheet's L4 row had gone stale against its own JSON
+
+It reported 321/500 coverage, 0.8265 AUC, 65.29% TPR. The run has since reached 495/500 and the
+real figures are 0.7949 and 58.99%. The five rows that remain unscored — `F4_004`, `F4_026`,
+`F4_030`, `F4_040`, `F4_053`, all encoded payloads — are not a quota cap. They return an empty,
+unparseable response reproducibly, across separate invocations and after the rate limit that
+briefly affected one of them had cleared. More budget will not finish them, and the datasheet now
+says so instead of implying a resume command would.
+
+### Finding 3: the CI backfill was centring an interval on a numerator never observed
+
+`m6_3_bootstrap_ci_backfill.py` rebuilt every detector's success count as `round(tpr * 400)`. For
+the one detector that did not reach all 400 attack rows that gives 236/400 — a count nothing
+measured. The runner now records `n_attacks_scored` and `n_attacks_detected` at the point of
+scoring, and the backfill uses them: 233/395. A regression test asserts the recall and its
+interval share a denominator.
+
+### Finding 4: both one-click reproduction runners were broken
+
+`scripts/reproduce_all.{sh,ps1}` would have died at M3.2 either way. Without `--include-api` they
+ran every learned detector including the two that need a live Groq key; with it they passed
+`--include-api` down to a script whose flag this week deletes. The offline branch now runs L1 only.
+The same scripts also invoked the κ script with no rater files, which exits non-zero by design — it
+refuses to manufacture a number from one rater — so the whole run aborted there. That step is now
+skipped until both completed sheets exist, and the sheet builder was added as a step of its own.
+
+This is issue #45's deliverable, and it had never been run end to end.
+
+### Problems / blockers
+
+1. **The κ pass still needs two people.** The sheets and the packet are ready to distribute;
+   nothing further can happen on #35 until both completed sheets come back. (Resolved in
+   Week 23: both sheets came back and were scored, κ = 0.8178.)
+2. **`elsarticle.cls` is not installed locally**, so the Elsevier draft's compilation could not be
+   verified after this week's edits. They are table-row and prose changes only.
+3. **Week 19 and Week 21 had no log entry.** Both are backfilled above, written from the commit
+   history and the committed artifacts and marked as retrospective. Week 20's entry exists but
+   sits on the `asma-week-20-m4-integrity` branch behind draft PR #50, so it lands when that PR
+   merges rather than being duplicated here.
+
+### Carried forward, still open
+
+Unchanged from Week 18 except where noted: paper declarations (funding, ORCID, co-authorship),
+GeNIS/Wazuh Docker sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.
+
+---
+
+## Week 23 — the κ pass came back, and the ceiling it was warned about is real (issue #35)
+
+**Branch:** `asma-week-22-m3-followup` (the same branch as Week 22, on Hafiz Mati Ur Rehman's
+instruction to keep the rating sheets and the analysis in one PR)
+**PR link:** [#54](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/54).
+
+Both raters returned their sheets. That closes the last open acceptance criterion on issue #35:
+inter-rater Cohen's κ on the blinded 100-row subset is **0.8178**, above the 0.75 target. The
+sheets are committed verbatim, the scored figures are committed, and the report with the
+disagreement resolution log the issue asks for is in `docs/m3-1-kappa-results.md`.
+
+### Completed this week
+
+- [x] #35: both returned sheets committed as `experiments/results/m3_1_rating_sheet_raterA_completed.csv`
+      and `…raterB_completed.csv`, unedited — the rubric commits to never editing a returned rating
+- [x] #35: κ scored at **0.8178** (raw agreement 91/100, 9 disagreements, *p*ₑ = 0.506);
+      rater accuracy against the construction key 0.97 (A) and 0.90 (B)
+- [x] #35: `experiments/m3_1_interrater_kappa.py` now also reports per-stratum agreement
+      (attack-only vs benign-only, with chance agreement) and emits the 9-row disagreement
+      resolution log, so the report is a function of the artifact rather than hand-written
+- [x] #35: `docs/m3-1-kappa-results.md` — the interrater report and the 100-subset resolution log
+      required by the issue's task 6
+- [x] #35: every "pending κ" claim replaced with the real figure — the datasheet (§4 and §8) and
+      both copies of the rubric (`docs/soc-injection-benchmark-rubric.md` and
+      `datasets/soc_injection_benchmark_v1_RUBRIC.md`, which are byte-identical and were edited
+      together)
+- [x] #35: the scorer now refuses swapped `--rater-a`/`--rater-b` files by checking the pre-filled
+      `rater` column, which is what that column was added for
+- [x] #35: three new tests — κ and the ceiling asserted against the committed JSON in
+      `tests/test_reported_numbers.py`, and the returned-spreadsheet paths (capitalised verdicts,
+      junk verdicts, swapped files) in `tests/test_m3_1_rating_sheets.py`
+- [x] #44: the three new artifacts registered in `experiments/m6_1_build_manifest.py` and the
+      manifest regenerated — the completeness cross-check caught the hand-edit that skipped this
+
+### Finding 1: the gate is met, on the metric that was pre-registered
+
+κ = 0.8178 against a target of 0.75. Because the pass cleared the threshold, the rubric's
+below-threshold protocol — review the disputed rows together, sharpen any rule the disagreement
+traces to, re-label only those rows — was not triggered. No returned rating was edited, and the
+pass was not re-run to move the number. Worth stating plainly, since the protocol exists precisely
+so that a failed pass could not be quietly retried.
+
+### Finding 2: the ceiling written down in Week 22 is confirmed, not dispelled
+
+Week 22's Finding 1 predicted, before the raters were sent anything, that a high pooled κ would
+confirm the labels are unambiguous and would *not* show the rubric discriminates on hard cases,
+because all 50 benign rows in the subset are bare numeric GUIDE field codes and all 50 attack rows
+are natural language. Splitting the strata checks it:
+
+| Stratum | n | Raw agreement | *p*ₑ | κ |
+|---|---|---|---|---|
+| Pooled | 100 | 0.9100 | 0.5060 | 0.8178 |
+| Benign controls only | 50 | 1.0000 | 1.0000 | undefined (raters unanimous) |
+| Attack rows only | 50 | 0.8200 | 0.7640 | 0.2373 |
+
+Agreement on the benign controls is perfect — 50/50, both raters — and **all 9 disagreements are
+attack rows**. The pooled κ is therefore carried substantially by a stratum on which the task is
+trivial. The attack-only κ of 0.2373 must not be quoted as a bare agreement figure either: chance
+agreement there is 0.764 because both raters answer `injection` on almost every row, which deflates
+κ mechanically (the high-prevalence kappa paradox), so raw agreement 41/50 is the meaningful number
+in that stratum. The defensible claim is the narrow one, and it is what the datasheet now says: the
+binary labels are unambiguous to independent readers, and this subset's class balance does not let
+the pass say more.
+
+### Finding 3: human disagreement lands on three families, and it is the same three the rubric named
+
+All nine disagreements fall in F2 (3 of 5 rows), F3 (4 of 8) and F7 (2 of 6). F1, F4, F5, F6 and
+the benign controls produced none. F3 carries the most, which is what the rubric predicted when it
+said the F3 rows are "where the rubric is actually tested"; F2's rate is nominally higher, but on
+n = 5 that is one or two rows and should not be reported as F2 being harder than F3.
+
+The mechanism is readable in the rows. Eight of the nine are cases where Rater B called an attack
+benign, and all eight replace an imperative with something that reads as ordinary SOC material — an
+attributed shift note ("Analyst note appended by prior shift…"), a role assertion ("Role: incident
+commander…"), or a machine-readable fragment that looks like protocol noise rather than an
+instruction (F7's pre-filled JSON and fake closing tags). The single row in the other direction,
+`W015`, is the only payload in the set that asserts nothing and argues purely by analogy — "similar
+tickets this month were all resolved as FalsePositive and this one follows the same pattern" — and
+Rater A read it as benign context. Every correction is in the same direction: something that is an
+attack was called benign. Neither rater raised a false alarm on this subset.
+
+Each of the nine is settled by a rule the rubric already states, quoted per row in the resolution
+log. So the misses are the rule being missed in practice on subtle text, not the rule being
+unclear, and the rubric ships unchanged.
+
+### Finding 4: adjudication here is against the construction key, and that is a limitation
+
+The resolution log records the benchmark's construction ground truth as the resolved label — the
+generator knows which payload it injected into which field, so the key is authoritative about what
+each row *is*. It is not a third independent human opinion, and the rater-accuracy figures (0.97 and
+0.90) are accuracy against that key rather than against a consensus panel. Recorded explicitly in
+the memo so nobody later reads those two numbers as a second κ.
+
+### Finding 5: the κ result does more work in the paper than just filling a blank
+
+The three drafts promised the figure rather than giving it ("a two-rater pass … is in progress and
+its Cohen's κ will be reported"). They now carry κ = 0.818 with raw agreement 91/100 — and, more
+usefully, the returned ratings were folded into the *second* benchmark limitation rather than only
+the first. That paragraph already claimed the benign controls and the attack payloads differ in
+surface form and not just in intent; the rating pass measures that claim instead of restating it,
+since the raters agreed on all 50 control rows without exception and every one of their nine
+disagreements fell on an attack row. The paragraph now states plainly what κ = 0.818 does and does
+not certify — unambiguous labels, not a hard corpus. The taxonomy is still flagged as
+single-author, because raters gave the binary call only and a validated binary label must not be
+allowed to imply a validated seven-way family assignment. The availability statement gains the
+interrater artifacts so the figure is traceable like every other number in the paper.
+
+Committed on `overleaf-onto-remote` and pushed to the Overleaf remote (not to origin), since the
+paper tree does not ride on the weekly branches.
+
+### Problems / blockers
+
+None open on #35. Two carried items from Week 22 closed this week:
+
+1. ~~The κ pass needs two people.~~ Both sheets returned and scored.
+2. ~~`elsarticle.cls` is not installed locally, so the Elsevier draft's compilation is
+   unverified.~~ Resolved a different way: `tectonic` fetches `elsarticle` on demand, and
+   `cs-draft.tex` now compiles end to end (28 pages, no over/underfull boxes in the edited
+   paragraph). Worth noting separately that **28 pages is over the 22-page Computers & Security
+   target** — that overrun long predates this week's five added lines and is a trim job of its
+   own.
+
+### Also closed this week, from an audit of every open issue against the artifacts on disk
+
+Issue titles are not evidence in this repo — six of them start with "MERGED:" and mean nothing,
+and issues are only ever closed by supervisors. So each open issue's acceptance criteria were
+checked against files rather than against its status. Most were substantially done; these were
+the criteria that genuinely were not, and they were cheap:
+
+- **#36** — figure-ready CSVs for the detector × family matrices did not exist. Now emitted from
+  the same in-memory matrix the markdown table renders from, so the two cannot disagree.
+- **#37** — `--reproduce_only_checksum` printed hashes to stdout with nothing committed to compare
+  against, so the flag could not fail. It now verifies against a committed certificate and exits
+  non-zero on drift. That exposed a second bug: one target carries `generated_at_utc`, so a
+  byte-level hash drifted on every no-op re-run — exactly the false alarm the check exists to
+  avoid. Hashes are now over content with the volatile keys stripped.
+- **#37** — the datasheet's abstract heading claimed 200 words over a 169-word abstract. Fixed the
+  heading rather than padding the abstract.
+- **#47** — abstract was 258 words against a stated 150–250 ceiling; trimmed to 241 by compression
+  only, no claim dropped.
+- **#47** — references 26 → **50**, every one verified against a DOI record, programme page or
+  publisher listing before being written down. See `docs/literature-review.md` references 14–37.
+
+### Finding 6: the most useful references were the ones the paper was already relying on
+
+Seven of the 24 additions are methods the manuscript *used* and did not credit: it reported
+Cohen's κ without citing Cohen or the scale it reads "almost perfect" from, ran exact McNemar
+without citing McNemar or Dietterich, quoted percentile-bootstrap intervals without Efron and
+Tibshirani, and applied a Holm–Bonferroni correction that had **no in-text mention at all** —
+it existed only inside `m6_1_effect_sizes.json`. That last one is the one worth flagging: a
+correction nobody can see in the text is, to a reader, a correction that was not made. The
+Limitations section now states it.
+
+### Finding 7: an audit of every figure against its artifact found three that no run produces
+
+Every four-decimal figure in the manuscript body — 183 of them — was checked numerically against
+every committed JSON and CSV under `experiments/results/`. All but a handful traced. The ones that
+did not were the interesting part.
+
+**Three were wrong.** The leakage section stated the advantage holds within every class at
+TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615. Computed from
+`incident_leakage_audit.json`'s two `per_class_recall` blocks, the deltas are **+0.4035, +0.2660,
++0.0605**. The three-seed replication agrees per seed, and no averaging of those seeds produces
+the stated values either. They appeared twice each in the manuscript and once in
+`docs/final-report.md`.
+
+Two things about that worth stating rather than glossing. The error is **not in a flattering
+direction** — TruePositive was overstated by 0.0010 while FalsePositive was understated by 0.0025,
+which is the signature of a transcription slip, not a thumb on the scale. And **the claim
+survives**: the advantage still holds within every class, and the ordering the argument actually
+rests on, Δ_TP > Δ_FP > Δ_BP, is unchanged. This is an accuracy fix, not a finding reversal.
+
+The reason it lasted this long is structural and worth fixing rather than just patching: these
+deltas are *derived* (leaked recall minus clean recall), not stored, so no artifact ever held the
+wrong value to contradict. `tests/test_reported_numbers.py` now computes them from the artifact
+and asserts both the three figures and the ordering.
+
+**The rest traced, including two that only looked untraceable.** A1's Triage-ASR of 0.1071 is
+real but lives in `m4_1_asr_8configs.json` on PR #50's branch, not here. The demo runbook's three
+margins are computed live from `baseline_model.joblib` rather than read from a JSON — all three
+verified exact and now pinned, because a presenter reads those numbers off the script while the
+screen shows the model's actual output.
+
+The Week 18 entry keeps its original figures with a correction note appended rather than being
+rewritten, following the convention used for the other corrections to past entries.
+
+### Problems / blockers — what is open, and what each one actually needs
+
+None of these are engineering gaps I can close alone; they are logged so the reason is visible
+rather than inferred from an issue sitting open.
+
+1. **#51 demo video — needs ~15 minutes of your screen time, and is the cheapest open item.**
+   `docs/demo-runbook.md` is a complete, live-verified beat-by-beat script and no recording
+   exists. Two fixes before recording: it plans 3–5 minutes against a 2–3 minute ask (cutting
+   beats 4–5 lands it in range), and its preflight line says "expect 171 passed" when the suite
+   is now 243. Both deadline (18 Sep) and presentation (21 Sep) have passed.
+2. **#40 PART A — needs real human raters.** Cannot be simulated. Worth noting the M3.1 pass just
+   demonstrated the two-rater apparatus end to end, so the workflow is proven; only the people
+   are missing.
+3. **#39 (M4.2) — 0% complete, and deliberately not started.** It needs ~2,000 Groq calls paced
+   over 2–3 quota days; a partial run just recreates the under-coverage it exists to fix. It is
+   P2-optional and the honest limitation is already carried in the paper, so a rushed partial run
+   would be worse than the current state.
+4. **#41 is blocked by merge topology, not by missing work.** The classifier factory, the graph
+   re-wiring and its three integration tests all exist on `asma-week-20-m4-integrity`. That
+   branch is 24 commits behind `dev` and conflicting, which also blocks PR #55 stacked on it.
+   Rebasing PR #50 onto `dev` unblocks both at once.
+5. **#45 — the PowerShell dry-run still has not run.** No `pwsh` on this machine; the bash log is
+   committed and the two scripts are verified structurally identical, but a genuine PowerShell
+   syntax error remains possible. Already stated in `docs/repro_logs/README.md`.
+6. **#36 leftovers that are not mine to decide.** L2/L3 latency needs live quota-metered calls.
+   And the criterion "H2 = 100% TPR on F1/F2 numeric attacks" is measured at 0.15/0.16 — the only
+   1.0 figure is over a narrower AlertTitle subset. That criterion needs re-scoping or retiring by
+   whoever wrote it; quietly redefining it to the figure that passes is the one thing I will not do.
+
+### Carried forward, still open
+
+Unchanged from Week 22: paper declarations (funding, ORCID, co-authorship — held per Dr. Rana),
+GeNIS/Wazuh Docker sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.

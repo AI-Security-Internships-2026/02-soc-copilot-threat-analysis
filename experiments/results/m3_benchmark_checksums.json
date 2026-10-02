@@ -1,0 +1,8 @@
+{
+  "files": {
+    "experiments/results/m3_2_learned_detectors.json": "f406021a75c79af6d9e7a1e1ca1dcf80b9deb22d02bae1dfe4221b1dfb605450",
+    "experiments/results/m3_2_heuristic_detectors.json": "4940c31e44ee9ac2448d12dc30e5a739df5dbdca9667a5b5662b0dc994e45b1e",
+    "docs/m3-2-detector-family-matrix.md": "cb27c85bc3f61e0143eba384f06c4312548c299da17abfc1d0aa58a7b899247f",
+    "experiments/results/m3_2_familywise_failure_analysis.json": "07568f39a972a451cf3596265b593ba4d8eb2c95739475af92fb37d5d3c520aa"
+  }
+}

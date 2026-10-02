@@ -87,6 +87,92 @@ def test_injection_benchmark_composition():
     assert fam["BCONTROL"] == 100
 
 
+def test_demo_runbook_margins_still_hold_against_the_live_model():
+    """The runbook tells a presenter exactly what the screen will show. These
+    three margins are computed live from baseline_model.joblib, so nothing else
+    in the suite would notice if the model or the feature pipeline moved and the
+    demo started contradicting its own script in front of an audience."""
+    from src.agent.fallback_classifier import predict_with_margin
+
+    form_six = {
+        "AlertTitle": "15723", "DetectorId": "7", "Category": "CredentialAccess",
+        "MitreTechniques": "T1110;T1110.003", "SuspicionLevel": "Suspicious",
+        "LastVerdict": "Suspicious",
+    }
+    label, _, margin = predict_with_margin(form_six)
+    assert label == "BenignPositive"
+    assert round(margin, 4) == 0.1067, "Beat 2's headline margin moved"
+    assert margin < 0.20, "the runbook narrates this alert as held for review"
+
+    # The runbook warns these two score differently on purpose: the CLI scenario
+    # also sets Hour/DayOfWeek, which the form does not collect. If they ever
+    # coincide, that warning becomes misleading rather than merely unnecessary.
+    evidenced = dict(form_six, Category="Collection", MitreTechniques="T1078;T1078.004")
+    _, _, form_margin = predict_with_margin(evidenced)
+    _, _, cli_margin = predict_with_margin(dict(evidenced, Hour=2, DayOfWeek=0))
+    assert round(form_margin, 4) == 0.2056 and form_margin >= 0.20
+    assert round(cli_margin, 4) == 0.0986 and cli_margin < 0.20
+
+    text = (DOCS / "demo-runbook.md").read_text()
+    for value in ("0.1067", "0.2056", "0.0986"):
+        assert value in text, f"demo-runbook.md no longer quotes {value}"
+
+
+def test_per_class_leakage_deltas_are_derived_from_the_artifact_not_transcribed():
+    """The per-class leakage deltas are computed, not stored, which is how three
+    of them drifted: the documents quoted +0.4045/+0.2635/+0.0615 for a year and
+    no committed run produces those. Derive them here so a transcription error
+    cannot survive again."""
+    audit = load("incident_leakage_audit.json")
+    blocks = re.findall(r'"per_class_recall":\s*(\{[^}]*\})', json.dumps(audit))
+    assert len(blocks) == 2, "expected a leaked block and a clean block"
+    leaked, clean = (json.loads(b) for b in blocks)
+    deltas = {k: round(leaked[k] - clean[k], 4) for k in leaked}
+
+    assert deltas == {
+        "TruePositive": 0.4035,
+        "FalsePositive": 0.2660,
+        "BenignPositive": 0.0605,
+    }, deltas
+    # ...and the ordering the claim actually rests on
+    assert deltas["TruePositive"] > deltas["FalsePositive"] > deltas["BenignPositive"]
+
+    text = (DOCS / "final-report.md").read_text()
+    for value in ("+0.4035", "+0.2660", "+0.0605"):
+        assert value in text, f"final-report.md does not quote the measured {value}"
+
+
+def test_interrater_kappa_matches_what_the_documents_quote():
+    """The κ the datasheet, the rubric and the report all state (issue #35)."""
+    d = load("m3_1_interrater_kappa.json")
+    assert round(d["cohen_kappa"], 4) == 0.8178
+    assert d["meets_target"] is True
+    assert d["n_disagreements"] == 9
+    assert len(d["resolution_log"]) == d["n_disagreements"], "every disagreement is logged"
+
+    # final-report.md is the public in-repo deliverable and must not drift from
+    # the paper, which quotes this figure.
+    for doc in ("soc-injection-benchmark-datasheet.md", "m3-1-kappa-results.md",
+                "soc-injection-benchmark-rubric.md", "final-report.md"):
+        assert "0.8178" in (DOCS / doc).read_text(), f"{doc} does not quote the committed κ"
+
+
+def test_kappa_ceiling_holds_the_pooled_number_up():
+    """The ceiling the datasheet and rubric state: the benign controls are
+    separable on surface form, so the pooled κ says nothing about hard cases.
+    This fails the moment a rating pass makes that claim untrue."""
+    d = load("m3_1_interrater_kappa.json")
+    assert d["disagreement_distribution"]["BCONTROL"]["n_disagreements"] == 0
+    assert d["agreement_by_stratum"]["benign"]["raw_agreement"] == 1.0
+    # ...so every disagreement is an attack row, which is what makes the
+    # pooled figure uninformative about detector-relevant difficulty.
+    assert d["agreement_by_stratum"]["injection"]["raw_agreement"] < 1.0
+    assert (
+        sum(b["n_disagreements"] for b in d["disagreement_distribution"].values())
+        == d["n_disagreements"]
+    )
+
+
 @pytest.mark.parametrize(
     "key, tpr, source",
     [
@@ -96,17 +182,34 @@ def test_injection_benchmark_composition():
         ("h_union", 0.9675, "m3_2_heuristic_detectors.json"),
         ("l1", 0.0325, "m3_2_learned_detectors.json"),
         ("l2", 0.3125, "m3_2_learned_detectors.json"),
-        ("l4", 0.5899, "m3_2_learned_detectors.json"),
+        ("l3", 0.5899, "m3_2_learned_detectors.json"),
     ],
 )
 def test_detector_recalls_match_the_reported_table(key, tpr, source):
     assert round(load(source)[key]["overall_tpr"], 4) == tpr
 
 
-def test_l3_is_reported_as_not_run_never_as_zero():
+def test_only_detectors_that_were_actually_run_are_reported():
+    """Issue #36: the OpenAI Moderation detector is out of scope, not pending.
+    A blank row is the failure mode this guards -- a reader treats "not run" in
+    a results table as a measurement of something."""
+    learned = load("m3_2_learned_detectors.json")
+    detectors = {k: v for k, v in learned.items() if k.startswith("l")}
+    assert set(detectors) == {"l1", "l2", "l3"}
+    for key, node in detectors.items():
+        assert node.get("overall_tpr") is not None, f"{key} is reported without a score"
+        assert "moderation" not in node["detector"].lower()
+
+
+def test_partial_detector_recall_is_over_the_rows_it_actually_scored():
+    """L3's five unscorable F4 rows must not be silently credited or debited --
+    its recall denominator is 395, and the reported CI has to use the same one."""
     l3 = load("m3_2_learned_detectors.json")["l3"]
-    assert l3["status"] == "blocked"
-    assert "overall_tpr" not in l3, "a blocked detector must not carry a score"
+    assert l3["n_attacks_scored"] == 400 - len(l3["persistent_errors"]) == 395
+    assert round(l3["n_attacks_detected"] / l3["n_attacks_scored"], 4) == l3["overall_tpr"]
+
+    ci = load("m6_3_ci_backfill.json")["tab18_detector_recall"]["l3"]
+    assert (ci["k"], ci["n"]) == (l3["n_attacks_detected"], l3["n_attacks_scored"])
 
 
 def test_paired_control_numbers():

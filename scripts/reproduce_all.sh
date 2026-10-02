@@ -7,7 +7,7 @@
 #
 #   ./scripts/reproduce_all.sh                 # offline-reproducible set
 #   ./scripts/reproduce_all.sh --dry-run       # print the plan, run nothing
-#   ./scripts/reproduce_all.sh --include-api   # + detectors needing OpenAI/Groq
+#   ./scripts/reproduce_all.sh --include-api   # + detectors needing a live Groq key
 #   ./scripts/reproduce_all.sh --include-kaggle
 #   ./scripts/reproduce_all.sh --skip-heavy    # skip multi-hour stages
 #
@@ -33,7 +33,7 @@ cd "$(dirname "$0")/.."
 PY="venv/bin/python"
 OUT="experiments/paper_ready"
 STEP=0
-TOTAL=28
+TOTAL=29
 
 say()  { printf '\n\033[1m[%2d/%2d] %s\033[0m\n' "$STEP" "$TOTAL" "$1"; }
 run()  {
@@ -84,15 +84,31 @@ fi
 
 run "M3.1 build injection benchmark v1.0"       $PY experiments/m3_1_generate_benchmark.py
 run "M3.2 heuristic detectors"                  $PY experiments/m3_2_heuristic_detectors.py
+run "M3.1 blinded rater sheets"                 $PY experiments/m3_1_build_rating_worksheet.py
 
 if [ "$INCLUDE_API" = "1" ]; then
-  run "M3.2 learned detectors (API)"            $PY experiments/m3_2_learned_detectors.py --include-api
+  run "M3.2 learned detectors (L1 + live Groq L2/L3)" \
+      $PY experiments/m3_2_learned_detectors.py --detector all
 else
-  run "M3.2 learned detectors (offline only)"   $PY experiments/m3_2_learned_detectors.py
+  # L2 and L3 are live Groq calls. Without --include-api, only L1 is
+  # reproducible offline -- running "all" here would fail on a missing
+  # GROQ_API_KEY and take the whole run down with it.
+  run "M3.2 learned detectors (L1, offline only)" \
+      $PY experiments/m3_2_learned_detectors.py --detector l1
 fi
 
 run "M3.2 detector x family matrix"             $PY experiments/m3_2_build_detector_matrix.py
-run "M3.1 inter-rater agreement"                $PY experiments/m3_1_interrater_kappa.py
+
+# M3.1 kappa needs two returned human rating sheets; it cannot synthesise them
+# and exits non-zero if asked to run without both (issue #35).
+RATER_A="experiments/results/m3_1_rating_sheet_raterA_completed.csv"
+RATER_B="experiments/results/m3_1_rating_sheet_raterB_completed.csv"
+if [ -f "$RATER_A" ] && [ -f "$RATER_B" ]; then
+  run "M3.1 inter-rater agreement"              $PY experiments/m3_1_interrater_kappa.py \
+      --rater-a "$RATER_A" --rater-b "$RATER_B"
+else
+  skip "M3.1 inter-rater agreement" "needs both completed rating sheets at $RATER_A and $RATER_B"
+fi
 run "Held-out GUIDE_Test evaluation"            $PY experiments/guide_test_holdout_eval.py
 run "Paired RF vs LLM control"                  $PY experiments/rf_vs_llm_control.py
 run "Guardrail layer evaluation"                $PY experiments/guardrail_layer_eval.py

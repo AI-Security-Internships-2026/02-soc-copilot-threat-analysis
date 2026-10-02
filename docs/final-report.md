@@ -632,8 +632,13 @@ was available:
 | **Difference** | **+0.2433** | +0.2524 | 95% CI [+0.2282, +0.2587] |
 
 The interval excludes zero by a wide margin. The advantage also holds *within
-every class* — TruePositive +0.4045, FalsePositive +0.2635, BenignPositive
-+0.0615 — so no residual class-mix artefact explains it.
+every class* — TruePositive +0.4035, FalsePositive +0.2660, BenignPositive
++0.0605 — so no residual class-mix artefact explains it. (These three were
+quoted as +0.4045 / +0.2635 / +0.0615 until 2026-09-29; those values match no
+committed run and were a transcription error. They are now computed from
+`incident_leakage_audit.json`'s `per_class_recall` blocks and asserted in
+`tests/test_reported_numbers.py`. The ordering and the conclusion are
+unchanged.)
 
 **The baseline's own split rule, corrected.** Section 5.1's 0.7718 comes from a
 row-level stratified split of the same 100,000-row slice the model trains on;
@@ -796,7 +801,7 @@ fields as well (`AlertTitle`, `MitreTechniques`, `City`, `State`) costs a furthe
 8.2 points held-out, which puts a floor under how much of this task is learnable
 from low-cardinality metadata alone.
 
-### 5.12 A SOC-domain injection benchmark, and eight detectors measured on it
+### 5.12 A SOC-domain injection benchmark, and seven detectors measured on it
 
 Sources: `experiments/results/m3_1_benchmark_generation.json`,
 `m3_2_heuristic_detectors.json`, `m3_2_learned_detectors.json`; benchmark at
@@ -822,7 +827,10 @@ likely to trip a detector into a false positive.
 | F7 | Output-format / JSON manipulation | 60 |
 | BCONTROL | real benign GUIDE alerts | 100 |
 
-Recall is over the 400 attacks; FPR is over the 100 real controls.
+Recall is over the 400 attacks; FPR is over the 100 real controls. L3 is the
+one exception, noted in its row: five encoded payloads return a reproducibly
+unparseable response from the model, so its recall is over the 395 attacks it
+scored rather than crediting it with five rows it never resolved.
 
 | Detector | Recall | FPR on real alerts |
 |---|---|---|
@@ -832,8 +840,7 @@ Recall is over the 400 attacks; FPR is over the 100 real controls.
 | H-union (H1 ∪ H2 ∪ H3) | **96.75%** | 0% |
 | L1 TF-IDF + logistic regression | 3.25% | 10% |
 | L2 Llama Prompt Guard 2 (86M) | 31.25% | 0% |
-| L3 OpenAI Moderation | not run — no API key | — |
-| L4 NeMo-style LLM self-check | 58.99% | 0% |
+| L3 NeMo-style LLM self-check | 58.99% (233/395) | 0% |
 
 Three findings. First, **the deployed regex filter is worse than Section 5.5
 suggested** — 2.75% against 5% — which is the expected direction once the corpus
@@ -844,15 +851,40 @@ SOC-aware detector reaches 91.25% at no false positives. The TF-IDF baseline is
 both the weakest detector and the only one that fires on real alerts (10% FPR),
 because generic chat-jailbreak vocabulary does not transfer to alert-field
 payloads. Third, **failures are structured by family**: F3 (passive/buried)
-defeats both L2 and L4 completely (0%) because the payload reads as an ordinary
+defeats both L2 and L3 completely (0%) because the payload reads as an ordinary
 analyst note, and F4 (encoded) is the only family the heuristic union fails to
-close, at 76%. L3 was not run — no OpenAI key was available — and is reported as
-not run rather than as a zero.
+close, at 76% — the same family that breaks L3's parsing outright.
 
 This sharpens rather than changes Section 5.5's conclusion. The best single
 detector still leaves about one attack in twelve undetected and the union one in
 thirty, so the property that a successful injection cannot alter a verdict
 (Section 5.4) remains the load-bearing mitigation.
+
+**Two human raters, and what their disagreement lines up with.** Source:
+`experiments/results/m3_1_interrater_kappa.json`; full report and the
+disagreement resolution log in `docs/m3-1-kappa-results.md`. Two raters
+independently labelled a blinded 100-row subset (50 attacks, 50 controls,
+shuffled, every metadata column that could reveal the answer withheld) as
+injection or benign. Cohen's **κ = 0.8178**, raw agreement 91/100, against a
+threshold of 0.75 fixed before the raters were sent anything.
+
+The interesting part is not the number but where the nine disagreements sit.
+They fall in three families only — F2 (3 of 5 rows), **F3 (4 of 8)** and F7 (2
+of 6) — and in none of the other four, nor in any of the 50 controls. F3 is the
+same family that defeats both learned detectors completely at 0% above, for the
+same stated reason: the payload reads as an ordinary analyst note. So the family
+a purpose-built injection classifier cannot see is also the family two trained
+readers genuinely disagree about. That is a stronger claim about F3's difficulty
+than either result makes alone, and it is the argument for treating passive,
+buried instructions as the hard case rather than the obvious overrides.
+
+It also bounds what κ proves here. Because the controls are bare numeric field
+codes and the attacks are prose, the two classes are separable on surface form
+alone — the raters agreed on all 50 controls without exception, so the pooled κ
+is carried substantially by a stratum where the task is trivial. Attack-only raw
+agreement is 41/50. The pooled figure establishes that the labels are
+unambiguous to independent readers; it is not evidence that the corpus is hard,
+and it says nothing about detector difficulty.
 
 ### 5.13 The review gate as an operating decision
 
@@ -1065,7 +1097,19 @@ and the pipeline was silently auto-accepting its least reliable predictions.
 
 9. **The injection corpus is 40 self-authored examples**, measuring
    self-consistency rather than generalisation. It bounds how poor the regex
-   filter is; it does not estimate production performance.
+   filter is; it does not estimate production performance. Section 5.12's
+   500-row benchmark replaces it for every detector figure, and its binary
+   labels have now been checked by two independent raters (κ = 0.8178 on a
+   blinded 100-row subset). Two bounds on that check are worth stating. The
+   taxonomy is still single-author — raters gave the binary attack/benign call
+   only, not the seven-way family assignment — so a validated binary label does
+   not imply a validated taxonomy. And the subset has a ceiling that was
+   written down before the raters saw it: all 50 controls are bare numeric
+   GUIDE field codes while all 50 attack rows are natural language, so the two
+   classes are separable on surface form alone. The returned ratings confirm
+   it, with 50/50 agreement on the controls and every one of the nine
+   disagreements falling on an attack row. κ = 0.8178 therefore establishes
+   that the labels are unambiguous to independent readers and nothing stronger.
 10. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
 11. **The control-node ablation's live arms (5.9) lost most of their data to
    an external API quota, not by design — confirmed to be a hard 200,000
@@ -1158,6 +1202,7 @@ supervisor's direction.
 | `classifier_improvement_study.json` | **Data-scaling and estimator study, and the identifier feature-inflation ablation** |
 | `m2_1_splitmethod_delta_5seeds.json` | **The split-rule gap replicated across seven seeds, with Wilcoxon test** |
 | `m3_1_benchmark_generation.json` | SOC injection benchmark v1.0 — 400 attacks, 7 families, 100 real controls |
+| `m3_1_interrater_kappa.json` | **Two-rater agreement on the benchmark — Cohen's κ = 0.8178, with the per-family disagreement breakdown** |
 | `m3_2_heuristic_detectors.json` | Heuristic detectors (regex, schema, SOC-aware) on that benchmark |
 | `m3_2_learned_detectors.json` | **Learned detectors (TF-IDF, Prompt Guard 2, LLM self-check) on that benchmark** |
 | `m5_1_burden_sweep.json` / `.csv` | **Review-gate burden sweep on the held-out 15,000** |
