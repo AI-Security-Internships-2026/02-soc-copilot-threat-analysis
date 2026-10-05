@@ -128,16 +128,19 @@ def main():
     }
     out["multiplicity"]["m2_4_classifier_pairwise"] = corrected
 
-    # The 56-cell detector x family matrix reports recall rates, not hypothesis
-    # tests. Stating that plainly is the honest close, not applying a correction
-    # to quantities that carry no p-value.
+    # The detector x family matrix reports recall rates, not hypothesis tests.
+    # Stating that plainly is the honest close, not applying a correction to
+    # quantities that carry no p-value. The cell count is read from the matrix
+    # artifact rather than written out here -- it was stale at 56 for a week
+    # after the L3 removal (issue #36) took the matrix from 8 detectors to 7.
     fam = load("m3_2_familywise_failure_analysis.json")
+    n_cells = fam.get("n_cells", len(fam["detectors_included"]) * 7)
     out["multiplicity"]["m3_2_detector_family_matrix"] = {
-        "cells": len(fam["detectors_included"]) * 7,
+        "cells": n_cells,
         "correction_applicable": False,
-        "reason": "The 56 cells are per-family true-positive rates, not hypothesis "
-                  "tests -- there is no p-value to correct. The matrix is reported "
-                  "descriptively and no significance is claimed between cells.",
+        "reason": f"The {n_cells} cells are per-family true-positive rates, not "
+                  "hypothesis tests -- there is no p-value to correct. The matrix is "
+                  "reported descriptively and no significance is claimed between cells.",
     }
 
     OUT.write_text(json.dumps(out, indent=2) + "\n")

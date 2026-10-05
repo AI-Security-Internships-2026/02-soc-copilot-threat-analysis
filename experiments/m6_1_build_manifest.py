@@ -135,7 +135,7 @@ SUPPORTING = {
     "m2_4_m7_llm_only.json": "Sec 4.13 -- LLM-only arm of the suite",
     "m2_4_validate_5seed.json": "Sec 4.13 -- 5-seed group-validation of the suite",
     "m3_1_benchmark_generation.json": "Sec 4.14 -- benchmark composition (also Tab 18)",
-    "m3_2_familywise_failure_analysis.json": "Sec 4.14 -- 56-cell family-wise failure matrix",
+    "m3_2_familywise_failure_analysis.json": "Sec 4.14 -- 49-cell family-wise failure matrix",
     "verdict_invariance.json": "Sec 4.7 -- the explanation node cannot change a verdict",
     "field_inclusion_audit.json": "Sec 3.2 -- which fields reach the model",
     "m6_1_effect_sizes.json": "M6.1 PART C -- McNemar odds ratios and Holm-Bonferroni "
