@@ -87,11 +87,24 @@ def test_injection_benchmark_composition():
     assert fam["BCONTROL"] == 100
 
 
+@pytest.mark.skipif(
+    not (RESULTS / "baseline_model.joblib").exists(),
+    reason=(
+        "RF artifact not found at experiments/results/baseline_model.joblib; run "
+        "`python -m src.models.baseline` to train it."
+    ),
+)
 def test_demo_runbook_margins_still_hold_against_the_live_model():
     """The runbook tells a presenter exactly what the screen will show. These
     three margins are computed live from baseline_model.joblib, so nothing else
     in the suite would notice if the model or the feature pipeline moved and the
-    demo started contradicting its own script in front of an audience."""
+    demo started contradicting its own script in front of an audience.
+
+    Skipped rather than failed when the artifact is absent: it is 589 MB and
+    gitignored, so a fresh clone has no way to satisfy this and a hard failure
+    there says nothing about the code. Same `requires_model` convention as
+    tests/test_graph_wiring.py and tests/test_best_classifier_integration.py.
+    """
     from src.agent.fallback_classifier import predict_with_margin
 
     form_six = {
