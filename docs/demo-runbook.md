@@ -8,11 +8,19 @@ numbers mean.
 
 ---
 
-# Part A — The 3-5 minute video (due 18 September)
+# Part A — The video (issue #51, asked for 2-3 minutes)
 
 For the CNIT professor, who has no context on this project. Record the web demo,
 not the terminal: `venv/bin/streamlit run src/app.py`, one tab per beat. Talk
 naturally, do not read this aloud.
+
+> **Cut to length: record Beats 1-3 and stop (0:00-2:30).** The five beats below
+> were written to a 3-5 minute plan; issue #51 asks for **2-3 minutes**. Beats 1-3
+> land at 2:30 and already contain what the issue explicitly asks to lead with — an
+> alert going in, the Random Forest deciding, the LLM explaining, and then the
+> before/after leakage moment. Beats 4-5 are good material for the live presentation
+> and push the recording over the limit; they are kept below rather than deleted, and
+> marked optional. One clear moment beats a wall of stats, which is the instruction.
 
 **Beat 1 — the problem, one line (0:00-0:20).** *Tab 1.*
 
@@ -49,7 +57,7 @@ time**, never once the reverse. Mean inflation **+3.02 accuracy points**, 95% CI
 > reported. This is a bug we found in our own method and then measured. It is the
 > result I am most confident in precisely because it made our numbers worse.
 
-**Beat 4 — one injection blocked (2:30-3:20).** *Tab 3.* Run preset 1 — the regex
+**Optional (cut for the 2-3 min recording) — Beat 4 — one injection blocked (2:30-3:20).** *Tab 3.* Run preset 1 — the regex
 catches it. Then run preset 2, the same attack rephrased:
 
 > The regex filter **misses** this one. That is not a demo accident — measured
@@ -62,7 +70,7 @@ Then the real point: since the language model no longer assigns verdicts, a
 successful injection can corrupt the *explanation* but cannot change a triage
 outcome — verified across all 999 alerts.
 
-**Beat 5 — close on a non-confirming result (3:20-4:00).** *Tab 4.* Pick one and
+**Optional (cut for the 2-3 min recording) — Beat 5 — close on a non-confirming result (3:20-4:00).** *Tab 4.* Pick one and
 state it plainly. The strongest choice:
 
 > The language model scored **0.2823** on the same 209 alerts the forest scored
@@ -104,7 +112,9 @@ ls -la experiments/results/baseline_model.joblib
 venv/bin/python -c "import os;print('GROQ key loaded:', bool(os.getenv('GROQ_API_KEY')) or 'check .env')"
 ```
 
-Expect `171 passed`, and the joblib file present at ~590 MB.
+Expect `243 passed, 3 skipped`, and the joblib file present at ~590 MB. The three skips are
+the M4.1 ASR claims, whose artifact arrives with PR #50 — they are skipped with the issue
+number that will produce them, never asserted against a placeholder.
 
 **If Groq is down or out of quota**, everything except Step 2's explanation text
 and Step 4 still works. Say so plainly and continue — that is itself the point
@@ -120,9 +130,9 @@ of the architecture, and Step 6 makes the argument without any network at all.
 venv/bin/python -m pytest tests/ -q
 ```
 
-**Expected:** `171 passed in ~5s`
+**Expected:** `243 passed, 3 skipped in ~5s`
 
-**What to say:** 171 tests, up from 33 at Week 15. The new ones cover things that were
+**What to say:** 243 tests, up from 33 at Week 15. The new ones cover things that were
 genuinely unprotected: `guardrails.py` had been in the pipeline since Week 3
 with zero tests, while the *unused* ML guardrail had dedicated ones. There is
 also now a test asserting the language model cannot set a verdict — the

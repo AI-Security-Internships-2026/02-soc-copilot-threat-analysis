@@ -2210,6 +2210,10 @@ seen and class-balanced to identical distributions:
 - incident never seen: **0.5898** accuracy
 - difference **+0.2433**, 95% CI [+0.2282, +0.2587], and it holds within every class
   (TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615)
+  — *corrected in Week 23: the per-class figures are **+0.4035 / +0.2660 / +0.0605**. The
+  values above match no committed run and were a transcription error; left in place with this
+  note rather than rewritten, per the convention for past entries. The ordering
+  Δ_TP > Δ_FP > Δ_BP and the conclusion are unchanged.*
 
 This supplies the mechanism for Week 16's held-out gap, which was measured but unexplained: the
 train-sampled reference is 55.8% leaked, the held-out sample is 0% leaked. It does **not** touch
@@ -3071,6 +3075,39 @@ Tibshirani, and applied a Holm–Bonferroni correction that had **no in-text men
 it existed only inside `m6_1_effect_sizes.json`. That last one is the one worth flagging: a
 correction nobody can see in the text is, to a reader, a correction that was not made. The
 Limitations section now states it.
+
+### Finding 7: an audit of every figure against its artifact found three that no run produces
+
+Every four-decimal figure in the manuscript body — 183 of them — was checked numerically against
+every committed JSON and CSV under `experiments/results/`. All but a handful traced. The ones that
+did not were the interesting part.
+
+**Three were wrong.** The leakage section stated the advantage holds within every class at
+TruePositive +0.4045, FalsePositive +0.2635, BenignPositive +0.0615. Computed from
+`incident_leakage_audit.json`'s two `per_class_recall` blocks, the deltas are **+0.4035, +0.2660,
++0.0605**. The three-seed replication agrees per seed, and no averaging of those seeds produces
+the stated values either. They appeared twice each in the manuscript and once in
+`docs/final-report.md`.
+
+Two things about that worth stating rather than glossing. The error is **not in a flattering
+direction** — TruePositive was overstated by 0.0010 while FalsePositive was understated by 0.0025,
+which is the signature of a transcription slip, not a thumb on the scale. And **the claim
+survives**: the advantage still holds within every class, and the ordering the argument actually
+rests on, Δ_TP > Δ_FP > Δ_BP, is unchanged. This is an accuracy fix, not a finding reversal.
+
+The reason it lasted this long is structural and worth fixing rather than just patching: these
+deltas are *derived* (leaked recall minus clean recall), not stored, so no artifact ever held the
+wrong value to contradict. `tests/test_reported_numbers.py` now computes them from the artifact
+and asserts both the three figures and the ordering.
+
+**The rest traced, including two that only looked untraceable.** A1's Triage-ASR of 0.1071 is
+real but lives in `m4_1_asr_8configs.json` on PR #50's branch, not here. The demo runbook's three
+margins are computed live from `baseline_model.joblib` rather than read from a JSON — all three
+verified exact and now pinned, because a presenter reads those numbers off the script while the
+screen shows the model's actual output.
+
+The Week 18 entry keeps its original figures with a correction note appended rather than being
+rewritten, following the convention used for the other corrections to past entries.
 
 ### Problems / blockers — what is open, and what each one actually needs
 
