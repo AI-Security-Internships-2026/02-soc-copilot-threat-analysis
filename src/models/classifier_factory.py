@@ -38,6 +38,7 @@ from typing import Any
 
 import joblib
 import numpy as np
+import pandas as pd
 
 from src.data.preprocess import transform_with_encoders
 from src.models.decision import resolve_label
@@ -55,6 +56,41 @@ _ARTIFACT_PATHS = {
 }
 
 
+def _model_features(model) -> list[str]:
+    features = getattr(model, "feature_names_in_", None)
+    if features is None:
+        raise ValueError("Classifier artifact has no saved feature names.")
+    return list(features)
+
+
+def to_feature_frame(alert: dict[str, Any], model, encoders: dict) -> pd.DataFrame:
+    """Recreate the baseline's timestamp features and exact feature order."""
+    row = dict(alert)
+    timestamp = pd.to_datetime(row.get("Timestamp"), errors="coerce", utc=True)
+    row["Hour"] = timestamp.hour if not pd.isna(timestamp) else row.get("Hour")
+    row["DayOfWeek"] = timestamp.dayofweek if not pd.isna(timestamp) else row.get("DayOfWeek")
+    row["Month"] = timestamp.month if not pd.isna(timestamp) else row.get("Month")
+    frame = pd.DataFrame([row])
+    frame = transform_with_encoders(frame, encoders)
+    frame = frame.reindex(columns=_model_features(model))
+
+    # transform_with_encoders only touches columns that had a LabelEncoder
+    # saved at train time (encode_categoricals only fits one for columns
+    # pandas inferred as dtype "object" in the training data). A feature like
+    # DeviceName is numeric in GUIDE's real schema, so it has no encoder --
+    # but a caller can still hand this function an unexpected string for it
+    # (e.g. a real-world hostname, or a synthetic test alert). Left alone
+    # that string reaches model.predict_proba() as-is and crashes the whole
+    # triage graph on a ValueError, turning "one weird field" into "no
+    # verdict for this alert at all". Coerce it to NaN instead, the same
+    # "unknown -> missing" treatment transform_with_encoders already gives an
+    # out-of-vocabulary value in an *encoded* column.
+    unencoded_object_cols = [c for c in frame.select_dtypes(include="object").columns if c not in encoders]
+    if unencoded_object_cols:
+        frame[unencoded_object_cols] = frame[unencoded_object_cols].apply(pd.to_numeric, errors="coerce")
+    return frame
+
+
 @dataclass(frozen=True)
 class Classifier:
     """Backend-agnostic view over a trained tabular classifier artifact.
@@ -69,17 +105,7 @@ class Classifier:
     encoders: dict
 
     def predict_proba(self, alert: dict[str, Any]) -> np.ndarray:
-        row = dict(alert)
-        import pandas as pd
-
-        timestamp = pd.to_datetime(row.get("Timestamp"), errors="coerce", utc=True)
-        row["Hour"] = timestamp.hour if not pd.isna(timestamp) else row.get("Hour")
-        row["DayOfWeek"] = timestamp.dayofweek if not pd.isna(timestamp) else row.get("DayOfWeek")
-        row["Month"] = timestamp.month if not pd.isna(timestamp) else row.get("Month")
-        frame = pd.DataFrame([row])
-        frame = transform_with_encoders(frame, self.encoders)
-        feature_names = list(self.model.feature_names_in_)
-        frame = frame.reindex(columns=feature_names)
+        frame = to_feature_frame(alert, self.model, self.encoders)
         return self.model.predict_proba(frame)[0]
 
     def predict(self, alert: dict[str, Any]) -> str:
