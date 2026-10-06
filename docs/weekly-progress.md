@@ -3142,3 +3142,134 @@ rather than inferred from an issue sitting open.
 
 Unchanged from Week 22: paper declarations (funding, ORCID, co-authorship — held per Dr. Rana),
 GeNIS/Wazuh Docker sign-off, the analyst-rated explanation study (#40), and PR #50 still in draft.
+
+---
+
+## Week 24 — answering the supervisor review: two false confirmations, three stale figures, and the M4 stack unblocked
+
+**Branch:** `asma-week-23-m3-consistency` (M3/M5/M6 work), `asma-week-20-m4-integrity` (M4 work),
+`asma-week-20-a4x-explanation-fix` (A2 collection)
+**PR links:** [#58](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/58) new; [#56](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/56) retargeted and out of draft; [#50](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/50) and [#55](https://github.com/AI-Security-Internships-2026/02-soc-copilot-threat-analysis/pull/55) unblocked.
+
+Hafiz Mati Ur Rehman reviewed every open milestone issue on 2 October. This week answers all
+eleven comments. The pattern worth recording is that **two of his requests asked me to confirm
+something that was not actually true**, and checking rather than confirming is what found them.
+
+### Finding 1: #36's two confirmation points were both false in the merged PR
+
+He asked to confirm (a) that L3's 5 unparseable rows are reported separately including in the F4
+family analysis, and (b) that the matrix is consistently 7 × 7 = 49 cells.
+
+(a) was true in the datasheet, the final report and all three drafts — and **false in the one place
+he named**. `docs/m3-2-detector-family-matrix.md` printed L3's F4 cell as a bare `100%` with the
+mechanism note *"detects essentially all F4 payloads; no representative miss to cite."* All five
+unscored rows are F4, so that cell was scored over 50 rows while every other detector's F4 column
+is over 55 — and the note asserted full coverage of the family whose hardest rows were missing from
+the denominator. The cell is now daggered and footnoted, derived from the run's own
+`persistent_errors` rather than hardcoded, so a detector that breaks on different rows is annotated
+the same way.
+
+(b) was false in **six files**: three generators and the three artifacts they write.
+`m6_1_effect_sizes` now reads the cell count from the matrix artifact instead of restating it in
+prose, which is how the two drifted apart in the first place.
+
+### Finding 2: three stale numbers, two of them in all three manuscripts
+
+The Wazuh section's refusal to report a transfer-accuracy figure rested on a five-fold Random
+Forest scoring **0.3470** against a **0.4028** majority floor. The artifact records **0.3562** and
+**0.4026**, and re-running `label_learnability_check(generate(10000, seed=42))` reproduces the
+artifact, not the prose. Stale in five places at once: three drafts plus two repo docs. The
+conclusion holds either way — measured accuracy is below the floor — but these are the exact
+numbers a reviewer checking that refusal would land on.
+
+### Finding 3: the #40 package had two defects that would have corrupted the rater pass
+
+Caught before distribution, which is the only reason they are findings and not incidents.
+
+The graph was being handed six evidence fields instead of the full GUIDE row. The deployed
+pipeline classifies the whole row, and the subset predicted differently on **34 of 100** alerts —
+raters would have seen `assigned_verdict=FalsePositive` above an explanation of a BenignPositive
+verdict and marked a third of the corpus down for unfaithfulness that was ours.
+
+Worse: `build_context()` surfaces six low-cardinality fields, so 100 distinct GUIDE rows collapsed
+to **57 distinct rating tasks**, one combination covering 16 alerts. A rater scoring identical text
+16 times agrees with themselves for free, inflating Fleiss' κ and making the 100 Wilcoxon pairs
+non-independent at an effective n of ~57. Deduplicated on displayed evidence before stratification;
+47,415 distinct combinations exist, so nothing is strained. Recorded as a deviation from the issue
+text in `docs/m4-3-human-study-design.md` rather than done quietly.
+
+### Finding 4: the classifier factory held a weaker copy of the feature pipeline
+
+#41 asked whether the A4 graph still used the hardcoded RF path. It did — nothing under
+`src/agent/` imported `classifier_factory` at all. Rewiring at `predict_with_margin`, the chokepoint
+all three callers route through, turned up the real problem: the factory's own `predict_proba` was
+**missing `_to_feature_frame`'s coercion of unencoded object columns**, the guard that turns an
+unexpected string into NaN instead of a `ValueError` that kills the alert. That omission is exactly
+why M5.2's `full_guide_row_probe` fails on `'DEVICE-96'`.
+
+So the fix was a deletion, not a layer: the hardened implementation moved *into* the factory, the
+duplicate went, and the net is **64 deletions against 57 insertions**. Verified bit-identical —
+0 label differences over 15,000 held-out alerts, 67 of 69 scalar fields unchanged in the
+regenerated artifact (the two that moved are the timestamp and the git sha).
+
+### Finding 5: A2 was never run, and it is the most exposed architecture
+
+`label_a2_legacy_hybrid` existed all along but was never in the default `--arches` list, so the
+"8-config" matrix had a hole where the legacy architecture belonged. Collected at n=56 in both
+defense modes, 113 live calls:
+
+| defense | A1 llm_primary | A2 legacy_hybrid | A3 ml_only | A4 label | A4 explanation |
+|---|---|---|---|---|---|
+| none | 0.1071 | **0.1250** | 0.0 | 0.0 | 0.0357 |
+| combined | 0.0 | **0.0** | 0.0 | 0.0 | 0.0 |
+
+A2's CI is [0.0536, 0.2143] against A1's [0.0357, 0.1964] — heavily overlapping, so the ordering is
+**not** established and is not claimed. What is established is the weaker, more useful statement:
+routing evidence-dense alerts to the LLM does not reduce exposure relative to sending it
+everything. The legacy design's selectivity was never a security property.
+
+### Also landed
+
+- **#42 closed out.** Part A was already committed in PR #53; what was missing was the
+  consolidation. All five Δ accuracies are exactly 0.0, backed by 0 label differences — reported as
+  evidence *for* the architecture. The `nohitl` ↔ burden-sweep T=0 cross-check is now an assertion
+  that raises rather than a sentence that claims. The issue's predicted ≥0.10 groundedness drop is
+  **not met** at 0.08 and is recorded as not met.
+- **#46 unblocked.** PR #56 retargeted onto `dev`, conflict-free, out of draft, 246 passed / 5
+  skipped with all five traced to one cause. Also fixed a test that *hard-failed* rather than
+  skipped on any checkout without the 589 MB RF artifact.
+- **The M4 stack unblocked.** PR #50 was 38 commits behind `dev` and CONFLICTING, which also blocked
+  #55. Two conflicts, both additive. `.gitignore` kept this branch's anchored `/models/` over dev's
+  bare `models/` — not cosmetic, since the unanchored form silently swallows
+  `src/models/classifier_factory.py`. Both PRs are now MERGEABLE/CLEAN.
+- **Data Availability amended.** It said GUIDE "is not redistributed with this work", which stopped
+  being true when #40's package committed 100 GUIDE_Test rows. Now "not redistributed **in bulk**",
+  naming both derived extracts and their CDLA-Permissive-2.0 inheritance.
+
+### Problems / blockers
+
+1. **#51 demo video — still needs ~15 minutes of screen time.** Unchanged, and still the cheapest
+   open item.
+2. **#40 — package delivered, waiting on five raters.** Two design questions are the supervisor's
+   to settle before distribution: the baseline arm is a one-line stub against prose, so the arms are
+   not blind and the paired test measures a floor; and deduplication leaves rarer field
+   combinations where the classifier falls back to the majority class (0.42 here against 0.6998
+   published), so four fifths of rated explanations explain one verdict class.
+3. **#47 — the Elsevier draft is 30 pages against this issue's 22-page target.** All three compile
+   clean under tectonic (Springer 26, IEEE 23). What to cut is an editorial decision and is with the
+   supervisor; nothing has been cut.
+4. **#39 — running under the corrected arm order**, reduced 299-alert sample, paced with
+   `--daily-call-budget`. The original run is archived at
+   `experiments/results/archive/control_node_ablation_original_sequencing.json`; its live arms were
+   badly under-covered (llm_primary 33/999, legacy_hybrid bin-2 at 6 and bin-3 at 0 against targets
+   of ≥200, ≥25 and ≥10), which is the under-coverage the corrected sequencing exists to fix.
+5. **#45 — the real end-to-end reproduction run is next.** The dry run plans 29 steps cleanly; the
+   execution has not happened. Step 19 alone is ~2 h at 15,000 alerts, and two processes each
+   loading the 589 MB artifact thrash, so it needs the machine to itself.
+6. **The "capable explainer" claim is deliberately untouched**, pending #40's ratings. If #40 comes
+   back negative the *title* needs revisiting, not just the Conclusion sentence.
+
+### Carried forward, still open
+
+Paper declarations (funding, ORCID, co-authorship — held per Dr. Rana), GeNIS/Wazuh Docker
+sign-off, and Tier-2 Wazuh evaluation, which has no data and no substitute.
