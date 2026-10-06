@@ -151,6 +151,10 @@ SUPPORTING = {
                           "(verdict agreement; deliberately NOT an accuracy figure)",
     "m5_1_ablation_5config.json": "M5.1 PART A -- nomitre/noguardrails/nohitl ablations",
     "m5_1_ablation_5config.csv": "M5.1 PART A -- the same ablations as a CSV",
+    "m5_1_ablation_consolidated.json": "Sec 4.12 -- consolidated 5-configuration ablation "
+                                       "(Full / no-LLM / nomitre / noguardrails / nohitl), "
+                                       "with each row's provenance and the T=0 cross-check",
+    "m5_1_ablation_consolidated.csv": "Sec 4.12 -- the consolidated 5-row ablation table",
     "deepteam_redteam_fullgraph_llm_reached.json": "Sec 4.9 -- adversarial red-team evaluation",
     "week15_rf_benchmark.json": "Tab 9 and Fig 3",
     "m2_1_overlap_scatter.csv": "Sec 4.12 -- 4-point overlap scatter (M2.1 Pearson)",
