@@ -57,6 +57,9 @@ logs/
 # committed: it is the evidence that the baselines reproduce from a fresh venv,
 # and it is worthless if a reader cannot open it.
 !docs/reproduce_from_scratch.log
+# Same reasoning for the M6.2 runner dry-run logs (issue #45): committed evidence
+# that the one-click reproduction actually enumerates what it claims.
+!docs/repro_logs/*.log
 
 # Secrets and credentials — NEVER commit these
 .env
@@ -101,11 +104,11 @@ experiments/results/evaluation_samples/*
 # paper draft kept out of the public repo per supervisor guidance
 docs/paper/
 experiments/results/.control_node_ablation_checkpoints/
-# M3.2 live-detector checkpoints (L2/L4) -- working state superseded by the
+# M3.2 live-detector checkpoints (L2/L3) -- working state superseded by the
 # aggregated experiments/results/m3_2_learned_detectors.json, same reasoning
 # as the control_node_ablation checkpoints above.
 experiments/results/.m3_2_l2_checkpoint.jsonl
-experiments/results/.m3_2_l4_checkpoint.jsonl
+experiments/results/.m3_2_l3_checkpoint.jsonl
 experiments/results/.m2_4_m7_checkpoint.jsonl
 catboost_info/
 
@@ -118,3 +121,9 @@ catboost_info/
 /models/
 /models/best_classifier.joblib
 /models/best_grouped_classifier.joblib
+
+# Large GUIDE files and the sample fixture live only in the primary checkout;
+# a git worktree needs them symlinked in to run the full suite. Ignore those
+# links so `git add -A` from a worktree cannot commit a path that resolves to
+# one machine's filesystem.
+/datasets/sample

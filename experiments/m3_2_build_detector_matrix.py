@@ -1,7 +1,7 @@
 # experiments/m3_2_build_detector_matrix.py
 #
 # Issue #36 (M3.2), Part C. Reads the Part A (learned) and Part B (heuristic)
-# output JSONs -- no live scoring here -- and builds the 8-detector x
+# output JSONs -- no live scoring here -- and builds the 7-detector x
 # 7-family failure-analysis table the issue asks for, with a real
 # example-grounded mechanism sentence per cell (pulled from each detector's
 # own recorded example_misses, never invented).
@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import subprocess
 import sys
@@ -23,14 +24,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 LEARNED_PATH = Path("experiments/results/m3_2_learned_detectors.json")
 HEURISTIC_PATH = Path("experiments/results/m3_2_heuristic_detectors.json")
 OUTPUT_MD = Path("docs/m3-2-detector-family-matrix.md")
+CSV_LONG = Path("experiments/results/m3_2_detector_family_matrix_long.csv")
+CSV_WIDE = Path("experiments/results/m3_2_detector_family_matrix.csv")
+CSV_SUMMARY = Path("experiments/results/m3_2_detector_summary.csv")
 
 FAMILIES = ["F1", "F2", "F3", "F4", "F5", "F6", "F7"]
-DETECTOR_KEYS = ["l1", "l2", "l3", "l4", "h1", "h2", "h3", "h_union"]
+DETECTOR_KEYS = ["l1", "l2", "l3", "h1", "h2", "h3", "h_union"]
 DETECTOR_LABELS = {
     "l1": "L1 TF-IDF+LogReg",
     "l2": "L2 Llama Prompt Guard 2",
-    "l3": "L3 OpenAI Moderation",
-    "l4": "L4 NeMo-style Groq self-check",
+    "l3": "L3 NeMo-style Groq self-check",
     "h1": "H1 regex",
     "h2": "H2 schema",
     "h3": "H3 SOC-aware",
@@ -40,8 +43,7 @@ DETECTOR_LABELS = {
 MECHANISM_NOTES = {
     "l1": "a TF-IDF+LogReg vectorizer trained on generic chat-jailbreak text; {family} payloads use vocabulary/structure the vectorizer never saw, so word-frequency features carry no signal here.",
     "l2": "a small (86M) purpose-built injection/jailbreak classifier; scores below its 0.5 flag threshold when {family} payloads don't resemble the phrasing patterns its training distribution covers.",
-    "l3": "OpenAI's moderation taxonomy targets harmful content categories (violence, harassment, jailbreak), not SOC-domain verdict manipulation specifically -- {family} payloads that don't match those categories score low regardless of their actual effect on this pipeline.",
-    "l4": "a single Groq self-check call asked to judge the whole text at once; {family} payloads that read as plausible SOC prose to a general-purpose classifier can pass the check even though their effect on a real triage pipeline would not be benign.",
+    "l3": "a single Groq self-check call asked to judge the whole text at once; {family} payloads that read as plausible SOC prose to a general-purpose classifier can pass the check even though their effect on a real triage pipeline would not be benign.",
     "h1": "H1's patterns are multi-term conjunctions (an ignore-word AND a reference-word AND an instruction-word within 80 characters); {family} phrasing doesn't satisfy all three within that window.",
     "h2": "H2 only ever inspects AlertTitle/DetectorId; {family} payloads placed in any other field are structurally invisible to a check scoped to two fields.",
     "h3": "H3's field-allowlist and 10 curated signatures miss {family} payloads that are both short enough to not read as \"sentence-shaped\" and don't match any of the 10 hand-picked phrases.",
@@ -73,6 +75,49 @@ def _cell(detector_key: str, family: str, entry: dict | None) -> dict:
     return {"tpr": tpr, "mechanism": mechanism}
 
 
+def _write_figure_csvs(combined: dict, matrix: dict) -> None:
+    """Figure-ready CSVs for the three matrices in the markdown (issue #36).
+
+    Long form is what a plotting library actually consumes (one row per cell);
+    wide form mirrors the rendered table so a reader can diff the two; summary
+    carries the per-detector headline numbers the table cannot show. Written
+    from the same `matrix` dict the markdown is rendered from, so the CSV and
+    the document cannot disagree."""
+    with open(CSV_LONG, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["detector", "detector_label", "family", "tpr", "n", "detected"])
+        for key in DETECTOR_KEYS:
+            by_family = (combined.get(key) or {}).get("by_family", {})
+            for family in FAMILIES:
+                entry = by_family.get(family) or {}
+                writer.writerow([
+                    key, DETECTOR_LABELS[key], family,
+                    matrix[key][family]["tpr"],
+                    entry.get("n"), entry.get("detected"),
+                ])
+
+    with open(CSV_WIDE, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["detector"] + FAMILIES)
+        for key in DETECTOR_KEYS:
+            writer.writerow([DETECTOR_LABELS[key]] + [matrix[key][f]["tpr"] for f in FAMILIES])
+
+    with open(CSV_SUMMARY, "w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["detector", "detector_label", "overall_tpr", "fpr_on_bcontrol",
+                         "roc_auc_500row", "n_scored", "complete"])
+        for key in DETECTOR_KEYS:
+            entry = combined.get(key) or {}
+            writer.writerow([
+                key, DETECTOR_LABELS[key],
+                entry.get("overall_tpr"), entry.get("fpr_on_bcontrol"),
+                entry.get("roc_auc_500row"), entry.get("n_scored"),
+                entry.get("complete"),
+            ])
+    for path in (CSV_LONG, CSV_WIDE, CSV_SUMMARY):
+        print(f"saved {path}")
+
+
 def main() -> None:
     learned = json.loads(LEARNED_PATH.read_text()) if LEARNED_PATH.exists() else {}
     heuristic = json.loads(HEURISTIC_PATH.read_text()) if HEURISTIC_PATH.exists() else {}
@@ -82,7 +127,7 @@ def main() -> None:
     uncovered_from_union = combined.get("h_union", {}).get("uncovered_families", [])
 
     lines = [
-        "# M3.2 Part C -- 8-detector x 7-family failure analysis",
+        "# M3.2 Part C -- 7-detector x 7-family failure analysis",
         "",
         "Issue #36. Each cell's TPR is read directly from "
         "`experiments/results/m3_2_learned_detectors.json` / "
@@ -144,6 +189,7 @@ def main() -> None:
 
     OUTPUT_MD.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_MD.write_text("\n".join(lines) + "\n")
+    _write_figure_csvs(combined, matrix)
 
     summary = {
         "experiment": "M3.2 Part C -- detector x family failure matrix",

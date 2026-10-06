@@ -1,6 +1,6 @@
-"""Lightweight equivalent of a NeMo Guardrails topical+input rail (issue #36, L4).
+"""Lightweight equivalent of a NeMo Guardrails topical+input rail (issue #36, L3).
 
-See docs/m3-2-l4-decision-memo.md for why this is a ~100-line module instead
+See docs/m3-2-l3-decision-memo.md for why this is a ~100-line module instead
 of the real `nemoguardrails` package: the mechanism under test is "a
 deterministic gate feeding an LLM self-check", and that's exactly what this
 implements, on the same Groq provider the rest of this repo already depends

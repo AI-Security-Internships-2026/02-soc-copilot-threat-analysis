@@ -632,8 +632,13 @@ was available:
 | **Difference** | **+0.2433** | +0.2524 | 95% CI [+0.2282, +0.2587] |
 
 The interval excludes zero by a wide margin. The advantage also holds *within
-every class* — TruePositive +0.4045, FalsePositive +0.2635, BenignPositive
-+0.0615 — so no residual class-mix artefact explains it.
+every class* — TruePositive +0.4035, FalsePositive +0.2660, BenignPositive
++0.0605 — so no residual class-mix artefact explains it. (These three were
+quoted as +0.4045 / +0.2635 / +0.0615 until 2026-09-29; those values match no
+committed run and were a transcription error. They are now computed from
+`incident_leakage_audit.json`'s `per_class_recall` blocks and asserted in
+`tests/test_reported_numbers.py`. The ordering and the conclusion are
+unchanged.)
 
 **The baseline's own split rule, corrected.** Section 5.1's 0.7718 comes from a
 row-level stratified split of the same 100,000-row slice the model trains on;
@@ -654,6 +659,16 @@ difference's CI excludes zero, so the reported baseline is inflated by about
 the held-out evaluation found weakest. This is **diagnostic**: the deployed
 `baseline_model.joblib` is unchanged, so every pipeline figure in this report
 was produced by the same model as before.
+
+**Replicated across seven seeds.** The contrast above is a single seed. Holding
+the 100,000-row slice and RF-200 configuration fixed and varying only the split
+rule and the seed (`experiments/results/m2_1_splitmethod_delta_5seeds.json`), the
+row-level arm scores higher in **7 of 7** replicates — never once the reverse —
+with a mean gap of **+0.0302 accuracy** (95% CI [+0.0244, +0.0351]) and **+0.0355
+macro F1** (95% CI [+0.0278, +0.0419]). A two-sided Wilcoxon signed-rank test
+against a zero median gives **p = 0.0156**, the smallest value attainable at n=7.
+The multi-seed interval contains the single-seed estimate, so the original figure
+was not a favourable draw.
 
 **Why 2.8 and not 24.3.** The two numbers answer different questions and it
 would overstate the result to conflate them. The 24.3-point gap holds one model
@@ -705,10 +720,15 @@ reported but never optimised against.
 | HistGradientBoosting, `class_weight="balanced"` | 2M | 0.7341 | 0.7343 | 0.659 |
 | **RF-200, `min_samples_leaf=5`, `class_weight="balanced"`** | **1M** | **0.7355** | **0.7338** | **0.607** |
 
-Against the deployed model's 0.6998 / 0.6949 (Section 5.8), the best configuration
-is worth **+3.6 accuracy points and +3.9 macro F1**, and raises `FalsePositive`
-recall — the weakness Sections 5.8 and 6.2 both single out — from 0.514 to 0.607.
-It trains in 87 seconds.
+Against the deployed model's 0.6998 / 0.6949 (Section 5.8), the arm the stated
+selection rule actually picks — `rf200_leaf5@2000000`, chosen on the internal
+grouped holdout — is worth **+3.43 accuracy points**. The best-scoring arm on
+`GUIDE_Test` itself is worth **+3.6 accuracy points and +3.9 macro F1**, but that
+arm is identified by reading the held-out split this section commits to never
+optimising against, so it is reported for reference rather than claimed; the
+honest headline is the smaller figure. It raises `FalsePositive` recall — the
+weakness Sections 5.8 and 6.2 both single out — from 0.514 to 0.607, and trains
+in 87 seconds.
 
 Three observations matter more than the headline:
 
@@ -780,6 +800,214 @@ measured on the same held-out split. Dropping the mid-cardinality descriptive
 fields as well (`AlertTitle`, `MitreTechniques`, `City`, `State`) costs a further
 8.2 points held-out, which puts a floor under how much of this task is learnable
 from low-cardinality metadata alone.
+
+### 5.12 A SOC-domain injection benchmark, and seven detectors measured on it
+
+Sources: `experiments/results/m3_1_benchmark_generation.json`,
+`m3_2_heuristic_detectors.json`, `m3_2_learned_detectors.json`; benchmark at
+`datasets/soc_injection_benchmark_v1.csv`.
+
+Section 5.5's figures rest on 40 examples written by the same author as the regex
+patterns they score — self-consistency, not generalisation, and the weakest
+evidence in this report. This benchmark fixes the attack taxonomy *before* any
+detector is run: **400 injection payloads across seven families**, plus **100 real
+`BenignPositive` GUIDE alerts** as controls (500 rows). The controls are
+reservoir-sampled unique-incident rows scored with the deployed classifier and
+taken from the top of the entropy ranking — the genuinely ambiguous alerts most
+likely to trip a detector into a false positive.
+
+| Family | Attack type | n |
+|---|---|---|
+| F1 | Direct override | 60 |
+| F2 | Role playing | 55 |
+| F3 | Passive / buried | 60 |
+| F4 | Encoded / obfuscated | 55 |
+| F5 | Cross-field fragmentation | 50 |
+| F6 | False evidence injection | 60 |
+| F7 | Output-format / JSON manipulation | 60 |
+| BCONTROL | real benign GUIDE alerts | 100 |
+
+Recall is over the 400 attacks; FPR is over the 100 real controls. L3 is the
+one exception, noted in its row: five encoded payloads return a reproducibly
+unparseable response from the model, so its recall is over the 395 attacks it
+scored rather than crediting it with five rows it never resolved.
+
+| Detector | Recall | FPR on real alerts |
+|---|---|---|
+| H1 regex (the deployed filter) | 2.75% | 0% |
+| H2 schema type-check | 10.50% | 0% |
+| H3 SOC-aware detector | **91.25%** | 0% |
+| H-union (H1 ∪ H2 ∪ H3) | **96.75%** | 0% |
+| L1 TF-IDF + logistic regression | 3.25% | 10% |
+| L2 Llama Prompt Guard 2 (86M) | 31.25% | 0% |
+| L3 NeMo-style LLM self-check | 58.99% (233/395) | 0% |
+
+Three findings. First, **the deployed regex filter is worse than Section 5.5
+suggested** — 2.75% against 5% — which is the expected direction once the corpus
+is not written by the same hand as the patterns. Second, **general-purpose
+learned detectors underperform a domain-specific heuristic**: a purpose-built 86M
+injection classifier reaches 31.25% and an LLM self-check 58.99%, while a
+SOC-aware detector reaches 91.25% at no false positives. The TF-IDF baseline is
+both the weakest detector and the only one that fires on real alerts (10% FPR),
+because generic chat-jailbreak vocabulary does not transfer to alert-field
+payloads. Third, **failures are structured by family**: F3 (passive/buried)
+defeats both L2 and L3 completely (0%) because the payload reads as an ordinary
+analyst note, and F4 (encoded) is the only family the heuristic union fails to
+close, at 76% — the same family that breaks L3's parsing outright.
+
+This sharpens rather than changes Section 5.5's conclusion. The best single
+detector still leaves about one attack in twelve undetected and the union one in
+thirty, so the property that a successful injection cannot alter a verdict
+(Section 5.4) remains the load-bearing mitigation.
+
+**Two human raters, and what their disagreement lines up with.** Source:
+`experiments/results/m3_1_interrater_kappa.json`; full report and the
+disagreement resolution log in `docs/m3-1-kappa-results.md`. Two raters
+independently labelled a blinded 100-row subset (50 attacks, 50 controls,
+shuffled, every metadata column that could reveal the answer withheld) as
+injection or benign. Cohen's **κ = 0.8178**, raw agreement 91/100, against a
+threshold of 0.75 fixed before the raters were sent anything.
+
+The interesting part is not the number but where the nine disagreements sit.
+They fall in three families only — F2 (3 of 5 rows), **F3 (4 of 8)** and F7 (2
+of 6) — and in none of the other four, nor in any of the 50 controls. F3 is the
+same family that defeats both learned detectors completely at 0% above, for the
+same stated reason: the payload reads as an ordinary analyst note. So the family
+a purpose-built injection classifier cannot see is also the family two trained
+readers genuinely disagree about. That is a stronger claim about F3's difficulty
+than either result makes alone, and it is the argument for treating passive,
+buried instructions as the hard case rather than the obvious overrides.
+
+It also bounds what κ proves here. Because the controls are bare numeric field
+codes and the attacks are prose, the two classes are separable on surface form
+alone — the raters agreed on all 50 controls without exception, so the pooled κ
+is carried substantially by a stratum where the task is trivial. Attack-only raw
+agreement is 41/50. The pooled figure establishes that the labels are
+unambiguous to independent readers; it is not evidence that the corpus is hard,
+and it says nothing about detector difficulty.
+
+### 5.13 The review gate as an operating decision
+
+Source: `experiments/results/m5_1_burden_sweep.json`.
+
+Everything above measures accuracy. A SOC manager asks a different question: how
+much analyst time does this save, and at what cost in correctness? The review
+gate makes that one tunable — the RF margin threshold `T`, below which a verdict
+is held for a human. Swept on the held-out sample (n=15,000, 0% incident
+overlap), chosen over a train-sampled set because an operating point tuned on
+leaked data would not survive deployment.
+
+| `T` | Auto-accepted | Accuracy on those (95% CI) | Escalated | Model's accuracy on escalated |
+|---|---|---|---|---|
+| 0.00 | 100.0% | 0.6998 [0.6923, 0.7071] | 0.0% | — |
+| 0.05 | 95.2% | 0.7129 [0.7054, 0.7204] | 4.9% | 0.4423 |
+| 0.12 | 89.2% | 0.7302 [0.7230, 0.7377] | 10.8% | 0.4485 |
+| **0.20** (deployed) | **82.0%** | **0.7517 [0.7440, 0.7592]** | **18.1%** | **0.4640** |
+| 0.30 | 74.1% | 0.7799 [0.7726, 0.7876] | 25.9% | 0.4705 |
+| 0.50 | 56.8% | 0.8463 [0.8386, 0.8541] | 43.2% | 0.5073 |
+
+`T = 0` reproduces **0.6998** exactly — the held-out figure of Section 5.8 —
+anchoring the sweep to an independently committed number, and the curve is
+monotone throughout.
+
+**The gate is correctly oriented, and that is not automatic.** At every
+threshold the escalated alerts are ones the model handles *worse* (0.44–0.51 vs
+0.73–0.85). That is the opposite of the LLM's self-reported confidence in
+Section 5.3, which was inverted. No single recommended operating point is given:
+collapsing this to one system accuracy needs an assumption about human accuracy
+that this project has not measured.
+
+### 5.14 Operational cost, per stage
+
+Source: `experiments/results/m5_4_latency_cost.json`.
+
+| Stage | Time |
+|---|---|
+| Random Forest inference | 13,448 µs |
+| Feature encoding | 4,259 µs |
+| Regex guardrail | 2.45 µs |
+| Review gate | 1.12 µs |
+| Tie-break and label | 0.87 µs |
+| MITRE lookup (cached) | 0.47 µs |
+| Schema guardrail | 0.27 µs |
+| **LLM call** | **1,762,900 µs** |
+
+Fast path **56 alerts/s**; routed path **0.562 alerts/s**. The LLM is **99.0%**
+of the routed path — the premise the evidence-density router exploits — and the
+composed figure lands just below the independently measured 0.567 alerts/s of
+Section 5.6, the direction a correct composition must go. At 345 prompt and 40
+completion tokens per call and 10,000 alerts/day, routing only the evidence-rich
+20.9% cuts API spend **4.78×**, \$0.77 → \$0.16 per day.
+
+Caveats: timings are best-of-7 on one laptop; token counts use a proxy
+tokeniser; and the per-token price comes from the issue tracker and is **not**
+verified against the vendor's live price list, so the dollar figures are
+illustrative rather than quotable.
+
+### 5.15 Ablating the non-deciding stages
+
+Source: `experiments/results/m5_1_ablation_5config.json`.
+
+`classify_with_rf` reads the raw alert directly — not the assembled context, not
+the enrichment. If the architecture claim in Section 5.4 holds, disabling any
+non-deciding stage cannot move a single verdict. So the test is **exact
+element-wise label identity** over all 15,000 held-out alerts, not accuracy
+within a tolerance, which would hide compensating errors.
+
+| Configuration | Accuracy | Macro F1 | Auto-accepted | Label diffs vs full |
+|---|---|---|---|---|
+| Full | 0.6998 | 0.6949 | 82.0% | — |
+| − MITRE enrichment | 0.6998 | 0.6949 | 82.0% | **0 / 15,000** |
+| − guardrails | 0.6998 | 0.6949 | 82.0% | **0 / 15,000** |
+| − review gate (`T=0`) | 0.6998 | 0.6949 | 100.0% | **0 / 15,000** |
+
+All four reproduce the held-out 0.6998 exactly, and the `T=0` arm agrees with
+Section 5.13's sweep. Removing the guardrails costs attack detection instead of
+accuracy: benchmark recall falls **0.1300 → 0.0000**.
+
+**The enrichment hypothesis did not confirm.** Two automated proxies over 100
+live explanations per arm:
+
+| Proxy | Full | − MITRE | Drop | Fisher exact *p* |
+|---|---|---|---|---|
+| D1 groundedness | 0.9700 | 0.8900 | 8.0 pts | **0.0489** |
+| D2 MITRE match | 0.9455 | 0.8182 | 12.7 pts | 0.0732 |
+
+D1 is significant but smaller than the 10 points predicted; D2 is larger but not
+significant at *n*=55. `build_context` puts the raw technique identifier into the
+prompt regardless — enrichment only adds the ATT&CK description — so the ceiling
+on how much that stage can matter is lower than assumed. D1/D2 are automated
+proxies, not human judgement.
+
+### 5.16 Cross-domain schema transfer: Wazuh Tier-1
+
+Source: `experiments/results/m5_3_wazuh_t1.json`.
+
+**No transfer-accuracy figure is reported**, because the synthetic generator
+draws its label independently of every feature — verified at **0.3470**
+cross-validated against a **0.4028** majority floor. Both arms of an accuracy
+comparison would be chance and "retention" would land near 100% while measuring
+nothing.
+
+What is measured needs no labels: the same incident scored natively and
+round-tripped GUIDE → Wazuh JSON → adapter → `raw_alert`.
+
+| Measurement | Result (n=10,000) |
+|---|---|
+| **Verdict agreement** | **0.9637** [0.9598, 0.9673] |
+| Schema-guardrail pass rate | 1.0000 |
+| Pipeline completion rate | 1.0000 |
+
+**A defect found by measuring.** `SuspicionLevel` survives at 0%: the adapter
+emits `low`/`medium`/`high`, but the deployed encoder contains only
+`Incriminated`, `Suspicious`, `nan` — verified against real `GUIDE_Test.csv`. All
+three encode to the unknown sentinel, so every Wazuh-origin alert loses that
+signal entirely. The field looks populated end to end, which is why counting
+field survival alone would not have caught it.
+
+Tier-1 only: synthetic alerts, labels unused, and 0.9637 is agreement between
+two encodings of one alert — not accuracy. Tier-2 needs real labelled Wazuh data
+and is not done.
 
 ## 6. Discussion and Limitations
 
@@ -869,7 +1097,19 @@ and the pipeline was silently auto-accepting its least reliable predictions.
 
 9. **The injection corpus is 40 self-authored examples**, measuring
    self-consistency rather than generalisation. It bounds how poor the regex
-   filter is; it does not estimate production performance.
+   filter is; it does not estimate production performance. Section 5.12's
+   500-row benchmark replaces it for every detector figure, and its binary
+   labels have now been checked by two independent raters (κ = 0.8178 on a
+   blinded 100-row subset). Two bounds on that check are worth stating. The
+   taxonomy is still single-author — raters gave the binary attack/benign call
+   only, not the seven-way family assignment — so a validated binary label does
+   not imply a validated taxonomy. And the subset has a ceiling that was
+   written down before the raters saw it: all 50 controls are bare numeric
+   GUIDE field codes while all 50 attack rows are natural language, so the two
+   classes are separable on surface form alone. The returned ratings confirm
+   it, with 50/50 agreement on the controls and every one of the nine
+   disagreements falling on an attack row. κ = 0.8178 therefore establishes
+   that the labels are unambiguous to independent readers and nothing stronger.
 10. **No live Wazuh deployment.** The adapter is tested against sample JSON only.
 11. **The control-node ablation's live arms (5.9) lost most of their data to
    an external API quota, not by design — confirmed to be a hard 200,000
@@ -960,6 +1200,17 @@ supervisor's direction.
 | `schema_guardrail_eval.json` | Deterministic schema guardrail, 100% injection recall |
 | `evaluation_samples/` | The committed 999- and 15,000-alert samples every figure is computed from |
 | `classifier_improvement_study.json` | **Data-scaling and estimator study, and the identifier feature-inflation ablation** |
+| `m2_1_splitmethod_delta_5seeds.json` | **The split-rule gap replicated across seven seeds, with Wilcoxon test** |
+| `m3_1_benchmark_generation.json` | SOC injection benchmark v1.0 — 400 attacks, 7 families, 100 real controls |
+| `m3_1_interrater_kappa.json` | **Two-rater agreement on the benchmark — Cohen's κ = 0.8178, with the per-family disagreement breakdown** |
+| `m3_2_heuristic_detectors.json` | Heuristic detectors (regex, schema, SOC-aware) on that benchmark |
+| `m3_2_learned_detectors.json` | **Learned detectors (TF-IDF, Prompt Guard 2, LLM self-check) on that benchmark** |
+| `m5_1_burden_sweep.json` / `.csv` | **Review-gate burden sweep on the held-out 15,000** |
+| `m5_4_latency_cost.json` / `.csv` | Per-stage latency, throughput and API cost |
+| `m6_1_effect_sizes.json` | McNemar odds ratios and Holm-Bonferroni correction |
+| `m6_3_ci_backfill.json` | **95% CIs backfilled onto 31 headline cells** |
+| `m5_1_ablation_5config.json` / `.csv` | **Three ablation arms; 0 label differences over 15,000** |
+| `m5_3_wazuh_t1.json` | Wazuh Tier-1 schema-transfer fidelity (agreement, not accuracy) |
 
 Every file above is produced by a committed script in `experiments/`, and every
 figure in this report is read from one of them.

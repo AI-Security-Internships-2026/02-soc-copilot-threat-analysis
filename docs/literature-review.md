@@ -184,6 +184,95 @@
 
 ## Tools and Datasets Identified
 
+## Paper 9 — Context Contamination in LLM Analysis of Network Security Logs
+
+| Field | Content |
+|---|---|
+| **Full title** | Context Contamination in LLM Analysis of Network Security Logs: Poison with Passive Prompt Injection and Mitigation Evaluation |
+| **Authors** | Karanjai, R.; Lu, Y.; Hegadehalli Madhavarao, H.; Xu, L.; Shi, W. |
+| **Year** | 2026 |
+| **Venue** | 35th USENIX Security Symposium (USENIX Security 26), Baltimore MD |
+| **URL / DOI** | https://www.usenix.org/conference/usenixsecurity26/presentation/karanjai |
+| **Method** | *Passive* prompt injection: payloads embedded in log-generating fields persist in storage and execute later, when an analyst queries the LLM. Introduces the LogInject framework and an adversarial log benchmark. |
+| **Dataset** | LogInject-1.0 — log entries including adversarial samples; three production LLMs evaluated |
+| **Key result** | Production LLMs used for log analysis are vulnerable across attack objectives including activity concealment and output hijacking |
+| **Limitation** | Targets the model's analysis output; does not evaluate an architecture where a non-LLM component owns the decision |
+| **Relevance to our project** | **The closest prior work to our §4.14 benchmark.** Same threat shape — payload arrives inside a telemetry field, not an analyst's prompt. Differs in what an attack can win: our §4.7 architecture means a successful injection corrupts an explanation but cannot change a verdict. Their unit is the log line; ours is the alert schema. |
+
+**Notes:** Metadata verified against the USENIX programme page 2026-09-19, not recalled.
+
+---
+
+## Paper 10 — Let the Alerts Speak
+
+| Field | Content |
+|---|---|
+| **Full title** | Let the Alerts Speak: LLM-Based IDS Alert Interpretation for SOC Triage |
+| **Authors** | Schärmer, A.; Landauer, M.; Skopik, F.; Wurzenberger, M.; Squarcina, M. |
+| **Year** | 2026 |
+| **Venue** | ARES 2026 International Workshops, LNCS, pp. 346–364, Springer Nature Switzerland |
+| **URL / DOI** | https://doi.org/10.1007/978-3-032-35579-9_19 |
+| **Method** | LLM classification of IDS alerts to assist analysts during triage |
+| **Dataset** | IDS alert data (not GUIDE) |
+| **Key result** | LLMs can assist interpretation of high-volume IDS alerts, addressing analyst fatigue and false-positive burden |
+| **Limitation** | IDS alerts carry human-readable rule descriptions — a far more favourable input than anonymised codes |
+| **Relevance to our project** | Nearest comparable SOC-triage system. The contrast is the point: GUIDE's `AlertTitle` is a numeric ID, not prose, which §3.3 shows is decisive for what a language model can contribute. |
+
+**Notes:** Metadata verified via Crossref 2026-09-19.
+
+---
+
+## Paper 11 — Datasheets for Datasets
+
+| Field | Content |
+|---|---|
+| **Full title** | Datasheets for datasets |
+| **Authors** | Gebru, T.; Morgenstern, J.; Vecchione, B.; Wortman Vaughan, J.; Wallach, H.; Daumé III, H.; Crawford, K. |
+| **Year** | 2021 |
+| **Venue** | Communications of the ACM 64(12), 86–92 |
+| **URL / DOI** | https://doi.org/10.1145/3458723 |
+| **Method** | Proposes a standard documentation record for datasets: motivation, composition, collection, preprocessing, uses, distribution, maintenance |
+| **Key result** | Standardised dataset documentation improves transparency and reduces misuse |
+| **Relevance to our project** | `docs/soc-injection-benchmark-datasheet.md` follows this format for our 400-attack benchmark. Cited, not merely gestured at. |
+
+**Notes:** Metadata verified via Crossref 2026-09-19.
+
+---
+
+## Paper 12 — Dos and Don'ts of Machine Learning in Computer Security
+
+| Field | Content |
+|---|---|
+| **Full title** | Dos and Don'ts of Machine Learning in Computer Security |
+| **Authors** | Arp, D.; Quiring, E.; Pendlebury, F.; Warnecke, A.; Pierazzi, F.; Wressnegger, C.; Cavallaro, L.; Rieck, K. |
+| **Year** | 2022 |
+| **Venue** | 31st USENIX Security Symposium |
+| **URL / DOI** | https://www.usenix.org/conference/usenixsecurity22/presentation/arp |
+| **Method** | Identifies recurring pitfalls in learning-based security systems; reviews 30 papers from top-tier security venues |
+| **Key result** | Sampling bias and data snooping are widespread in the security ML literature |
+| **Relevance to our project** | The security-specific framing for §4.12. Our incident-level leakage is an instance of exactly the data-snooping pitfall catalogued here — and our own earlier numbers carried it undetected, which is the ordinary way this goes. |
+
+**Notes:** Metadata verified against the USENIX programme page 2026-09-19.
+
+---
+
+## Paper 13 — Leakage and the Reproducibility Crisis in ML-based Science
+
+| Field | Content |
+|---|---|
+| **Full title** | Leakage and the reproducibility crisis in machine-learning-based science |
+| **Authors** | Kapoor, S.; Narayanan, A. |
+| **Year** | 2023 |
+| **Venue** | Patterns 4(9), 100804 (Elsevier) |
+| **URL / DOI** | https://doi.org/10.1016/j.patter.2023.100804 |
+| **Method** | Taxonomy of leakage types across scientific ML; survey of affected published work |
+| **Key result** | Leakage is a leading cause of irreproducible ML results; non-independence between train and test rows is among the hardest variants to detect, because conventional checks still pass |
+| **Relevance to our project** | The general framing for §4.12. Our contribution is a *measurement* on a specific corpus — +0.2433 from a labelled sibling, +0.0302 from the split rule over seven seeds — rather than another warning. |
+
+**Notes:** Metadata verified via Crossref 2026-09-19.
+
+---
+
 | Name | Type | URL | Notes |
 |---|---|---|---|
 | GUIDE | Dataset | https://www.kaggle.com/datasets/Microsoft/microsoft-security-incident-prediction | Largest public real-world SOC alert/incident dataset — 1.6M alerts, 1M analyst-triaged incidents from 6,100+ orgs, released 2024 (CDLA-2.0). Replaces CICIDS2017, which is outdated network-flow data not designed for SOC/LLM triage. |
@@ -191,3 +280,59 @@
 | Microsoft Security Copilot | Tool | https://www.microsoft.com/en-us/security/business/ai-machine-learning/microsoft-copilot-for-security | Industry SOC copilot benchmark |
 | Wazuh | Tool | https://wazuh.com/ | Open-source SIEM/XDR (indexer + server + dashboard + agent). A schema adapter mapping Wazuh alert JSON onto the GUIDE field shape was written and unit-tested against sample JSON — see `docs/wazuh-integration.md` and `src/integrations/wazuh_adapter.py`. **No live Wazuh server was ever deployed**, and the classifier behind the adapter is unvalidated on Wazuh-origin alerts (~62% missing features); "live alert source" would overstate what exists. |
 | GeNIS | Dataset | https://doi.org/10.1016/j.dib.2025.111487 | SME-focused network-traffic dataset, released Mar 2025. Documented as a candidate second dataset in `datasets/README.md`; not yet integrated. |
+---
+
+## References 14–37 — the additions that took the manuscript's bibliography to 50
+
+Issue #47 requires ≥ 50 references. These 24 were added on **2026-09-29**, each
+verified against a DOI record, a conference programme page or a publisher
+listing **before** being written into the bibliography — none recalled from
+memory. They are recorded compactly rather than as full review entries because
+most are methods citations the paper was already relying on without crediting,
+not works surveyed for this review. Papers 1–13 above remain the reviewed set.
+
+**Methods the paper already used but did not cite.** These were the real gap:
+the manuscript reported statistics whose sources were missing.
+
+| # | Reference | Verified against | Why it is cited |
+|---|---|---|---|
+| 14 | Cohen, J. (1960). A coefficient of agreement for nominal scales. *Educ. Psychol. Meas.* 20(1), 37–46 | doi:10.1177/001316446002000104 | The paper reports Cohen's κ (§M3.1) and cited no source for it |
+| 15 | Landis, J.R.; Koch, G.G. (1977). The measurement of observer agreement for categorical data. *Biometrics* 33(1), 159–174 | doi:10.2307/2529310 | The benchmark scale κ = 0.818 is read against ("almost perfect") |
+| 16 | McNemar, Q. (1947). Note on the sampling error of the difference between correlated proportions. *Psychometrika* 12(2), 153–157 | doi:10.1007/BF02295996 | Exact McNemar is the paper's main paired test |
+| 17 | Dietterich, T.G. (1998). Approximate statistical tests for comparing supervised classification learning algorithms. *Neural Computation* 10(7), 1895–1923 | doi:10.1162/089976698300017197 | Why McNemar is the defensible choice: low type-I error among the five tests compared |
+| 18 | Holm, S. (1979). A simple sequentially rejective multiple test procedure. *Scand. J. Statist.* 6(2), 65–70 | Journal record | Holm–Bonferroni is applied in `m6_1_effect_sizes.json`; it had no in-text mention at all before this |
+| 19 | Efron, B.; Tibshirani, R.J. (1993). *An Introduction to the Bootstrap.* Chapman & Hall | Monographs on Statistics and Applied Probability vol. 57 | Every CI in the paper is a percentile bootstrap |
+| 20 | Breiman, L. (2001). Random forests. *Machine Learning* 45(1), 5–32 | doi:10.1023/A:1010933404324 | The deployed classifier |
+
+**Where the results sit in their literature.**
+
+| # | Reference | Verified against | Why it is cited |
+|---|---|---|---|
+| 21 | Sommer, R.; Paxson, V. (2010). Outside the closed world. *IEEE S&P*, 305–316 | doi:10.1109/SP.2010.25 | The general caution our leakage measurement makes concrete |
+| 22 | Pendlebury, F. et al. (2019). TESSERACT. *USENIX Security 19*, 729–746 | USENIX programme | Spatial/temporal split bias inflating reported performance — the sibling result to §4.12 |
+| 23 | Grinsztajn, L. et al. (2022). Why do tree-based models still outperform deep learning on typical tabular data? *NeurIPS 22* D&B | arXiv:2207.08815 | Explains the RF-beats-LLM ordering as expected for tabular features, not a surprise |
+| 24 | Alahmadi, B.A. et al. (2022). 99% false positives. *USENIX Security 22*, 2783–2800 | USENIX programme | Practitioner evidence for the alert-fatigue premise |
+| 25 | Vielberth, M. et al. (2020). Security operations center: a systematic study and open challenges. *IEEE Access* 8, 227756–227779 | doi:10.1109/ACCESS.2020.3045514 | The SOC people-challenges framing |
+| 26 | Xiong, M. et al. (2024). Can LLMs express their uncertainty? *ICLR 24* | arXiv:2306.13063 | Verbalised LLM confidence is overconfident — supports §4.6 |
+| 27 | Doshi-Velez, F.; Kim, B. (2017). Towards a rigorous science of interpretable ML | arXiv:1702.08608 | Why the enrichment ablation's proxies are stand-ins |
+| 28 | Lipton, Z.C. (2018). The mythos of model interpretability. *ACM Queue* 16(3), 31–57 | doi:10.1145/3236386.3241340 | Same: an explanation is hard to evaluate without a grounding task |
+| 29 | Parasuraman, R.; Riley, V. (1997). Humans and automation. *Human Factors* 39(2), 230–253 | doi:10.1518/001872097778543886 | Over-reliance and false-alarm abandonment, behind the review-gate design |
+| 30 | Strom, B.E. et al. (2018, rev. 2020). MITRE ATT&CK: Design and Philosophy. MITRE tech. report | MITRE publication record | The enrichment source itself |
+| 31 | Sculley, D. et al. (2015). Hidden technical debt in ML systems. *NIPS 28*, 2503–2511 | NeurIPS proceedings | System-level silent failure — the graph-wiring defect's category |
+
+**The attack families' sources.** The seven-family taxonomy was fixed before
+any detector ran; these are the published forms it drew on.
+
+| # | Reference | Verified against | Why it is cited |
+|---|---|---|---|
+| 32 | Greshake, K. et al. (2023). Not what you've signed up for. *ACM AISec '23*, 79–90 | doi:10.1145/3605764.3623985 | Indirect injection — the shape of family F3 |
+| 33 | Perez, F.; Ribeiro, I. (2022). Ignore previous prompt. *NeurIPS ML Safety Workshop* | arXiv:2211.09527 | Direct instruction override — F1 |
+| 34 | Liu, Y. et al. (2024). Formalizing and benchmarking prompt injection attacks and defenses. *USENIX Security 24*, 1831–1847 | USENIX programme | Closest methodological precedent for our benchmark |
+| 35 | Wei, A. et al. (2023). Jailbroken: how does LLM safety training fail? *NeurIPS 23* | NeurIPS proceedings | Persona/jailbreak framing — F2 |
+| 36 | Shen, X. et al. (2024). "Do anything now". *ACM CCS '24*, 1671–1685 | doi:10.1145/3658644.3670388 | In-the-wild jailbreak prompts, same family |
+| 37 | OWASP Foundation (2025). OWASP Top 10 for LLM Applications, LLM01: Prompt Injection | OWASP project page | The practitioner reference for the threat this paper mitigates |
+
+**Not added, deliberately.** The bibliography stops at exactly the 50 the issue
+asks for rather than being padded to a rounder number, and every entry is cited
+at least once in the text — checked mechanically, zero uncited entries and zero
+dangling `\cite` keys.

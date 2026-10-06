@@ -1,0 +1,161 @@
+{
+  "experiment": "M5.2 PART A -- Wazuh Tier-1 schema-transfer fidelity",
+  "generated_at_utc": "2026-09-16T14:02:13.176238+00:00",
+  "git_sha": "1651563652b382974c201cd8696f420235c7f489",
+  "n_generated": 10000,
+  "seed": 42,
+  "accuracy_comparison_not_reported": {
+    "reason": "the synthetic generator's IncidentGrade is drawn independently of every feature, so it carries no signal",
+    "evidence": {
+      "cv_accuracy_mean": 0.3562,
+      "cv_accuracy_std": 0.0252,
+      "majority_class_floor": 0.4026,
+      "labels_are_learnable": false,
+      "interpretation": "A RandomForest cannot beat a constant answer on these labels, so they carry no signal. Any accuracy comparison built on them would compare chance with chance."
+    },
+    "consequence": "a transfer-accuracy 'retention' figure would compare chance with chance and would pass the issue's >=85% criterion while measuring nothing",
+    "precedent": "experiments/results/archive/agent_metrics.json was withdrawn from this project for exactly this reason"
+  },
+  "verdict_agreement_native_vs_roundtripped": {
+    "point": 0.9637,
+    "ci_lower": 0.9598,
+    "ci_upper": 0.9673,
+    "k": 9637,
+    "n": 10000,
+    "method": "exact Clopper-Pearson binomial interval"
+  },
+  "comparison_basis": "matched adapter-capable fields on both sides (AlertTitle, DetectorId, Category, MitreTechniques, SuspicionLevel, Hour, DayOfWeek), so the only difference is the round-trip itself",
+  "full_guide_row_probe": {
+    "scored_without_error": false,
+    "error": "ValueError: could not convert string to float: 'DEVICE-96'",
+    "note": "scoring a full synthetic GUIDE row directly fails on this branch: fallback_classifier raises on a string column with no saved encoder. PR #50 (issue #38) fixes exactly this. It does not affect the matched-field comparison above, which passes only adapter-capable fields."
+  },
+  "rf_margin_abs_delta": {
+    "mean": 0.072156,
+    "p95": 0.186193,
+    "n": 10000
+  },
+  "schema_guardrail_pass_rate": {
+    "point": 1.0,
+    "ci_lower": 0.9996,
+    "ci_upper": 1.0,
+    "k": 10000,
+    "n": 10000,
+    "method": "exact Clopper-Pearson binomial interval"
+  },
+  "pipeline_completion_rate": {
+    "point": 1.0,
+    "ci_lower": 0.9996,
+    "ci_upper": 1.0,
+    "k": 10000,
+    "n": 10000,
+    "method": "exact Clopper-Pearson binomial interval"
+  },
+  "errors": {
+    "native_path": 0,
+    "wazuh_path": 0
+  },
+  "encoder_vocabulary_compatibility": {
+    "SuspicionLevel": {
+      "scope": "manufactured by the adapter; applies to the round trip measured here",
+      "encoder_known_value_count": 3,
+      "encoder_known_values_sample": [
+        "Incriminated",
+        "Suspicious",
+        "nan"
+      ],
+      "adapter_emits": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "adapter_values_unknown_to_encoder": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "all_adapter_values_unknown": true
+    },
+    "Category": {
+      "scope": "illustrative real Wazuh rule.groups; NOT what the round trip above carried, since those groups were seeded from GUIDE categories",
+      "encoder_known_value_count": 18,
+      "encoder_known_values_sample": [
+        "Collection",
+        "CommandAndControl",
+        "CredentialAccess",
+        "CredentialStealing",
+        "DefenseEvasion",
+        "Discovery",
+        "Execution",
+        "Exfiltration",
+        "Exploit",
+        "Impact",
+        "InitialAccess",
+        "LateralMovement"
+      ],
+      "adapter_emits": [
+        "authentication_failed",
+        "syslog",
+        "sshd"
+      ],
+      "adapter_values_unknown_to_encoder": [
+        "authentication_failed",
+        "syslog",
+        "sshd"
+      ],
+      "all_adapter_values_unknown": true
+    }
+  },
+  "field_survival": {
+    "AlertTitle": {
+      "present_in_source": 10000,
+      "survived_round_trip": 10000,
+      "rate": 1.0
+    },
+    "DetectorId": {
+      "present_in_source": 10000,
+      "survived_round_trip": 18,
+      "rate": 0.0018
+    },
+    "Category": {
+      "present_in_source": 10000,
+      "survived_round_trip": 10000,
+      "rate": 1.0
+    },
+    "MitreTechniques": {
+      "present_in_source": 10000,
+      "survived_round_trip": 10000,
+      "rate": 1.0
+    },
+    "SuspicionLevel": {
+      "present_in_source": 1469,
+      "survived_round_trip": 0,
+      "rate": 0.0
+    },
+    "Hour": {
+      "present_in_source": 0,
+      "survived_round_trip": 0,
+      "rate": null
+    },
+    "DayOfWeek": {
+      "present_in_source": 0,
+      "survived_round_trip": 0,
+      "rate": null
+    }
+  },
+  "tier": "Tier-1 (synthetic only)",
+  "finding_suspicionlevel_vocabulary_mismatch": {
+    "severity": "actionable defect in src/integrations/wazuh_adapter.py",
+    "what": "_suspicion_level() buckets Wazuh rule.level into 'low'/'medium'/'high'. The deployed model's SuspicionLevel encoder knows only ['Incriminated', 'Suspicious', 'nan'], so all three adapter outputs encode to -1 (unknown).",
+    "consequence": "every Wazuh-origin alert loses its SuspicionLevel signal entirely -- not degraded, discarded. The field appears populated end to end, which is why a field-survival count alone would not catch it.",
+    "scope_note": "This one is unconditional: the adapter manufactures the value from rule.level, so it holds for real Wazuh traffic and for this round trip alike. The Category mismatch recorded alongside it is different in kind -- that field is passed through, so it only bites on real Wazuh rule.groups, not on the round trip measured here.",
+    "verified_against_real_guide": "GUIDE_Test.csv SuspicionLevel values are 'Suspicious' and 'Incriminated'; this is not an artefact of the synthetic generator's vocabulary.",
+    "fix": "map rule.level onto GUIDE's own vocabulary rather than a low/medium/high scale the model was never trained on."
+  },
+  "limitations": [
+    "Tier-1 only. Every alert here is synthetic; the labels are random and are deliberately not used. This is a schema-transfer measurement, not an accuracy measurement.",
+    "No real Wazuh production data, labelled or otherwise, was available. Tier-2 -- real Wazuh alerts with analyst verdicts -- remains future work and no number in this project stands in for it.",
+    "Rule-ID semantic alignment was not attempted. The adapter maps Wazuh rule.id into both AlertTitle and DetectorId because Wazuh does not separate them, so a Wazuh rule id and a GUIDE alert-title id that happen to share a value denote unrelated things. Verdict agreement below measures whether the classifier sees the same features, not whether those features mean the same thing in both domains.",
+    "LastVerdict has no Wazuh equivalent and is dropped by design; it is excluded from the field-survival table rather than scored as a loss."
+  ]
+}

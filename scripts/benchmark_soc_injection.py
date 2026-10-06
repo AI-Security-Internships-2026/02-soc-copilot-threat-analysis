@@ -9,7 +9,7 @@ each detector's implementation.
 usage (from repo root):
     python scripts/benchmark_soc_injection.py --detector all
     python scripts/benchmark_soc_injection.py --detector l2 --daily-call-budget 300
-    python scripts/benchmark_soc_injection.py --detector l3 --include-api
+    python scripts/benchmark_soc_injection.py --detector l3 --daily-call-budget 300
     python scripts/benchmark_soc_injection.py --reproduce_only_checksum
 """
 
@@ -29,7 +29,7 @@ from experiments import m3_2_learned_detectors as learned
 from experiments import m3_2_heuristic_detectors as heuristic
 from experiments import m3_2_build_detector_matrix as matrix
 
-LEARNED_DETECTORS = {"l1", "l2", "l3", "l4"}
+LEARNED_DETECTORS = {"l1", "l2", "l3"}
 HEURISTIC_DETECTORS = {"h1", "h2", "h3", "h_union"}
 ALL_DETECTORS = LEARNED_DETECTORS | HEURISTIC_DETECTORS
 
@@ -41,20 +41,58 @@ CHECKSUM_TARGETS = [
 ]
 
 
+# Keys that change on every run regardless of the result. Hashing a file that
+# carries one makes the certificate drift on a no-op re-run, which is exactly
+# the failure it is supposed to detect -- so they are stripped before hashing
+# and the certificate records that it is over normalised content.
+VOLATILE_KEYS = {"generated_at_utc", "git_sha"}
+
+
 def _sha256(path: Path) -> str | None:
     if not path.exists():
         return None
-    digest = hashlib.sha256()
-    digest.update(path.read_bytes())
-    return digest.hexdigest()
+    raw = path.read_bytes()
+    if path.suffix == ".json":
+        payload = json.loads(raw)
+        if isinstance(payload, dict):
+            stripped = {k: v for k, v in payload.items() if k not in VOLATILE_KEYS}
+            raw = json.dumps(stripped, sort_keys=True).encode()
+    return hashlib.sha256(raw).hexdigest()
 
 
-def reproduce_only_checksum() -> None:
-    manifest = {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "files": {str(p): _sha256(p) for p in CHECKSUM_TARGETS},
-    }
-    print(json.dumps(manifest, indent=2))
+CHECKSUM_CERTIFICATE = Path("experiments/results/m3_benchmark_checksums.json")
+
+
+def reproduce_only_checksum() -> int:
+    """Print the SHA-256 of every benchmark output, and check it against the
+    committed certificate (issue #37).
+
+    Printing alone was not a reproducibility check: without a committed
+    reference there was nothing to reproduce *against*. The certificate
+    deliberately carries no timestamp, so re-running on unchanged outputs
+    rewrites it byte-identically and leaves the tree clean -- the same reason
+    m6_1_compliance_audit.py omits one. Returns a process exit code."""
+    observed = {str(p): _sha256(p) for p in CHECKSUM_TARGETS}
+    print(json.dumps({"files": observed}, indent=2))
+
+    if CHECKSUM_CERTIFICATE.exists():
+        expected = json.loads(CHECKSUM_CERTIFICATE.read_text())["files"]
+        drifted = {
+            name: (expected.get(name), digest)
+            for name, digest in observed.items()
+            if expected.get(name) != digest
+        }
+        if drifted:
+            for name, (was, now) in sorted(drifted.items()):
+                print(f"DRIFT {name}\n  committed {was}\n  observed  {now}")
+            print(f"{len(drifted)} of {len(observed)} outputs differ from {CHECKSUM_CERTIFICATE}")
+            return 1
+        print(f"all {len(observed)} outputs match {CHECKSUM_CERTIFICATE}")
+        return 0
+
+    CHECKSUM_CERTIFICATE.write_text(json.dumps({"files": observed}, indent=2) + "\n")
+    print(f"wrote {CHECKSUM_CERTIFICATE} (no certificate existed; commit it as the reference)")
+    return 0
 
 
 def main() -> None:
@@ -64,15 +102,13 @@ def main() -> None:
         choices=sorted(ALL_DETECTORS | {"all"}),
         default="all",
     )
-    parser.add_argument("--include-api", action="store_true", help="also run L3 (OpenAI Moderation); needs OPENAI_API_KEY")
-    parser.add_argument("--daily-call-budget", type=int, default=None, help="cap live Groq calls for L2/L4 this invocation")
+    parser.add_argument("--daily-call-budget", type=int, default=None, help="cap live Groq calls for L2/L3 this invocation")
     parser.add_argument("--reproduce_only_checksum", action="store_true", help="print SHA-256 of existing outputs, no re-scoring")
     parser.add_argument("--skip-matrix", action="store_true", help="skip rebuilding the Part C failure matrix after scoring")
     args = parser.parse_args()
 
     if args.reproduce_only_checksum:
-        reproduce_only_checksum()
-        return
+        sys.exit(reproduce_only_checksum())
 
     detectors = sorted(ALL_DETECTORS) if args.detector == "all" else [args.detector]
     learned_to_run = [d for d in detectors if d in LEARNED_DETECTORS]
@@ -83,7 +119,7 @@ def main() -> None:
         output = json.loads(learned.OUTPUT_PATH.read_text()) if learned.OUTPUT_PATH.exists() else {}
         for key in learned_to_run:
             print(f"running {key}...")
-            output[key] = learned.run(key, include_api=args.include_api, daily_call_budget=args.daily_call_budget)
+            output[key] = learned.run(key, daily_call_budget=args.daily_call_budget)
         output["generated_at_utc"] = datetime.now(timezone.utc).isoformat()
         output["git_sha"] = learned.git_sha()
         learned.OUTPUT_PATH.write_text(json.dumps(output, indent=2))

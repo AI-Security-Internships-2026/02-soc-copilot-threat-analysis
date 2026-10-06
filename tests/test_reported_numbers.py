@@ -1,0 +1,237 @@
+"""
+Guards the headline figures the demo and the write-ups quote against the
+committed JSON they are supposed to come from.
+
+This exists because the Week 21 demo caught two drifts that nothing else would
+have: a headroom figure quoting the held-out-optimised arm instead of the
+selected one, and a demo script narrating a review-gate hold for form values
+that are actually auto-accepted. Both were wrong in the direction that flatters
+the project, which is the direction worth testing.
+
+A number appearing here means some document states it. If a result is
+legitimately regenerated and a value moves, update the document and this file
+together -- never just this file.
+"""
+
+import json
+import re
+from pathlib import Path
+
+import pytest
+
+RESULTS = Path("experiments/results")
+DOCS = Path("docs")
+
+
+def load(name):
+    return json.loads((RESULTS / name).read_text())
+
+
+def test_split_method_delta_is_replicated_across_seeds():
+    """The paper's headline leakage claim: 7/7 seeds, same direction."""
+    d = load("m2_1_splitmethod_delta_5seeds.json")
+    per_seed = d["per_seed"]
+    assert len(per_seed) == 7, "documents say seven seeds"
+
+    # every seed must favour the leaky split -- "never once the reverse"
+    for s in per_seed:
+        row = s["row_level_split"]["accuracy"]
+        grp = s["group_level_split"]["accuracy"]
+        assert row > grp, f"seed {s['seed']}: row {row} !> group {grp}"
+
+    agg = d["aggregate_delta_acc"]
+    assert round(agg["mean"], 4) == 0.0302
+    assert round(agg["ci_lower"], 4) == 0.0244
+    assert round(agg["ci_upper"], 4) == 0.0351
+    assert round(d["wilcoxon_delta_acc_vs_zero"]["p_value"], 4) == 0.0156
+
+
+def test_headroom_headline_quotes_the_selected_arm_not_the_held_out_best():
+    """+3.43 is the selection rule's arm; +3.6 is the one chosen by reading
+    the held-out split the study promises not to optimise against."""
+    sel = load("classifier_improvement_study.json")["selection"]
+    assert round(sel["accuracy_gain_vs_deployed"], 4) == 0.0343
+
+    deployed = load("classifier_improvement_study.json")["deployed_reference"]
+    best_ref = sel["best_held_out_accuracy_for_reference"]
+    assert round(best_ref - deployed["held_out_accuracy"], 4) == 0.0357, (
+        "the 'reference' gap is the ~3.6 figure; it must stay distinguishable "
+        "from the selected arm's 3.43"
+    )
+
+    # the documents must not present 3.6 as the headline without the caveat
+    for doc in ("final-report.md", "demo-runbook.md"):
+        text = (DOCS / doc).read_text()
+        if "3.6" in text:
+            assert re.search(
+                r"reference|best[- ]scoring|best arm|never optimis", text
+            ), f"{doc} quotes 3.6 without saying it is the reference arm"
+
+
+def test_held_out_is_lower_than_train_sampled():
+    """The honest number must stay the lower one -- that is the whole point."""
+    c = load("guide_test_holdout_eval.json")["train_vs_test_comparison"]
+    held = c["test_holdout_15000"]["accuracy"]
+    train = c["train_sampled_999_rf_primary_pipeline"]["accuracy"]
+    assert round(held, 4) == 0.6998
+    assert round(train, 4) == 0.7347
+    assert held < train
+
+
+def test_injection_benchmark_composition():
+    """400 attacks across 7 families, plus 100 real controls."""
+    fam = load("m3_1_benchmark_generation.json")["family_counts"]
+    attacks = {k: v for k, v in fam.items() if k.startswith("F")}
+    assert sum(attacks.values()) == 400, attacks
+    assert len(attacks) == 7
+    assert fam["BCONTROL"] == 100
+
+
+def test_demo_runbook_margins_still_hold_against_the_live_model():
+    """The runbook tells a presenter exactly what the screen will show. These
+    three margins are computed live from baseline_model.joblib, so nothing else
+    in the suite would notice if the model or the feature pipeline moved and the
+    demo started contradicting its own script in front of an audience."""
+    from src.agent.fallback_classifier import predict_with_margin
+
+    form_six = {
+        "AlertTitle": "15723", "DetectorId": "7", "Category": "CredentialAccess",
+        "MitreTechniques": "T1110;T1110.003", "SuspicionLevel": "Suspicious",
+        "LastVerdict": "Suspicious",
+    }
+    label, _, margin = predict_with_margin(form_six)
+    assert label == "BenignPositive"
+    assert round(margin, 4) == 0.1067, "Beat 2's headline margin moved"
+    assert margin < 0.20, "the runbook narrates this alert as held for review"
+
+    # The runbook warns these two score differently on purpose: the CLI scenario
+    # also sets Hour/DayOfWeek, which the form does not collect. If they ever
+    # coincide, that warning becomes misleading rather than merely unnecessary.
+    evidenced = dict(form_six, Category="Collection", MitreTechniques="T1078;T1078.004")
+    _, _, form_margin = predict_with_margin(evidenced)
+    _, _, cli_margin = predict_with_margin(dict(evidenced, Hour=2, DayOfWeek=0))
+    assert round(form_margin, 4) == 0.2056 and form_margin >= 0.20
+    assert round(cli_margin, 4) == 0.0986 and cli_margin < 0.20
+
+    text = (DOCS / "demo-runbook.md").read_text()
+    for value in ("0.1067", "0.2056", "0.0986"):
+        assert value in text, f"demo-runbook.md no longer quotes {value}"
+
+
+def test_per_class_leakage_deltas_are_derived_from_the_artifact_not_transcribed():
+    """The per-class leakage deltas are computed, not stored, which is how three
+    of them drifted: the documents quoted +0.4045/+0.2635/+0.0615 for a year and
+    no committed run produces those. Derive them here so a transcription error
+    cannot survive again."""
+    audit = load("incident_leakage_audit.json")
+    blocks = re.findall(r'"per_class_recall":\s*(\{[^}]*\})', json.dumps(audit))
+    assert len(blocks) == 2, "expected a leaked block and a clean block"
+    leaked, clean = (json.loads(b) for b in blocks)
+    deltas = {k: round(leaked[k] - clean[k], 4) for k in leaked}
+
+    assert deltas == {
+        "TruePositive": 0.4035,
+        "FalsePositive": 0.2660,
+        "BenignPositive": 0.0605,
+    }, deltas
+    # ...and the ordering the claim actually rests on
+    assert deltas["TruePositive"] > deltas["FalsePositive"] > deltas["BenignPositive"]
+
+    text = (DOCS / "final-report.md").read_text()
+    for value in ("+0.4035", "+0.2660", "+0.0605"):
+        assert value in text, f"final-report.md does not quote the measured {value}"
+
+
+def test_interrater_kappa_matches_what_the_documents_quote():
+    """The κ the datasheet, the rubric and the report all state (issue #35)."""
+    d = load("m3_1_interrater_kappa.json")
+    assert round(d["cohen_kappa"], 4) == 0.8178
+    assert d["meets_target"] is True
+    assert d["n_disagreements"] == 9
+    assert len(d["resolution_log"]) == d["n_disagreements"], "every disagreement is logged"
+
+    # final-report.md is the public in-repo deliverable and must not drift from
+    # the paper, which quotes this figure.
+    for doc in ("soc-injection-benchmark-datasheet.md", "m3-1-kappa-results.md",
+                "soc-injection-benchmark-rubric.md", "final-report.md"):
+        assert "0.8178" in (DOCS / doc).read_text(), f"{doc} does not quote the committed κ"
+
+
+def test_kappa_ceiling_holds_the_pooled_number_up():
+    """The ceiling the datasheet and rubric state: the benign controls are
+    separable on surface form, so the pooled κ says nothing about hard cases.
+    This fails the moment a rating pass makes that claim untrue."""
+    d = load("m3_1_interrater_kappa.json")
+    assert d["disagreement_distribution"]["BCONTROL"]["n_disagreements"] == 0
+    assert d["agreement_by_stratum"]["benign"]["raw_agreement"] == 1.0
+    # ...so every disagreement is an attack row, which is what makes the
+    # pooled figure uninformative about detector-relevant difficulty.
+    assert d["agreement_by_stratum"]["injection"]["raw_agreement"] < 1.0
+    assert (
+        sum(b["n_disagreements"] for b in d["disagreement_distribution"].values())
+        == d["n_disagreements"]
+    )
+
+
+@pytest.mark.parametrize(
+    "key, tpr, source",
+    [
+        ("h1", 0.0275, "m3_2_heuristic_detectors.json"),
+        ("h2", 0.1050, "m3_2_heuristic_detectors.json"),
+        ("h3", 0.9125, "m3_2_heuristic_detectors.json"),
+        ("h_union", 0.9675, "m3_2_heuristic_detectors.json"),
+        ("l1", 0.0325, "m3_2_learned_detectors.json"),
+        ("l2", 0.3125, "m3_2_learned_detectors.json"),
+        ("l3", 0.5899, "m3_2_learned_detectors.json"),
+    ],
+)
+def test_detector_recalls_match_the_reported_table(key, tpr, source):
+    assert round(load(source)[key]["overall_tpr"], 4) == tpr
+
+
+def test_only_detectors_that_were_actually_run_are_reported():
+    """Issue #36: the OpenAI Moderation detector is out of scope, not pending.
+    A blank row is the failure mode this guards -- a reader treats "not run" in
+    a results table as a measurement of something."""
+    learned = load("m3_2_learned_detectors.json")
+    detectors = {k: v for k, v in learned.items() if k.startswith("l")}
+    assert set(detectors) == {"l1", "l2", "l3"}
+    for key, node in detectors.items():
+        assert node.get("overall_tpr") is not None, f"{key} is reported without a score"
+        assert "moderation" not in node["detector"].lower()
+
+
+def test_partial_detector_recall_is_over_the_rows_it_actually_scored():
+    """L3's five unscorable F4 rows must not be silently credited or debited --
+    its recall denominator is 395, and the reported CI has to use the same one."""
+    l3 = load("m3_2_learned_detectors.json")["l3"]
+    assert l3["n_attacks_scored"] == 400 - len(l3["persistent_errors"]) == 395
+    assert round(l3["n_attacks_detected"] / l3["n_attacks_scored"], 4) == l3["overall_tpr"]
+
+    ci = load("m6_3_ci_backfill.json")["tab18_detector_recall"]["l3"]
+    assert (ci["k"], ci["n"]) == (l3["n_attacks_detected"], l3["n_attacks_scored"])
+
+
+def test_paired_control_numbers():
+    """The LLM scored below the majority-class floor on identical alerts."""
+    c = load("rf_vs_llm_control.json")
+    rf = round(c["randomforest"]["accuracy"], 4)
+    llm = round(c["llm"]["accuracy"], 4)
+    assert rf == 0.6555 and llm == 0.2823
+    assert llm < 0.4928 < rf, "the LLM must stay below the constant-answer floor"
+
+
+def test_explanation_node_cannot_change_a_verdict():
+    v = load("verdict_invariance.json")
+    assert v["verdicts_identical"] is True
+    assert v["n_mismatches"] == 0
+    assert v["n_scored"] == 999
+
+
+def test_demo_script_form_values_are_the_ones_that_hold_for_review():
+    """The runbook must not tell the presenter to narrate a hold using values
+    that are auto-accepted through the web form."""
+    text = (DOCS / "demo-runbook.md").read_text()
+    assert "CredentialAccess" in text and "T1110;T1110.003" in text
+    # the Collection/T1078 pair scores 0.2056 through the form -> auto-accepted
+    assert "0.2056" in text, "the auto-accepted contrast must stay documented"

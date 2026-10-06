@@ -1,0 +1,159 @@
+{
+  "experiment": "M2.2 follow-up (issue #32) -- binary vs three-class as an explanation for the split-method delta gap",
+  "generated_at_utc": "2026-09-20T07:54:49.403803+00:00",
+  "git_sha": "9afddad7e8a92158373ebb7e977af12dc59520c0",
+  "design": "2x2, formulation x rows; each cell trains RF-200 twice on identical rows varying only the split rule",
+  "binary_target_definition": "(IncidentGrade == \"TruePositive\"), taken from experiments/kaggle_repro/kaggle_notebook_1.py",
+  "no_tuning_note": "Per issue #32, no experiment was tuned toward +0.020 or toward any target delta. Both outcomes were acceptable in advance and the measured result is reported as-is.",
+  "cells": {
+    "three_class@100000": {
+      "formulation": "three_class",
+      "rows": 100000,
+      "positive_rate": null,
+      "row_level": {
+        "n_train": 79580,
+        "n_test": 19895,
+        "accuracy": 0.7718,
+        "f1": 0.7505,
+        "holdout_rows_sharing_an_incident_with_train": 10611,
+        "holdout_incident_leakage_rate": 0.5334
+      },
+      "group_level": {
+        "n_train": 79541,
+        "n_test": 19934,
+        "accuracy": 0.7435,
+        "f1": 0.7118,
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0283,
+      "delta_f1": 0.0387
+    },
+    "binary@100000": {
+      "formulation": "binary",
+      "rows": 100000,
+      "positive_rate": 0.3507,
+      "row_level": {
+        "n_train": 79580,
+        "n_test": 19895,
+        "accuracy": 0.8565,
+        "f1": 0.7826,
+        "holdout_rows_sharing_an_incident_with_train": 10643,
+        "holdout_incident_leakage_rate": 0.535
+      },
+      "group_level": {
+        "n_train": 79541,
+        "n_test": 19934,
+        "accuracy": 0.8407,
+        "f1": 0.7572,
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0158,
+      "delta_f1": 0.0254
+    },
+    "three_class@300000": {
+      "formulation": "three_class",
+      "rows": 300000,
+      "positive_rate": null,
+      "row_level": {
+        "n_train": 238732,
+        "n_test": 59684,
+        "accuracy": 0.7987,
+        "f1": 0.7816,
+        "holdout_rows_sharing_an_incident_with_train": 38665,
+        "holdout_incident_leakage_rate": 0.6478
+      },
+      "group_level": {
+        "n_train": 242289,
+        "n_test": 56127,
+        "accuracy": 0.7433,
+        "f1": 0.7217,
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0554,
+      "delta_f1": 0.0599
+    },
+    "binary@300000": {
+      "formulation": "binary",
+      "rows": 300000,
+      "positive_rate": 0.3513,
+      "row_level": {
+        "n_train": 238732,
+        "n_test": 59684,
+        "accuracy": 0.8759,
+        "f1": 0.8156,
+        "holdout_rows_sharing_an_incident_with_train": 38392,
+        "holdout_incident_leakage_rate": 0.6433
+      },
+      "group_level": {
+        "n_train": 242289,
+        "n_test": 56127,
+        "accuracy": 0.8472,
+        "f1": 0.747,
+        "holdout_rows_sharing_an_incident_with_train": 0,
+        "holdout_incident_leakage_rate": 0.0
+      },
+      "delta_acc": 0.0287,
+      "delta_f1": 0.0686
+    }
+  },
+  "external_comparators": {
+    "kaggle_notebook_1_catboost": {
+      "delta_acc": 0.007,
+      "rows": 300000,
+      "formulation": "binary (IncidentGrade == TruePositive)",
+      "model": "CatBoost",
+      "source": "https://www.kaggle.com/code/kugakugar/catboost"
+    },
+    "kaggle_notebook_2_randomforest": {
+      "delta_acc": 0.0092,
+      "rows": 300000,
+      "formulation": "binary (IncidentGrade == TruePositive)",
+      "model": "RandomForest",
+      "source": "https://www.kaggle.com/code/mohamedamr992/94-roc-randomforest"
+    }
+  },
+  "verdict": {
+    "@100000": {
+      "three_class_delta": 0.0283,
+      "binary_delta": 0.0158,
+      "shift_from_binarising": -0.0125,
+      "external_mean_delta": 0.0081,
+      "binary_delta_closes_most_of_the_gap": true,
+      "reading": "(a) formulation may explain part of the difference",
+      "residual_vs_external": 0.0077,
+      "binary_delta_as_multiple_of_external": 1.95
+    },
+    "@300000": {
+      "three_class_delta": 0.0554,
+      "binary_delta": 0.0287,
+      "shift_from_binarising": -0.0267,
+      "external_mean_delta": 0.0081,
+      "binary_delta_closes_most_of_the_gap": true,
+      "reading": "(a) formulation may explain part of the difference",
+      "residual_vs_external": 0.0206,
+      "binary_delta_as_multiple_of_external": 3.54
+    },
+    "sample_size_finding": {
+      "three_class_100k": 0.0283,
+      "three_class_300k": 0.0554,
+      "row_level_leakage_100k": 0.5334,
+      "row_level_leakage_300k": 0.6478,
+      "note": "Reading more of the file makes the delta LARGER, not smaller, because a bigger slice samples more rows per incident and the row-level holdout's incident overlap rises from 53% to 65%. Sample size therefore moves in the opposite direction from the one that would close the gap to the notebooks, which use 300k rows."
+    }
+  },
+  "kaggle_vote_count_reverification": {
+    "checked_at_utc": "2026-09-20",
+    "method": "Kaggle API kernels_list(dataset=..., sort_by='voteCount'), 3 pages, attribute total_votes; run fresh rather than trusting the note recorded in m2_2_kaggle_baselines.json",
+    "notebooks_on_dataset": 37,
+    "top_vote_count": 39,
+    "top_notebook": "kugakugar/catboost",
+    "notebooks_clearing_50_votes": 0,
+    "issue_32_requirement": ">=50 upvotes per selected notebook",
+    "requirement_satisfiable": false,
+    "conclusion": "The >=50-upvote criterion cannot be met by any notebook on this dataset. 39 is the ceiling. This is a property of the dataset's Kaggle community, not a selection shortfall, and is confirmed independently here rather than carried over as an assertion."
+  },
+  "overall_conclusion": "Binarising roughly halves our delta at both row counts, so task formulation explains a substantial part of the difference -- reading (a) of issue #32. It does NOT explain all of it: at the matched 300,000 rows our binary delta is 0.0287 against the notebooks' 0.0081, still about 3.5x. The residual is not attributable to sample size either, which moves the wrong way. Remaining candidates are estimator (CatBoost vs RF) and the notebooks' own feature handling; we did not pursue them, and per issue #32 no result here was tuned toward any target delta."
+}

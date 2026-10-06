@@ -1,0 +1,8 @@
+detector,detector_label,overall_tpr,fpr_on_bcontrol,roc_auc_500row,n_scored,complete
+l1,L1 TF-IDF+LogReg,0.0325,0.1,0.1978,,
+l2,L2 Llama Prompt Guard 2,0.3125,0.0,,500,True
+l3,L3 NeMo-style Groq self-check,0.5899,0.0,,495,False
+h1,H1 regex,0.0275,0.0,,,
+h2,H2 schema,0.105,0.0,,,
+h3,H3 SOC-aware,0.9125,0.0,,,
+h_union,H-union,0.9675,0.0,,,

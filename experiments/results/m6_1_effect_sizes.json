@@ -1,0 +1,100 @@
+{
+  "experiment": "M6.1 PART C -- effect sizes and multiplicity corrections for cells the compliance audit flagged",
+  "alpha": 0.05,
+  "mcnemar_effect_sizes": {
+    "rf_vs_llm_209": {
+      "source": "rf_vs_llm_control.json :: paired_mcnemar_test",
+      "reports": "Tab 4 -- RF vs LLM on the identical 209 alerts",
+      "p_value": 4.656868638370482e-12,
+      "odds_ratio": 3.8889,
+      "ci_lower": 2.5277,
+      "ci_upper": 6.177,
+      "proportion_favouring_a": 0.7955,
+      "proportion_ci": [
+        0.7165,
+        0.8607
+      ],
+      "b_discordant_favouring_a": 105,
+      "c_discordant_favouring_b": 27,
+      "n_discordant": 132,
+      "method": "McNemar odds ratio b/c; CI from the exact Clopper-Pearson interval on b/(b+c) mapped through p/(1-p). Null OR = 1."
+    },
+    "m3a_vs_m7_partial_241": {
+      "source": "m2_4_m3a_vs_m7_mcnemar.json",
+      "reports": "Sec 4.13 -- M3a vs M7, partial n=241",
+      "superseded_by": "experiments/results/m2_4_heldout_n15k.json mcnemar_pairs.M3a_vs_M7 -- this file is the partial n=241 figure from before M7 finished scoring all 500 target alerts; kept for history, not authoritative",
+      "p_value": 8.74661329915905e-10,
+      "odds_ratio": 3.0,
+      "ci_lower": 2.0511,
+      "ci_upper": 4.4784,
+      "proportion_favouring_a": 0.75,
+      "proportion_ci": [
+        0.6722,
+        0.8175
+      ],
+      "b_discordant_favouring_a": 111,
+      "c_discordant_favouring_b": 37,
+      "n_discordant": 148,
+      "method": "McNemar odds ratio b/c; CI from the exact Clopper-Pearson interval on b/(b+c) mapped through p/(1-p). Null OR = 1."
+    }
+  },
+  "multiplicity": {
+    "m2_4_classifier_pairwise": {
+      "method": "Holm-Bonferroni step-down, family-wise alpha = 0.05, m = 4 pairwise tests",
+      "family_size": 4,
+      "plain_bonferroni_threshold": 0.0125,
+      "results": [
+        {
+          "comparison": "M3a_vs_M7",
+          "p_raw": 2.2212567978384838e-18,
+          "rank": 1,
+          "holm_threshold": 0.0125,
+          "significant_after_holm": true,
+          "p_adjusted": 8.885027191353935e-18
+        },
+        {
+          "comparison": "M6_vs_M7",
+          "p_raw": 3.168780232652897e-17,
+          "rank": 2,
+          "holm_threshold": 0.016666666666666666,
+          "significant_after_holm": true,
+          "p_adjusted": 9.50634069795869e-17
+        },
+        {
+          "comparison": "M6_vs_M3a",
+          "p_raw": 2.1867520827526273e-14,
+          "rank": 3,
+          "holm_threshold": 0.025,
+          "significant_after_holm": true,
+          "p_adjusted": 4.3735041655052547e-14
+        },
+        {
+          "comparison": "M3a_vs_M3b",
+          "p_raw": 0.03717007038152862,
+          "rank": 4,
+          "holm_threshold": 0.05,
+          "significant_after_holm": true,
+          "p_adjusted": 0.03717007038152862
+        }
+      ],
+      "omnibus": {
+        "test": "Cochran's Q across k=7 classifiers",
+        "Q": 16447.5212,
+        "df": 6,
+        "p_value": 0.0,
+        "note": "The omnibus rejects, which licenses the pairwise family. It does not correct the pairwise p-values -- Holm below does."
+      },
+      "odds_ratios_already_present": {
+        "M6_vs_M3a": 0.7174,
+        "M3a_vs_M3b": 1.25,
+        "M6_vs_M7": 2.8354,
+        "M3a_vs_M7": 2.9359
+      }
+    },
+    "m3_2_detector_family_matrix": {
+      "cells": 56,
+      "correction_applicable": false,
+      "reason": "The 56 cells are per-family true-positive rates, not hypothesis tests -- there is no p-value to correct. The matrix is reported descriptively and no significance is claimed between cells."
+    }
+  }
+}
