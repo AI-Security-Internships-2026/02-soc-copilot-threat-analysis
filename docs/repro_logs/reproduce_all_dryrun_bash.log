@@ -1,0 +1,93 @@
+======================================================================
+ SOC Co-pilot -- full reproduction
+ dry-run=1  api=0  kaggle=0  skip-heavy=0
+ expected runtime with these flags: ~6-12 h
+======================================================================
+
+[ 1/28] Data integrity (SHA-256 against INTEGRITY_MANIFEST.json)
+        would run: venv/bin/python scripts/verify_data_integrity.py
+
+[ 2/28] Environment check
+        would run: venv/bin/python -c import sklearn, numpy, scipy, pandas; print('deps ok')
+
+[ 3/28] Baseline test suite
+        would run: venv/bin/python -m pytest tests/ -q
+
+[ 4/28] M2.1 leakage: incident-level audit
+        would run: venv/bin/python experiments/incident_leakage_audit.py
+
+[ 5/28] M2.1 leakage: grouped-split baseline
+        would run: venv/bin/python experiments/grouped_split_baseline.py
+
+[ 6/28] M2.1 leakage: 7-seed split-method delta
+        would run: venv/bin/python experiments/m2_1_splitmethod_5seeds.py
+
+[ 7/28] M2.1 leakage: historical eval overlap
+        would run: venv/bin/python experiments/m2_1_historical_eval_overlap.py
+
+[ 8/28] M2.2 third-party Kaggle reproduction
+        SKIPPED (needs --include-kaggle and Kaggle auth)
+
+[ 9/28] M2.2 third-party Kaggle reproduction (2)
+        SKIPPED (needs --include-kaggle and Kaggle auth)
+
+[10/28] M2.3 incident-grouped model deployment
+        would run: venv/bin/python experiments/m2_3_deploy_grouped_model.py
+
+[11/28] M2.4 seven-classifier suite (HEAVY)
+        would run: venv/bin/python experiments/m2_4_classifier_suite.py
+
+[12/28] Classifier improvement study (HEAVY)
+        would run: venv/bin/python experiments/classifier_improvement_study.py
+
+[13/28] M3.1 build injection benchmark v1.0
+        would run: venv/bin/python experiments/m3_1_generate_benchmark.py
+
+[14/28] M3.2 heuristic detectors
+        would run: venv/bin/python experiments/m3_2_heuristic_detectors.py
+
+[15/28] M3.2 learned detectors (offline only)
+        would run: venv/bin/python experiments/m3_2_learned_detectors.py
+
+[16/28] M3.2 detector x family matrix
+        would run: venv/bin/python experiments/m3_2_build_detector_matrix.py
+
+[17/28] M3.1 inter-rater agreement
+        would run: venv/bin/python experiments/m3_1_interrater_kappa.py
+
+[18/28] Held-out GUIDE_Test evaluation
+        would run: venv/bin/python experiments/guide_test_holdout_eval.py
+
+[19/28] Paired RF vs LLM control
+        would run: venv/bin/python experiments/rf_vs_llm_control.py
+
+[20/28] Guardrail layer evaluation
+        would run: venv/bin/python experiments/guardrail_layer_eval.py
+
+[21/28] ROC / AUC analysis
+        would run: venv/bin/python experiments/roc_auc_analysis.py
+
+[22/28] Verdict invariance check
+        would run: venv/bin/python experiments/verdict_invariance_check.py
+
+[23/28] M6.1 effect sizes and multiplicity
+        would run: venv/bin/python experiments/m6_1_effect_sizes.py
+
+[24/28] M6.3 bootstrap CI backfill
+        would run: venv/bin/python experiments/m6_3_bootstrap_ci_backfill.py
+
+[25/28] M6.1 figure/table manifest
+        would run: venv/bin/python experiments/m6_1_build_manifest.py
+
+[26/28] M6.1 statistical compliance audit
+        would run: venv/bin/python experiments/m6_1_compliance_audit.py
+
+[27/28] Collecting artifacts into experiments/paper_ready/
+        would copy experiments/results/*.json and *.csv -> experiments/paper_ready/
+
+[28/28] M6.3 paper-claims regression suite
+        would run: venv/bin/python -m pytest tests/test_paper_claims.py tests/test_reported_numbers.py tests/test_manifest_integrity.py -q
+
+======================================================================
+ DRY RUN COMPLETE -- 28 steps planned, nothing executed
+======================================================================

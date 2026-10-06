@@ -60,10 +60,43 @@ T_init = HITL_AUTO_ACCEPT_MARGIN
 #:    sweep, 0.20 already gives 80.4/19.6 -- so 0.20 *is* the 80/20 point on the
 #:    data we have, and 0.12 would land nearer 88/12.
 #:
-#: When M5.1 runs its 8-threshold burden sweep on the held-out split, revisit
-#: this. If it puts the Pareto knee at 0.12, change `HITL_AUTO_ACCEPT_MARGIN`
-#: and this note together, and re-run every figure that depends on the gate.
+#: RESOLVED 2026-09-20 -- M5.1 PART B has now run (issue #42,
+#: `experiments/results/m5_1_burden_sweep.json`), sweeping T over the
+#: class-balanced held-out 15,000 rather than the 209-alert control. The note
+#: above asked for this to be revisited once that existed. Outcome: **0.20
+#: stands, and 0.12 is not adopted.**
+#:
+#:     T      auto%    accepted acc   95% CI              escalated acc
+#:     0.00   100.0%   0.6998         [0.6923, 0.7071]    --
+#:     0.12    89.2%   0.7302         [0.7230, 0.7377]    0.4485
+#:     0.15    86.4%   0.7384         [0.7310, 0.7463]    0.4536
+#:     0.20    82.0%   0.7517         [0.7440, 0.7592]    0.4640   <- deployed
+#:     0.30    74.1%   0.7799         [0.7726, 0.7876]    0.4705
+#:
+#: 1. **There is no Pareto knee.** Marginal efficiency -- accuracy gained per
+#:    extra point of analyst burden -- is flat between 0.23 and 0.38 across the
+#:    entire sweep, with no local maximum. So the threshold is a burden policy,
+#:    not a tunable optimum, and nothing in the data picks 0.12 over 0.20.
+#: 2. **0.20 is still the 80/20 point**, now on a sample forty times larger:
+#:    82.0/18.1 held-out against 80.4/19.6 on the 209-alert control. Two
+#:    different populations agreeing to within two points. 0.12 lands at 89/11.
+#: 3. **The CI anchor picks 0.20 and not 0.15.** The train-sampled figure this
+#:    project used to report is 0.7357. At T=0.20 the accepted subset's interval
+#:    [0.7440, 0.7592] lies entirely above it; at T=0.15 the interval
+#:    [0.7310, 0.7463] still contains it. 0.20 is the smallest threshold at
+#:    which the gate demonstrably delivers on unseen incidents what the leaky
+#:    evaluation used to claim.
+#:
+#: Honest ordering: 0.20 was fixed in Week 15 from the 209-alert sweep, before
+#: any of the above existed. M5.1 therefore CONFIRMS the value rather than
+#: deriving it. Had it disagreed, the value would have changed.
+#:
+#: The gate is also correctly oriented at every threshold -- escalated alerts
+#: score 0.44-0.51 against 0.73-0.85 accepted -- which is the property the LLM's
+#: self-reported confidence did not have. See tests/test_paper_claims.py.
 HITL_THRESHOLD_DECISION = (
-    "keep 0.20; the 0.12 recommendation is an M5.1 target, and M5.1 has not run. "
-    "On the committed sweep 0.20 is already the 80/20 accept/escalate point."
+    "keep 0.20; M5.1 PART B has run and confirms it. No Pareto knee exists "
+    "(marginal efficiency is flat), 0.20 remains the 80/20 point on the "
+    "held-out 15,000 (82.0/18.1), and it is the smallest threshold whose 95% CI "
+    "clears the 0.7357 train-sampled figure. 0.12 is not adopted."
 )

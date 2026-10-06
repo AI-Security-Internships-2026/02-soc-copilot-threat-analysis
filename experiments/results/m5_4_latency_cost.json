@@ -1,0 +1,49 @@
+{
+  "experiment": "M5.2 PART B -- per-stage latency, throughput and API cost",
+  "generated_at_utc": "2026-09-14T12:27:32.814552+00:00",
+  "git_sha": "13b6beeffec9331e2b200ba97fcfba6713ee8356",
+  "timing_method": "timeit best-of-7; machine-dependent, treat as an order of magnitude",
+  "per_stage_microseconds": {
+    "guardrail_regex": 2.453,
+    "guardrail_schema": 0.2656,
+    "feature_encode": 4258.8065,
+    "rf_inference": 13448.4267,
+    "tie_break_and_label": 0.8736,
+    "mitre_lookup_cached": 0.4673,
+    "hitl_gate": 1.1183
+  },
+  "llm_stage": {
+    "mean_latency_seconds": 1.7629,
+    "mean_latency_micros": 1762900.0,
+    "throughput_alerts_per_second": 0.5672,
+    "source": "experiments/results/week7_scalability_benchmark.json (workers=1)",
+    "note": "remote inference plus network; reused rather than re-measured so this script costs no Groq quota"
+  },
+  "end_to_end": {
+    "fast_path_micros": 17712.41,
+    "fast_path_throughput_alerts_per_sec": 56.5,
+    "routed_path_micros": 1780612.41,
+    "routed_path_throughput_alerts_per_sec": 0.562,
+    "llm_share_of_routed_path": 0.990053
+  },
+  "tokens": {
+    "tokeniser": "tiktoken o200k_base (proxy for openai/gpt-oss-20b)",
+    "prompt_tokens_per_call": 345,
+    "completion_tokens_per_call": 40,
+    "completion_source": "median over 999 committed rationales",
+    "caveat": "approximate; the deployed model's exact tokeniser is not vendored"
+  },
+  "pricing": {
+    "input_per_1m_usd": 0.2,
+    "output_per_1m_usd": 0.2,
+    "source": "issue #43; not verified against Groq's live price list. Re-check before quoting a dollar figure."
+  },
+  "cost": {
+    "usd_per_llm_call": 7.7e-05,
+    "alerts_per_day": 10000,
+    "usd_per_day_all_routed": 0.77,
+    "router_routed_fraction": 0.2092,
+    "usd_per_day_with_router": 0.1611,
+    "router_cost_reduction_factor": 4.78
+  }
+}

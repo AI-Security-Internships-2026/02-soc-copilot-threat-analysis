@@ -1,0 +1,155 @@
+{
+  "experiment": "M5.1 PART B -- HITL margin-threshold burden sweep",
+  "generated_at_utc": "2026-09-14T12:24:42.933839+00:00",
+  "git_sha": "71cfe4d7973ddc91044f1ebeafe720eae40f7115",
+  "evaluation_set": "experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv",
+  "n": 15000,
+  "population_note": "class-balanced GUIDE_Test.csv hold-out, 0% incident overlap with the training slice. Chosen deliberately: an operating point tuned on a train-sampled set inherits the incident-level leakage and would not hold in deployment.",
+  "overall_accuracy_no_gate": 0.6998,
+  "human_accuracy_assumption": 0.95,
+  "human_accuracy_assumption_note": "ASSUMED, not measured. No human-accuracy study has been run on this project, so every 'projected_total_accuracy' figure is a projection conditional on this value. The auto-accepted and escalated accuracies are measured.",
+  "recommended_operating_point": {
+    "T": 0.12,
+    "auto_accepted_pct": 0.8919,
+    "auto_accepted_accuracy": 0.7302,
+    "escalated_pct": 0.1081,
+    "projected_total_accuracy_assuming_human_at_0_95": 0.754
+  },
+  "sweep": [
+    {
+      "T": 0.0,
+      "auto_accepted_n": 15000,
+      "auto_accepted_pct": 1.0,
+      "auto_accepted_accuracy": 0.6998,
+      "auto_accepted_accuracy_ci": [
+        0.6923,
+        0.7071
+      ],
+      "escalated_n": 0,
+      "escalated_pct": 0.0,
+      "escalated_accuracy_model_would_have_given": null,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.6998,
+      "analyst_burden_saved_pct": 1.0
+    },
+    {
+      "T": 0.02,
+      "auto_accepted_n": 14705,
+      "auto_accepted_pct": 0.9803,
+      "auto_accepted_accuracy": 0.7043,
+      "auto_accepted_accuracy_ci": [
+        0.697,
+        0.7123
+      ],
+      "escalated_n": 295,
+      "escalated_pct": 0.0197,
+      "escalated_accuracy_model_would_have_given": 0.4746,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.7091,
+      "analyst_burden_saved_pct": 0.9803
+    },
+    {
+      "T": 0.05,
+      "auto_accepted_n": 14272,
+      "auto_accepted_pct": 0.9515,
+      "auto_accepted_accuracy": 0.7129,
+      "auto_accepted_accuracy_ci": [
+        0.7054,
+        0.7204
+      ],
+      "escalated_n": 728,
+      "escalated_pct": 0.0485,
+      "escalated_accuracy_model_would_have_given": 0.4423,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.7244,
+      "analyst_burden_saved_pct": 0.9515
+    },
+    {
+      "T": 0.1,
+      "auto_accepted_n": 13605,
+      "auto_accepted_pct": 0.907,
+      "auto_accepted_accuracy": 0.725,
+      "auto_accepted_accuracy_ci": [
+        0.7178,
+        0.7327
+      ],
+      "escalated_n": 1395,
+      "escalated_pct": 0.093,
+      "escalated_accuracy_model_would_have_given": 0.4545,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.7459,
+      "analyst_burden_saved_pct": 0.907
+    },
+    {
+      "T": 0.12,
+      "auto_accepted_n": 13379,
+      "auto_accepted_pct": 0.8919,
+      "auto_accepted_accuracy": 0.7302,
+      "auto_accepted_accuracy_ci": [
+        0.723,
+        0.7377
+      ],
+      "escalated_n": 1621,
+      "escalated_pct": 0.1081,
+      "escalated_accuracy_model_would_have_given": 0.4485,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.754,
+      "analyst_burden_saved_pct": 0.8919
+    },
+    {
+      "T": 0.15,
+      "auto_accepted_n": 12965,
+      "auto_accepted_pct": 0.8643,
+      "auto_accepted_accuracy": 0.7384,
+      "auto_accepted_accuracy_ci": [
+        0.731,
+        0.7463
+      ],
+      "escalated_n": 2035,
+      "escalated_pct": 0.1357,
+      "escalated_accuracy_model_would_have_given": 0.4536,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.7671,
+      "analyst_burden_saved_pct": 0.8643
+    },
+    {
+      "T": 0.2,
+      "auto_accepted_n": 12293,
+      "auto_accepted_pct": 0.8195,
+      "auto_accepted_accuracy": 0.7517,
+      "auto_accepted_accuracy_ci": [
+        0.744,
+        0.7592
+      ],
+      "escalated_n": 2707,
+      "escalated_pct": 0.1805,
+      "escalated_accuracy_model_would_have_given": 0.464,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.7875,
+      "analyst_burden_saved_pct": 0.8195
+    },
+    {
+      "T": 0.3,
+      "auto_accepted_n": 11115,
+      "auto_accepted_pct": 0.741,
+      "auto_accepted_accuracy": 0.7799,
+      "auto_accepted_accuracy_ci": [
+        0.7726,
+        0.7876
+      ],
+      "escalated_n": 3885,
+      "escalated_pct": 0.259,
+      "escalated_accuracy_model_would_have_given": 0.4705,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.824,
+      "analyst_burden_saved_pct": 0.741
+    },
+    {
+      "T": 0.5,
+      "auto_accepted_n": 8517,
+      "auto_accepted_pct": 0.5678,
+      "auto_accepted_accuracy": 0.8463,
+      "auto_accepted_accuracy_ci": [
+        0.8386,
+        0.8541
+      ],
+      "escalated_n": 6483,
+      "escalated_pct": 0.4322,
+      "escalated_accuracy_model_would_have_given": 0.5073,
+      "projected_total_accuracy_assuming_human_at_0_95": 0.8911,
+      "analyst_burden_saved_pct": 0.5678
+    }
+  ]
+}

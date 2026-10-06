@@ -1,0 +1,9 @@
+stage,microseconds
+guardrail_regex,2.453
+guardrail_schema,0.2656
+feature_encode,4258.8065
+rf_inference,13448.4267
+tie_break_and_label,0.8736
+mitre_lookup_cached,0.4673
+hitl_gate,1.1183
+llm_call,1762900.0
