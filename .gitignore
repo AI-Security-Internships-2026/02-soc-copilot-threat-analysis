@@ -127,3 +127,9 @@ catboost_info/
 # links so `git add -A` from a worktree cannot commit a path that resolves to
 # one machine's filesystem.
 /datasets/sample
+
+# Per-worktree convenience symlinks into the primary checkout. Both resolve to
+# one machine's filesystem and were briefly committed by a `git add -A` from a
+# worktree; neither is meaningful to anyone else.
+/venv
+/experiments/models/models
