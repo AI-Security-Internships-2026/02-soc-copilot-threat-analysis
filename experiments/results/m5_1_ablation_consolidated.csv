@@ -1,6 +1,6 @@
-config,component_removed,evaluation_set,n,accuracy,accuracy_ci_lower,accuracy_ci_upper,macro_f1,delta_acc_vs_full,auto_accept_pct,delta_auto_accept_vs_full,latency_p50_ms,guardrail_attack_tpr,d1_groundedness,d2_mitre_match
-full,-- (reference),experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,20.346,0.13,0.97,0.9455
-no_llm_explanation,explain_with_llm,experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,-1742.554,0.13,n/a -- no explanation is produced,n/a -- no explanation is produced
-nomitre,fetch_mitre_context,experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,21.429,0.13,0.89,0.8182
-noguardrails,H1 regex / H2 schema / H3 SOC-aware,experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,20.443,0.0,,
-nohitl,HITL review gate (T=0),experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,1.0,0.1805,20.354,0.13,,
+config,component_removed,evaluation_set,n,accuracy,accuracy_ci_lower,accuracy_ci_upper,macro_f1,delta_acc_vs_full,auto_accept_pct,delta_auto_accept_vs_full,latency_p50_ms_classification,end_to_end_p50_ms,calls_llm,guardrail_attack_tpr,d1_groundedness,d2_mitre_match
+full,-- (reference),experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,20.346,1783.246,True,0.13,0.97,0.9455
+no_llm_explanation,explain_with_llm,experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,20.346,20.346,False,0.13,n/a -- no explanation is produced,n/a -- no explanation is produced
+nomitre,fetch_mitre_context,experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,21.429,1784.329,True,0.13,0.89,0.8182
+noguardrails,H1 regex / H2 schema / H3 SOC-aware,experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,0.8195,0.0,20.443,1783.343,True,0.0,,
+nohitl,HITL review gate (T=0),experiments/results/evaluation_samples/guide_test_balanced_5000_per_class_seed_42.csv,15000,0.6998,0.6923,0.7071,0.6949,0.0,1.0,0.1805,20.354,1783.254,True,0.13,,

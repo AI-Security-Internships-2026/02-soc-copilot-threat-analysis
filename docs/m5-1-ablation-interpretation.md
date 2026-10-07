@@ -9,13 +9,13 @@ No number here is restated by hand.
 All classification figures are on the same held-out balanced sample,
 `guide_test_balanced_5000_per_class_seed_42.csv`, n = 15,000.
 
-| config | removed | accuracy | Δ acc | macro F1 | auto-accept | Δ auto-accept | attack TPR | D1 grounded | D2 ATT&CK |
-|---|---|---|---|---|---|---|---|---|---|
-| **full** | — | 0.6998 | — | 0.6949 | 81.95% | — | 13.0% | 0.9700 | 0.9455 |
-| no-LLM explanation | `explain_with_llm` | 0.6998 | **0.0000** | 0.6949 | 81.95% | 0.0 | 13.0% | n/a | n/a |
-| no MITRE enrichment | `fetch_mitre_context` | 0.6998 | **0.0000** | 0.6949 | 81.95% | 0.0 | 13.0% | 0.8900 | 0.8182 |
-| no guardrails | H1 / H2 / H3 | 0.6998 | **0.0000** | 0.6949 | 81.95% | 0.0 | **0.0%** | 0.9700 | 0.9455 |
-| no HITL gate | review gate (T = 0) | 0.6998 | **0.0000** | 0.6949 | **100%** | **+18.05 pts** | 13.0% | 0.9700 | 0.9455 |
+| config | removed | accuracy | Δ acc | macro F1 | auto-accept | Δ auto-accept | attack TPR | end-to-end p50 | D1 grounded | D2 ATT&CK |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **full** | — | 0.6998 | — | 0.6949 | 81.95% | — | 13.0% | 1783.2 ms | 0.9700 | 0.9455 |
+| no-LLM explanation | `explain_with_llm` | 0.6998 | **0.0000** | 0.6949 | 81.95% | 0.0 | 13.0% | **20.3 ms** | n/a | n/a |
+| no MITRE enrichment | `fetch_mitre_context` | 0.6998 | **0.0000** | 0.6949 | 81.95% | 0.0 | 13.0% | 1784.3 ms | 0.8900 | 0.8182 |
+| no guardrails | H1 / H2 / H3 | 0.6998 | **0.0000** | 0.6949 | 81.95% | 0.0 | **0.0%** | 1783.3 ms | 0.9700 | 0.9455 |
+| no HITL gate | review gate (T = 0) | 0.6998 | **0.0000** | 0.6949 | **100%** | **+18.05 pts** | 13.0% | 1783.3 ms | 0.9700 | 0.9455 |
 
 Accuracy 95% CI is [0.6923, 0.7071] for every row, because every row produces
 the same predictions.
@@ -50,9 +50,22 @@ classification pass already runs with `SOC_COPILOT_SKIP_EXPLANATION=1`, so the
 because the node provably cannot affect it. Section 4.11's control-node ablation
 verified it empirically too, with 0 verdict mismatches over its 999 alerts.
 
-What it costs is almost the entire latency budget. The LLM stage measures
-**1,763 ms** mean against a **17.7 ms** fast path, so it is **99.0%** of the
-routed path's wall time, at ~$7.7e-05 per call (~$0.77/day at 10,000 alerts).
+What it costs is almost the entire latency budget. End-to-end p50 is
+**1,783.2 ms** with the explanation against **20.3 ms** without it — an 87×
+difference, and the LLM stage alone (1,763 ms mean) is **99.0%** of the routed
+path's wall time, at ~$7.7e-05 per call (~$0.77/day at 10,000 alerts). The
+1,783 ms figure is arrived at independently of `m5_4_latency_cost.json`'s own
+routed-path measurement of 1,780.6 ms, and agrees with it to 0.1%.
+
+A note on how that column is built, because the obvious construction is wrong.
+All five configs' *measured* p50 is the classification path only — the 15K pass
+runs with `SOC_COPILOT_SKIP_EXPLANATION=1` for every one of them, so the measured
+figure already excludes the LLM. Subtracting the LLM stage from it to get the
+no-LLM row therefore double-counts the removal and yields a negative latency,
+which is what the first version of this table did. The explanation cost is
+*added* to the four configs that call out, and the consolidation script now
+refuses to write a negative figure.
+
 Under the pre-Week-15 design that spend bought the verdict; now it buys only the
 rationale, which is a deliberate and legible trade rather than a hidden one.
 

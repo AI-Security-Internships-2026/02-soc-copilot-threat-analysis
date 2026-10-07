@@ -89,7 +89,14 @@ def main() -> None:
     arm_b = control["arms"]["b"]["metrics"]["overall"]
     llm_ms = latency["llm_stage"]["mean_latency_seconds"] * 1000.0
 
-    def row(name: str, removed: str, src: dict, **over) -> dict:
+    def row(name: str, removed: str, src: dict, calls_llm: bool = True, **over) -> dict:
+        # Every config's measured p50 is the CLASSIFICATION path: the 15K pass runs
+        # with SOC_COPILOT_SKIP_EXPLANATION=1 for all five. So the measured figure
+        # already excludes the LLM, and subtracting the LLM stage from it would
+        # double-count the removal -- it produced a negative latency for the
+        # no-LLM row before this was fixed. The explanation cost is ADDED for the
+        # configs that do call out, which independently reproduces
+        # m5_4_latency_cost.json's routed_path figure of ~1780.6 ms.
         base = {
             "config": name,
             "component_removed": removed,
@@ -102,7 +109,9 @@ def main() -> None:
             "delta_acc_vs_full": round(src["accuracy"] - full["accuracy"], 6),
             "auto_accept_pct": src["auto_accept_pct"],
             "delta_auto_accept_vs_full": round(src["auto_accept_pct"] - full["auto_accept_pct"], 6),
-            "latency_p50_ms": src["latency_p50_ms"],
+            "latency_p50_ms_classification": src["latency_p50_ms"],
+            "end_to_end_p50_ms": round(src["latency_p50_ms"] + (llm_ms if calls_llm else 0.0), 3),
+            "calls_llm": calls_llm,
             "guardrail_attack_tpr": None,
             "d1_groundedness": None,
             "d2_mitre_match": None,
@@ -116,8 +125,7 @@ def main() -> None:
             guardrail_attack_tpr=guardrail["full"]["tpr"],
             d1_groundedness=explanation["full"]["d1_grounded_rate"],
             d2_mitre_match=explanation["full"]["d2_mitre_match_rate"]),
-        row("no_llm_explanation", "explain_with_llm", full,
-            latency_p50_ms=round(full["latency_p50_ms"] - llm_ms, 3),
+        row("no_llm_explanation", "explain_with_llm", full, calls_llm=False,
             guardrail_attack_tpr=guardrail["full"]["tpr"],
             d1_groundedness="n/a -- no explanation is produced",
             d2_mitre_match="n/a -- no explanation is produced",
@@ -129,8 +137,10 @@ def main() -> None:
                 f"accuracy {arm_b['accuracy']}, 0 verdict mismatches vs the explanation-on arm). "
                 "That 0.7347 is NOT reproduced in the accuracy column above: it is measured on a "
                 "GUIDE_train-sampled set with incident-level contamination, so it is not "
-                "comparable with the held-out figures here. Latency is Full's p50 minus the "
-                f"measured LLM stage ({llm_ms:.0f} ms, m5_4_latency_cost.json)."
+                "comparable with the held-out figures here. On latency: the measured p50 IS this "
+                "config's end-to-end figure, because the 15K pass already ran with "
+                "explanations off. The other four rows carry the measured LLM stage "
+                f"({llm_ms:.0f} ms, m5_4_latency_cost.json) added on top."
             )),
         row("nomitre", "fetch_mitre_context", configs["nomitre"],
             guardrail_attack_tpr=guardrail["full"]["tpr"],
@@ -168,9 +178,13 @@ def main() -> None:
     print(f"saved {OUT_JSON}")
     print(f"saved {OUT_CSV}")
     print(f"nohitl == burden-sweep T=0: {crosscheck['agrees']}")
+    negative = [r["config"] for r in rows if r["end_to_end_p50_ms"] < 0]
+    if negative:
+        raise SystemExit(f"negative latency for {negative} -- the LLM stage is double-counted")
     for r in rows:
         print(f"  {r['config']:20s} acc={r['accuracy']} dacc={r['delta_acc_vs_full']:+.4f} "
-              f"auto={r['auto_accept_pct']} guardrail_tpr={r['guardrail_attack_tpr']}")
+              f"auto={r['auto_accept_pct']} tpr={r['guardrail_attack_tpr']} "
+              f"e2e_p50={r['end_to_end_p50_ms']}ms")
 
 
 if __name__ == "__main__":

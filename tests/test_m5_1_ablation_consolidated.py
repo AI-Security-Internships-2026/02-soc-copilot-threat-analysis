@@ -114,3 +114,36 @@ def test_interpretation_doc_quotes_the_artifact_it_is_built_from():
     # The prediction that was NOT met must stay recorded as not met.
     assert explanation["significance"]["d1_groundedness"]["prediction_met"] is False
     assert "not met" in doc
+
+
+@requires_consolidated
+def test_no_config_reports_a_negative_latency():
+    """The measured p50 is the classification path for all five configs (the 15K
+    pass runs with explanations off), so subtracting the LLM stage to build the
+    no-LLM row double-counts the removal. The first version of this table did
+    exactly that and reported -1742.554 ms."""
+    for config in json.loads(CONSOLIDATED.read_text())["configs"]:
+        assert config["end_to_end_p50_ms"] > 0, config["config"]
+        assert config["latency_p50_ms_classification"] > 0, config["config"]
+
+
+@requires_consolidated
+def test_only_the_no_llm_config_skips_the_explanation_cost():
+    configs = {c["config"]: c for c in json.loads(CONSOLIDATED.read_text())["configs"]}
+    no_llm = configs.pop("no_llm_explanation")
+    assert no_llm["calls_llm"] is False
+    assert no_llm["end_to_end_p50_ms"] == no_llm["latency_p50_ms_classification"]
+    for name, config in configs.items():
+        assert config["calls_llm"] is True, name
+        assert config["end_to_end_p50_ms"] > no_llm["end_to_end_p50_ms"] * 50, name
+
+
+@requires_consolidated
+def test_full_end_to_end_latency_agrees_with_the_independent_measurement():
+    """m5_4_latency_cost.json measures the routed path directly. The consolidated
+    figure is built from a different pair of numbers, so agreement is a real
+    cross-check rather than a tautology."""
+    latency = json.loads((RESULTS / "m5_4_latency_cost.json").read_text())
+    independent_ms = latency["end_to_end"]["routed_path_micros"] / 1000.0
+    full = next(c for c in json.loads(CONSOLIDATED.read_text())["configs"] if c["config"] == "full")
+    assert abs(full["end_to_end_p50_ms"] - independent_ms) / independent_ms < 0.01
