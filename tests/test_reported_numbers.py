@@ -282,3 +282,38 @@ def test_wazuh_agreement_is_never_described_as_accuracy():
     assert data["tier"].startswith("Tier-1")
     text = (DOCS / "wazuh-integration.md").read_text()
     assert "Tier-2" in text and "Not done" in text
+
+
+# --- Issue #45: the one-click runner must reproduce the committed artifact ----
+#
+# scripts/reproduce_all.sh's step 6 is labelled "7-seed split-method delta" but
+# invoked m2_1_splitmethod_5seeds.py with no --seeds flag, and that script's
+# default was five. So a real end-to-end run silently rebuilt the artifact with
+# 5 seeds, weakening the paper's "7/7 seeds, same direction" claim and failing
+# test_split_method_delta_is_replicated_across_seeds. The default is now seven;
+# this keeps the three things that must agree -- the default, the committed
+# artifact, and the runner's own label -- pinned to each other.
+
+def test_split_method_default_seeds_match_the_committed_artifact():
+    from experiments.m2_1_splitmethod_5seeds import DEFAULT_SEEDS
+
+    committed = json.loads((RESULTS / "m2_1_splitmethod_delta_5seeds.json").read_text())["seeds"]
+    assert DEFAULT_SEEDS == committed, (
+        "running the script with no --seeds would not reproduce the committed artifact"
+    )
+    assert len(committed) == 7
+
+
+def test_reproduction_runner_does_not_understate_its_own_step():
+    """If the runner's label says N seeds, running it must produce N seeds."""
+    script = Path("scripts/reproduce_all.sh").read_text()
+    line = next(l for l in script.splitlines() if "m2_1_splitmethod_5seeds.py" in l)
+    from experiments.m2_1_splitmethod_5seeds import DEFAULT_SEEDS
+
+    claimed = re.search(r"(\d+)-seed", line)
+    assert claimed, f"step label no longer states a seed count: {line.strip()}"
+    # Either the label matches the default, or the line passes --seeds explicitly.
+    if "--seeds" not in line:
+        assert int(claimed.group(1)) == len(DEFAULT_SEEDS), (
+            f"runner claims {claimed.group(1)} seeds but the default is {len(DEFAULT_SEEDS)}"
+        )
