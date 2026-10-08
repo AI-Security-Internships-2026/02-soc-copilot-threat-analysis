@@ -225,20 +225,51 @@ def error_histogram(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+#: A failure that says nothing about the model and everything about the budget.
+#: These must not be cached as results: the whole point of pacing a run across
+#: quota days is that tomorrow retries what today could not afford.
+_TRANSIENT_ERROR_MARKERS = ("429", "rate limit", "rate_limit", "quota", "tokens per day", "tpd")
+
+
+def _is_transient_failure(record: dict[str, Any]) -> bool:
+    """Did this row fail for a reason a later invocation could get past?"""
+    if record.get("predicted_label") is not None:
+        return False
+    message = str(record.get("error") or "").lower()
+    return any(marker in message for marker in _TRANSIENT_ERROR_MARKERS)
+
+
 def _load_checkpoint(arm_key: str) -> dict[int, dict[str, Any]]:
     """Rows already scored for this arm, keyed by row index -- lets a killed
     run resume instead of re-spending live API calls on rows already done.
     Appended incrementally as JSON Lines, one flushed write per row, so a
-    hard kill loses at most the one row in flight."""
+    hard kill loses at most the one row in flight.
+
+    Rate-limit failures are dropped on load rather than treated as done. They
+    were persisted as ordinary records until 2026-10-06, which silently made a
+    paced multi-day run unable to improve its own coverage: arm (d) exhausted
+    the daily quota at row 230, wrote 110 HTTP 429s into the checkpoint, and a
+    resume would have skipped every one of them forever -- reporting 120/299 as
+    though the model, rather than the budget, had produced it. Dropping them
+    here repairs checkpoints already written that way, without hand-editing the
+    JSON Lines file.
+    """
     path = _checkpoint_path(arm_key)
     if not path.exists():
         return {}
     done: dict[int, dict[str, Any]] = {}
+    dropped = 0
     for line in path.read_text().splitlines():
         if not line.strip():
             continue
         record = json.loads(line)
+        if _is_transient_failure(record):
+            dropped += 1
+            continue
         done[record["_row_index"]] = record
+    if dropped:
+        print(f"    dropped {dropped} rate-limited row(s) from the checkpoint -- they will be retried",
+              flush=True)
     return done
 
 
@@ -336,8 +367,12 @@ def run_arm(
                     "latency_seconds": round(elapsed, 4),
                 }
             rows.append(record)
-            checkpoint_file.write(json.dumps(record) + "\n")
-            checkpoint_file.flush()
+            # Kept in `rows` so THIS invocation reports the failure honestly, but
+            # not persisted: a transient refusal is not a measurement, and caching
+            # it would make the next quota day unable to recover the row.
+            if not _is_transient_failure(record):
+                checkpoint_file.write(json.dumps(record) + "\n")
+                checkpoint_file.flush()
 
             made_live_call = record["triage_path"] in ("llm", "llm_error") or record["rationale_status"] in (
                 "generated",

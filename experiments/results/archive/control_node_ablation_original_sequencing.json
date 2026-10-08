@@ -1,78 +1,17 @@
 {
   "experiment": "Control-node ablation: which node decides, and what happens as evidence gets sparser",
-  "generated_at_utc": "2026-10-06T17:03:49.895807+00:00",
-  "git_sha": "66e4bb0",
+  "generated_at_utc": "2026-09-06T08:48:38.242892+00:00",
+  "git_sha": "e126c1e",
   "evaluation_sample": "experiments/results/evaluation_samples/guide_balanced_333_per_class_seed_42.csv",
-  "sample_design": "reduced_299",
-  "sample_design_note": "Reduced from the originally-planned full 999-alert design to a stratified ~299-alert subsample because Groq's openai/gpt-oss-20b daily token quota (200,000) supports roughly 300-320 live calls at this pipeline's actual per-call cost, not the ~2,200 the full design needs; see REDUCED_BIN_TARGETS in this script. This run only re-scored ['d']; arms ['b', 'c', 'a'] were carried forward unchanged from a previous run and may have been scored under a different sample_design -- see each carried arm's _carried_forward_from_sample_design.",
+  "sample_design": "full_999",
+  "sample_design_note": "Full 999-alert balanced cache, no reduction. This run only re-scored []; arms ['b', 'd', 'c', 'a'] were carried forward unchanged from a previous run and may have been scored under a different sample_design -- see each carried arm's _carried_forward_from_sample_design.",
   "evidence_bin_distribution": {
-    "0": 126,
-    "1": 94,
-    "2": 50,
+    "0": 453,
+    "1": 337,
+    "2": 180,
     "3": 29
   },
   "arms": {
-    "d": {
-      "config": {
-        "mode": "llm_primary",
-        "skip_explanation": false,
-        "label": "llm_primary (LLM decides every alert)"
-      },
-      "metrics": {
-        "overall": {
-          "n_total": 230,
-          "n_scored": 120,
-          "n_unscored": 110,
-          "accuracy": 0.475,
-          "macro_f1": 0.3237,
-          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.429     0.143     0.214        21\n FalsePositive      0.060     0.750     0.111         4\n  TruePositive      0.810     0.537     0.646        95\n\n      accuracy                          0.475       120\n     macro avg      0.433     0.477     0.324       120\n  weighted avg      0.718     0.475     0.552       120\n"
-        },
-        "by_evidence_bin": {
-          "0": {
-            "n": 50,
-            "accuracy": 0.06,
-            "macro_f1": 0.0377,
-            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         7\n FalsePositive      0.060     1.000     0.113         3\n  TruePositive      0.000     0.000     0.000        40\n\n      accuracy                          0.060        50\n     macro avg      0.020     0.333     0.038        50\n  weighted avg      0.004     0.060     0.007        50\n"
-          },
-          "1": {
-            "n": 42,
-            "accuracy": 0.8571,
-            "macro_f1": 0.4615,
-            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         6\n  TruePositive      0.857     1.000     0.923        36\n\n      accuracy                          0.857        42\n     macro avg      0.429     0.500     0.462        42\n  weighted avg      0.735     0.857     0.791        42\n"
-          },
-          "2": {
-            "n": 20,
-            "accuracy": 0.7,
-            "macro_f1": 0.4437,
-            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.429     0.750     0.545         4\n FalsePositive      0.000     0.000     0.000         1\n  TruePositive      0.846     0.733     0.786        15\n\n      accuracy                          0.700        20\n     macro avg      0.425     0.494     0.444        20\n  weighted avg      0.720     0.700     0.698        20\n"
-          },
-          "3": {
-            "n": 8,
-            "accuracy": 0.5,
-            "macro_f1": 0.3333,
-            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         4\n  TruePositive      0.500     1.000     0.667         4\n\n      accuracy                          0.500         8\n     macro avg      0.250     0.500     0.333         8\n  weighted avg      0.250     0.500     0.333         8\n",
-            "caveat": "n=29 in the full 999-alert sample -- per-class recall/precision at this support is not reliable and should not be read as a stable estimate."
-          }
-        },
-        "latency": {
-          "mean_latency_seconds": 9.431,
-          "total_wall_seconds": 2169.13,
-          "throughput_alerts_per_second": 0.106
-        }
-      },
-      "failure_reasons": {
-        "n_unscored": 110,
-        "n_quota_exhaustion": 110,
-        "n_other_error": 0,
-        "n_unscored_no_error_string": 0,
-        "quota_error_messages": {
-          "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate ": 110
-        },
-        "other_error_messages": {}
-      },
-      "complete": false,
-      "n_pending": 69
-    },
     "b": {
       "config": {
         "mode": "rf_primary",
@@ -127,6 +66,64 @@
         "n_other_error": 0,
         "n_unscored_no_error_string": 0,
         "quota_error_messages": {},
+        "other_error_messages": {}
+      },
+      "complete": true,
+      "n_pending": 0,
+      "_carried_forward_from_sample_design": "full_999"
+    },
+    "d": {
+      "config": {
+        "mode": "llm_primary",
+        "skip_explanation": false,
+        "label": "llm_primary (LLM decides every alert)"
+      },
+      "metrics": {
+        "overall": {
+          "n_total": 999,
+          "n_scored": 33,
+          "n_unscored": 966,
+          "accuracy": 0.3939,
+          "macro_f1": 0.307,
+          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000        11\n FalsePositive      0.375     0.750     0.500        12\n  TruePositive      0.444     0.400     0.421        10\n\n      accuracy                          0.394        33\n     macro avg      0.273     0.383     0.307        33\n  weighted avg      0.271     0.394     0.309        33\n"
+        },
+        "by_evidence_bin": {
+          "0": {
+            "n": 23,
+            "accuracy": 0.3913,
+            "macro_f1": 0.1875,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         8\n FalsePositive      0.391     1.000     0.562         9\n  TruePositive      0.000     0.000     0.000         6\n\n      accuracy                          0.391        23\n     macro avg      0.130     0.333     0.188        23\n  weighted avg      0.153     0.391     0.220        23\n"
+          },
+          "1": {
+            "n": 3,
+            "accuracy": 0.6667,
+            "macro_f1": 0.4,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         1\n  TruePositive      0.667     1.000     0.800         2\n\n      accuracy                          0.667         3\n     macro avg      0.333     0.500     0.400         3\n  weighted avg      0.444     0.667     0.533         3\n"
+          },
+          "2": {
+            "n": 7,
+            "accuracy": 0.2857,
+            "macro_f1": 0.1667,
+            "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.000     0.000     0.000         2\n FalsePositive      0.000     0.000     0.000         3\n  TruePositive      0.333     1.000     0.500         2\n\n      accuracy                          0.286         7\n     macro avg      0.111     0.333     0.167         7\n  weighted avg      0.095     0.286     0.143         7\n"
+          },
+          "3": {
+            "n": 0
+          }
+        },
+        "latency": {
+          "mean_latency_seconds": 11.9051,
+          "total_wall_seconds": 11893.2,
+          "throughput_alerts_per_second": 0.084
+        }
+      },
+      "failure_reasons": {
+        "n_unscored": 966,
+        "n_quota_exhaustion": 966,
+        "n_other_error": 0,
+        "n_unscored_no_error_string": 0,
+        "quota_error_messages": {
+          "LLM call failed after 5 attempts: Error code: 429 - {'error': {'message': 'Rate ": 966
+        },
         "other_error_messages": {}
       },
       "complete": true,
@@ -252,74 +249,15 @@
       "_carried_forward_from_sample_design": "full_999"
     }
   },
-  "arm_b_full_999_reference": {
-    "config": {
-      "mode": "rf_primary",
-      "skip_explanation": true,
-      "label": "rf_primary, explanation off"
-    },
-    "metrics": {
-      "overall": {
-        "n_total": 999,
-        "n_scored": 999,
-        "n_unscored": 0,
-        "accuracy": 0.7347,
-        "macro_f1": 0.7307,
-        "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.645     0.877     0.743       333\n FalsePositive      0.849     0.556     0.672       333\n  TruePositive      0.784     0.772     0.778       333\n\n      accuracy                          0.735       999\n     macro avg      0.759     0.735     0.731       999\n  weighted avg      0.759     0.735     0.731       999\n"
-      },
-      "by_evidence_bin": {
-        "0": {
-          "n": 453,
-          "accuracy": 0.7704,
-          "macro_f1": 0.771,
-          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.662     0.881     0.756       160\n FalsePositive      0.856     0.567     0.682       157\n  TruePositive      0.875     0.875     0.875       136\n\n      accuracy                          0.770       453\n     macro avg      0.798     0.774     0.771       453\n  weighted avg      0.793     0.770     0.766       453\n"
-        },
-        "1": {
-          "n": 337,
-          "accuracy": 0.7359,
-          "macro_f1": 0.7295,
-          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.621     0.843     0.715        70\n FalsePositive      0.864     0.580     0.694       131\n  TruePositive      0.734     0.831     0.779       136\n\n      accuracy                          0.736       337\n     macro avg      0.739     0.751     0.730       337\n  weighted avg      0.761     0.736     0.733       337\n"
-        },
-        "2": {
-          "n": 180,
-          "accuracy": 0.6389,
-          "macro_f1": 0.5707,
-          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.635     0.879     0.737        91\n FalsePositive      0.667     0.375     0.480        32\n  TruePositive      0.639     0.404     0.495        57\n\n      accuracy                          0.639       180\n     macro avg      0.647     0.553     0.571       180\n  weighted avg      0.642     0.639     0.615       180\n"
-        },
-        "3": {
-          "n": 29,
-          "accuracy": 0.7586,
-          "macro_f1": 0.7343,
-          "classification_report": "                precision    recall  f1-score   support\n\nBenignPositive      0.632     1.000     0.774        12\n FalsePositive      1.000     0.615     0.762        13\n  TruePositive      1.000     0.500     0.667         4\n\n      accuracy                          0.759        29\n     macro avg      0.877     0.705     0.734        29\n  weighted avg      0.848     0.759     0.754        29\n",
-          "caveat": "n=29 in the full 999-alert sample -- per-class recall/precision at this support is not reliable and should not be read as a stable estimate."
-        }
-      },
-      "latency": {
-        "mean_latency_seconds": 0.028,
-        "total_wall_seconds": 27.99,
-        "throughput_alerts_per_second": 35.69
-      }
-    },
-    "failure_reasons": {
-      "n_unscored": 0,
-      "n_quota_exhaustion": 0,
-      "n_other_error": 0,
-      "n_unscored_no_error_string": 0,
-      "quota_error_messages": {},
-      "other_error_messages": {}
-    },
-    "complete": true,
-    "n_pending": 0,
-    "_carried_forward_from_sample_design": "full_999"
-  },
+  "arm_b_full_999_reference": null,
   "arm_a_vs_arm_b_verification": null,
   "paired_mcnemar_tests": {},
   "arm_d_calibration": {
     "by_band": {
       "high": {
-        "n": 56,
-        "correct": 17,
-        "accuracy": 0.3036
+        "n": 16,
+        "correct": 5,
+        "accuracy": 0.3125
       },
       "low": {
         "n": 1,
@@ -327,66 +265,25 @@
         "accuracy": 0.0
       },
       "medium": {
-        "n": 63,
-        "correct": 40,
-        "accuracy": 0.6349
+        "n": 16,
+        "correct": 8,
+        "accuracy": 0.5
       },
       "none": {
-        "n": 110,
+        "n": 966,
         "correct": 0,
         "accuracy": 0.0
       }
     },
     "gate_behaviour": {
-      "auto_accepted_n": 56,
-      "auto_accepted_accuracy": 0.3036,
-      "escalated_to_human_n": 174,
-      "escalated_accuracy": 0.2299,
+      "auto_accepted_n": 16,
+      "auto_accepted_accuracy": 0.3125,
+      "escalated_to_human_n": 983,
+      "escalated_accuracy": 0.0081,
       "gate_is_inverted": false
     }
   },
   "cross_arm_summary": {
-    "d": {
-      "label": "llm_primary (LLM decides every alert)",
-      "accuracy": 0.475,
-      "macro_f1": 0.3237,
-      "n_scored": 120,
-      "n_total": 230,
-      "n_unscored": 110,
-      "by_evidence_bin_accuracy": {
-        "0": 0.06,
-        "1": 0.8571,
-        "2": 0.7,
-        "3": 0.5
-      },
-      "evidence_bin_coverage": {
-        "0": {
-          "scored": 50,
-          "in_sample": 126
-        },
-        "1": {
-          "scored": 42,
-          "in_sample": 94
-        },
-        "2": {
-          "scored": 20,
-          "in_sample": 50
-        },
-        "3": {
-          "scored": 8,
-          "in_sample": 29
-        }
-      },
-      "fully_covered_bins": [],
-      "partially_covered_bins": [
-        "0",
-        "1",
-        "2",
-        "3"
-      ],
-      "comparable_to_fully_scored_arms": false,
-      "coverage_caveat": "Scored 120/230 alerts. Evidence bins 0, 1, 2, 3 are only partially covered, so this arm's overall accuracy is computed on a different alert mix than a fully-scored arm and the two headline numbers must not be compared directly. Compare on bins (none) instead."
-    },
     "b": {
       "label": "rf_primary, explanation off",
       "accuracy": 0.7347,
@@ -403,15 +300,15 @@
       "evidence_bin_coverage": {
         "0": {
           "scored": 453,
-          "in_sample": 126
+          "in_sample": 453
         },
         "1": {
           "scored": 337,
-          "in_sample": 94
+          "in_sample": 337
         },
         "2": {
           "scored": 180,
-          "in_sample": 50
+          "in_sample": 180
         },
         "3": {
           "scored": 29,
@@ -419,11 +316,55 @@
         }
       },
       "fully_covered_bins": [
+        "0",
+        "1",
+        "2",
         "3"
       ],
       "partially_covered_bins": [],
       "comparable_to_fully_scored_arms": true,
       "coverage_caveat": null
+    },
+    "d": {
+      "label": "llm_primary (LLM decides every alert)",
+      "accuracy": 0.3939,
+      "macro_f1": 0.307,
+      "n_scored": 33,
+      "n_total": 999,
+      "n_unscored": 966,
+      "by_evidence_bin_accuracy": {
+        "0": 0.3913,
+        "1": 0.6667,
+        "2": 0.2857,
+        "3": null
+      },
+      "evidence_bin_coverage": {
+        "0": {
+          "scored": 23,
+          "in_sample": 453
+        },
+        "1": {
+          "scored": 3,
+          "in_sample": 337
+        },
+        "2": {
+          "scored": 7,
+          "in_sample": 180
+        },
+        "3": {
+          "scored": 0,
+          "in_sample": 29
+        }
+      },
+      "fully_covered_bins": [],
+      "partially_covered_bins": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "comparable_to_fully_scored_arms": false,
+      "coverage_caveat": "Scored 33/999 alerts. Evidence bins 0, 1, 2, 3 are only partially covered, so this arm's overall accuracy is computed on a different alert mix than a fully-scored arm and the two headline numbers must not be compared directly. Compare on bins (none) instead."
     },
     "c": {
       "label": "legacy_hybrid (evidence-routed)",
@@ -441,28 +382,31 @@
       "evidence_bin_coverage": {
         "0": {
           "scored": 453,
-          "in_sample": 126
+          "in_sample": 453
         },
         "1": {
           "scored": 337,
-          "in_sample": 94
+          "in_sample": 337
         },
         "2": {
           "scored": 6,
-          "in_sample": 50
+          "in_sample": 180
         },
         "3": {
           "scored": 0,
           "in_sample": 29
         }
       },
-      "fully_covered_bins": [],
+      "fully_covered_bins": [
+        "0",
+        "1"
+      ],
       "partially_covered_bins": [
         "2",
         "3"
       ],
       "comparable_to_fully_scored_arms": false,
-      "coverage_caveat": "Scored 796/999 alerts. Evidence bins 2, 3 are only partially covered, so this arm's overall accuracy is computed on a different alert mix than a fully-scored arm and the two headline numbers must not be compared directly. Compare on bins (none) instead."
+      "coverage_caveat": "Scored 796/999 alerts. Evidence bins 2, 3 are only partially covered, so this arm's overall accuracy is computed on a different alert mix than a fully-scored arm and the two headline numbers must not be compared directly. Compare on bins 0, 1 instead."
     },
     "a": {
       "label": "rf_primary, explanation on",
@@ -480,15 +424,15 @@
       "evidence_bin_coverage": {
         "0": {
           "scored": 453,
-          "in_sample": 126
+          "in_sample": 453
         },
         "1": {
           "scored": 337,
-          "in_sample": 94
+          "in_sample": 337
         },
         "2": {
           "scored": 180,
-          "in_sample": 50
+          "in_sample": 180
         },
         "3": {
           "scored": 29,
@@ -496,6 +440,9 @@
         }
       },
       "fully_covered_bins": [
+        "0",
+        "1",
+        "2",
         "3"
       ],
       "partially_covered_bins": [],
@@ -503,14 +450,12 @@
       "coverage_caveat": null
     }
   },
-  "all_arms_complete": false,
+  "all_arms_complete": true,
   "arm_completion_status": {
     "a": true,
     "b": true,
     "c": true,
-    "d": false
+    "d": true
   },
-  "incomplete_arms": [
-    "d"
-  ]
+  "incomplete_arms": []
 }

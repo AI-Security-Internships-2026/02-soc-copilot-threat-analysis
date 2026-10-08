@@ -1,7 +1,7 @@
 {
   "experiment": "M3.2 Part C -- detector x family failure matrix",
-  "generated_at_utc": "2026-09-28T19:25:47.127920+00:00",
-  "git_sha": "5e6f3bd",
+  "generated_at_utc": "2026-10-05T10:27:35.091563+00:00",
+  "git_sha": "3b89a51",
   "output_markdown": "docs/m3-2-detector-family-matrix.md",
   "uncovered_families": [],
   "detectors_included": [
@@ -13,5 +13,19 @@
     "h3",
     "h_union"
   ],
-  "detectors_missing": []
+  "detectors_missing": [],
+  "n_cells": 49,
+  "cells_with_reduced_denominator": {
+    "l3.F4": {
+      "n_scored": 50,
+      "n_unscored": 5,
+      "unscored_ids": [
+        "F4_004",
+        "F4_026",
+        "F4_030",
+        "F4_040",
+        "F4_053"
+      ]
+    }
+  }
 }

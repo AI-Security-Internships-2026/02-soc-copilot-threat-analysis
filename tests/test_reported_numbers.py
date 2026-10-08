@@ -235,3 +235,85 @@ def test_demo_script_form_values_are_the_ones_that_hold_for_review():
     assert "CredentialAccess" in text and "T1110;T1110.003" in text
     # the Collection/T1078 pair scores 0.2056 through the form -> auto-accepted
     assert "0.2056" in text, "the auto-accepted contrast must stay documented"
+
+
+# --- Issue #43: the Wazuh learnability figures must match their artifact -----
+#
+# `0.3470` / `0.4028` sat in docs/wazuh-integration.md, docs/final-report.md and
+# all three manuscript drafts while m5_3_wazuh_t1.json recorded 0.3562 / 0.4026.
+# Re-running label_learnability_check(generate(10000, seed=42)) reproduces the
+# artifact, so the prose was stale in five places at once. These are the numbers
+# that justify *not* reporting a transfer-accuracy figure, so a reviewer checking
+# that refusal lands on them directly.
+
+WAZUH_JSON = RESULTS / "m5_3_wazuh_t1.json"
+
+requires_wazuh = pytest.mark.skipif(
+    not WAZUH_JSON.exists(),
+    reason="m5_3_wazuh_t1.json not generated -- run experiments/m5_3_wazuh_t1_transfer.py",
+)
+
+
+@requires_wazuh
+def test_wazuh_learnability_figures_match_the_artifact_everywhere_they_appear():
+    evidence = json.loads(WAZUH_JSON.read_text())["accuracy_comparison_not_reported"]["evidence"]
+    cv = str(evidence["cv_accuracy_mean"])
+    floor = str(evidence["majority_class_floor"])
+
+    # The refusal only holds if the measured accuracy is below the floor.
+    assert evidence["cv_accuracy_mean"] < evidence["majority_class_floor"]
+    assert evidence["labels_are_learnable"] is False
+
+    for name in ("wazuh-integration.md", "final-report.md"):
+        text = (DOCS / name).read_text()
+        if cv in text or floor in text:
+            assert cv in text, f"{name} quotes the floor but not cv_accuracy_mean {cv}"
+            assert floor in text, f"{name} quotes cv accuracy but not the floor {floor}"
+        assert "0.3470" not in text, f"{name} still carries the stale cv accuracy"
+        assert "0.4028" not in text, f"{name} still carries the stale majority floor"
+
+
+@requires_wazuh
+def test_wazuh_agreement_is_never_described_as_accuracy():
+    """0.9637 is agreement between two encodings of one alert. The whole point of
+    issue #43 item 4 is that it must not be read as a transfer-accuracy figure."""
+    data = json.loads(WAZUH_JSON.read_text())
+    assert "accuracy" not in data["verdict_agreement_native_vs_roundtripped"]
+    assert data["tier"].startswith("Tier-1")
+    text = (DOCS / "wazuh-integration.md").read_text()
+    assert "Tier-2" in text and "Not done" in text
+
+
+# --- Issue #45: the one-click runner must reproduce the committed artifact ----
+#
+# scripts/reproduce_all.sh's step 6 is labelled "7-seed split-method delta" but
+# invoked m2_1_splitmethod_5seeds.py with no --seeds flag, and that script's
+# default was five. So a real end-to-end run silently rebuilt the artifact with
+# 5 seeds, weakening the paper's "7/7 seeds, same direction" claim and failing
+# test_split_method_delta_is_replicated_across_seeds. The default is now seven;
+# this keeps the three things that must agree -- the default, the committed
+# artifact, and the runner's own label -- pinned to each other.
+
+def test_split_method_default_seeds_match_the_committed_artifact():
+    from experiments.m2_1_splitmethod_5seeds import DEFAULT_SEEDS
+
+    committed = json.loads((RESULTS / "m2_1_splitmethod_delta_5seeds.json").read_text())["seeds"]
+    assert DEFAULT_SEEDS == committed, (
+        "running the script with no --seeds would not reproduce the committed artifact"
+    )
+    assert len(committed) == 7
+
+
+def test_reproduction_runner_does_not_understate_its_own_step():
+    """If the runner's label says N seeds, running it must produce N seeds."""
+    script = Path("scripts/reproduce_all.sh").read_text()
+    line = next(l for l in script.splitlines() if "m2_1_splitmethod_5seeds.py" in l)
+    from experiments.m2_1_splitmethod_5seeds import DEFAULT_SEEDS
+
+    claimed = re.search(r"(\d+)-seed", line)
+    assert claimed, f"step label no longer states a seed count: {line.strip()}"
+    # Either the label matches the default, or the line passes --seeds explicitly.
+    if "--seeds" not in line:
+        assert int(claimed.group(1)) == len(DEFAULT_SEEDS), (
+            f"runner claims {claimed.group(1)} seeds but the default is {len(DEFAULT_SEEDS)}"
+        )

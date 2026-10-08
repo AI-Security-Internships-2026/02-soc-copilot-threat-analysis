@@ -984,8 +984,8 @@ proxies, not human judgement.
 Source: `experiments/results/m5_3_wazuh_t1.json`.
 
 **No transfer-accuracy figure is reported**, because the synthetic generator
-draws its label independently of every feature — verified at **0.3470**
-cross-validated against a **0.4028** majority floor. Both arms of an accuracy
+draws its label independently of every feature — verified at **0.3562**
+cross-validated against a **0.4026** majority floor. Both arms of an accuracy
 comparison would be chance and "retention" would land near 100% while measuring
 nothing.
 

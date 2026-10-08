@@ -5,9 +5,18 @@
 # [+0.0199, +0.0368]. A single seed is a point estimate of a quantity that
 # depends on which rows land in the holdout; this script repeats the exact
 # same measurement -- same 100,000-row slice, same RF-200/LabelEncoder
-# config, same test_size=0.2 -- across 5 GroupShuffleSplit seeds and reports
+# config, same test_size=0.2 -- across 7 GroupShuffleSplit seeds and reports
 # whether the effect is a stable property of the split rule or an artifact
 # of one particular split.
+#
+# The default seed list is SEVEN, not the five this file is named after. The
+# committed artifact and the paper both report 7/7 seeds; the default was left
+# at 5 while the artifact was regenerated with an explicit --seeds, so
+# scripts/reproduce_all.sh -- whose step is even labelled "7-seed" -- passed no
+# flag and silently rebuilt the artifact with 5, weakening the paper's headline
+# leakage claim and failing tests/test_paper_claims.py. The file and output names
+# keep their original spelling because the manuscript, the figure manifest and
+# the tests all reference those paths.
 #
 # Reuses grouped_split_baseline.py's train_forest() (identical warm-start
 # schedule to the deployed trainer) and evaluate() (identical metrics,
@@ -17,7 +26,7 @@
 #
 # usage (from repo root):
 #   venv/bin/python experiments/m2_1_splitmethod_5seeds.py
-#   venv/bin/python experiments/m2_1_splitmethod_5seeds.py --seeds 42,123,456,789,1001
+#   venv/bin/python experiments/m2_1_splitmethod_5seeds.py --seeds 42,123,456
 
 from __future__ import annotations
 
@@ -43,7 +52,8 @@ from src.models.baseline import DEFAULT_MAX_ROWS
 
 INCIDENT_KEY = ["OrgId", "IncidentId"]
 OUTPUT_PATH = Path("experiments/results/m2_1_splitmethod_delta_5seeds.json")
-DEFAULT_SEEDS = [42, 123, 456, 789, 1001]
+#: Seven, matching the committed artifact and the paper's "7/7 seeds" claim.
+DEFAULT_SEEDS = [42, 123, 456, 789, 1001, 2024, 31415]
 TEST_SIZE = 0.2
 PUBLISHED_SINGLE_SEED_DELTA = 0.0283
 PUBLISHED_SINGLE_SEED_CI = (0.0199, 0.0368)
