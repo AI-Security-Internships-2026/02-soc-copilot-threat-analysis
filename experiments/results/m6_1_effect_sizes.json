@@ -92,9 +92,9 @@
       }
     },
     "m3_2_detector_family_matrix": {
-      "cells": 56,
+      "cells": 49,
       "correction_applicable": false,
-      "reason": "The 56 cells are per-family true-positive rates, not hypothesis tests -- there is no p-value to correct. The matrix is reported descriptively and no significance is claimed between cells."
+      "reason": "The 49 cells are per-family true-positive rates, not hypothesis tests -- there is no p-value to correct. The matrix is reported descriptively and no significance is claimed between cells."
     }
   }
 }

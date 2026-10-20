@@ -70,7 +70,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
 import pandas as pd
-from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -240,6 +239,15 @@ def make_estimator(model_id: str, cat_cols: list[str]):
             "lightgbm",
         )
     if model_id == "M6":
+        # Imported here rather than at module scope. experiments/
+        # m2_3_deploy_grouped_model.py imports this module for its helpers and
+        # never builds M6, but a top-level `from catboost import ...` made that
+        # import fail outright on an environment where the catboost wheel is
+        # broken -- which took down step 10 of scripts/reproduce_all.sh even with
+        # --skip-heavy, i.e. with the only step that needs catboost skipped.
+        # A dependency only one model needs should only be required by that model.
+        from catboost import CatBoostClassifier
+
         return CatBoostClassifier(random_state=SEED, verbose=False, thread_count=-1), "catboost"
     raise ValueError(f"no tabular factory for {model_id}")
 

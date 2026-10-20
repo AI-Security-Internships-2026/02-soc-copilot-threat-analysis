@@ -95,6 +95,42 @@ project's one significance claim about the RF-versus-LLM question rests on
 `../rf_vs_llm_control.json`, which is a genuine paired McNemar test over an
 identical 209-alert subset (p = 4.66e-12).
 
+## `control_node_ablation_original_sequencing.json` + `control_node_ablation_rows_original_sequencing/`
+
+**Why archived:** this is the control-node ablation run under the **original arm
+sequencing**, archived on 2026-10-06 per issue #39 item 3 before the
+corrected-sequencing run replaced it. Do not cite it.
+
+The original run executed arms in `ARM_CONFIG` order — a, b, c, d — which put the
+explanation-heavy arm (a) **first**. Arm (a) generates an explanation for all 999
+alerts, so it consumed the day's Groq quota before the two arms that actually
+needed live decisions ever ran. The resulting coverage:
+
+| arm | what it is | n_scored | bin 2 | bin 3 |
+|---|---|---|---|---|
+| a | rf_primary, explanation on | 999 | 180 | 29 |
+| b | rf_primary, explanation off | 999 | 180 | 29 |
+| c | legacy_hybrid | 796 | **6** | **0** |
+| d | llm_primary | **33** | 7 | **0** |
+
+Against issue #39's pre-registered targets of `llm_primary ≥ 200`,
+`legacy_hybrid` bin-2 `≥ 25` and bin-3 `≥ 10`, arm (d) reached 33 and arm (c)
+reached 6 and 0. Arms (a) and (b) — the two that cost nothing to decide — are
+fully covered. That is the ordering artefact, not a finding about the
+architectures.
+
+**What replaced it:** `../control_node_ablation.json`, re-run with the corrected
+order (`llm_primary → legacy_hybrid → RF explanation-on → RF explanation-off`) on
+a stratified 299-alert subsample sized to a realistic quota day. Coverage is
+reported as achieved rather than as planned, and arms carried forward from a
+different `sample_design` say so per-arm.
+
+One bug the corrected run exposed, fixed in the same change: a transient HTTP 429
+was being written to the resume checkpoint exactly like a real result, so a row
+the budget could not afford was never retried. Arm (d)'s first corrected
+invocation cached 110 rate-limit failures that way. `_load_checkpoint` now drops
+them on load, which repairs checkpoints already written before the fix.
+
 ## A note on `../baseline_metrics.json`
 
 That file is **live**, not archived, but it predates the provenance fields

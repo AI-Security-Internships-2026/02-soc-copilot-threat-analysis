@@ -60,19 +60,58 @@ def git_sha() -> str:
         return "unknown"
 
 
-def _cell(detector_key: str, family: str, entry: dict | None) -> dict:
+def _unscored_by_family(detector_entry: dict | None) -> dict[str, list[str]]:
+    """Group a detector's permanently-unscored rows by family.
+
+    A detector that never returned a parseable verdict for some rows has a
+    smaller denominator on those families than every other detector in the
+    table. `persistent_errors` is where the scoring runner records them
+    ({benchmark_id: reason}), so the reduced denominator is derived from the
+    run rather than hardcoded against the benchmark's family sizes.
+    """
+    unscored: dict[str, list[str]] = {}
+    for benchmark_id in sorted((detector_entry or {}).get("persistent_errors", {})):
+        family = benchmark_id.split("_")[0]
+        unscored.setdefault(family, []).append(benchmark_id)
+    return unscored
+
+
+def _cell(detector_key: str, family: str, entry: dict | None,
+          unscored_ids: list[str] | None = None) -> dict:
     if entry is None:
-        return {"tpr": None, "mechanism": "not scored"}
+        return {"tpr": None, "n_scored": None, "n_unscored": 0, "mechanism": "not scored"}
     tpr = entry.get("tpr")
     misses = entry.get("example_misses") or []
-    if tpr is not None and tpr >= 0.99:
+    unscored_ids = unscored_ids or []
+    n_scored = entry.get("n")
+    n_detected = entry.get("detected")
+
+    if unscored_ids:
+        # Never report this cell as full coverage: the rows that would most
+        # likely have broken it are exactly the ones missing from it.
+        n_full = (n_scored or 0) + len(unscored_ids)
+        mechanism = (
+            f"denominator reduced: {n_detected}/{n_scored} of the {family} rows this "
+            f"detector returned a parseable verdict for, but {len(unscored_ids)} of "
+            f"{n_full} {family} rows ({', '.join(unscored_ids)}) returned an empty, "
+            "unparseable response reproducibly and are excluded from this cell. The "
+            f"rate is therefore not comparable with the other detectors' {family} "
+            "column, which is scored over all "
+            f"{n_full} rows."
+        )
+    elif tpr is not None and tpr >= 0.99:
         mechanism = f"detects essentially all {family} payloads; no representative miss to cite."
     else:
         mechanism = MECHANISM_NOTES.get(detector_key, "{family}").format(family=family)
         if misses:
             example = misses[0]
             mechanism += f" e.g. {example['benchmark_id']}: {example['text']!r}"
-    return {"tpr": tpr, "mechanism": mechanism}
+    return {
+        "tpr": tpr,
+        "n_scored": n_scored,
+        "n_unscored": len(unscored_ids),
+        "mechanism": mechanism,
+    }
 
 
 def _write_figure_csvs(combined: dict, matrix: dict) -> None:
@@ -138,17 +177,39 @@ def main() -> None:
         "| Detector | " + " | ".join(FAMILIES) + " |",
         "|---|" + "---|" * len(FAMILIES),
     ]
+    footnotes: list[str] = []
     for detector_key in DETECTOR_KEYS:
         detector_entry = combined.get(detector_key)
         by_family = (detector_entry or {}).get("by_family", {})
+        unscored = _unscored_by_family(detector_entry)
         row_cells = []
         matrix[detector_key] = {}
         for family in FAMILIES:
-            cell = _cell(detector_key, family, by_family.get(family))
+            cell = _cell(detector_key, family, by_family.get(family), unscored.get(family))
             matrix[detector_key][family] = cell
             tpr_str = f"{cell['tpr']:.0%}" if cell["tpr"] is not None else "n/a"
+            if cell["n_unscored"]:
+                # Daggered so the reduced denominator is visible in the table
+                # itself, not only in the mechanism note below it.
+                tpr_str += " \u2020"
+                n_full = cell["n_scored"] + cell["n_unscored"]
+                footnotes.append(
+                    f"\u2020 **{DETECTOR_LABELS[detector_key]}, {family}**: scored over "
+                    f"{cell['n_scored']}/{n_full} rows. The remaining "
+                    f"{cell['n_unscored']} ({', '.join(unscored[family])}) returned an "
+                    "empty, unparseable response reproducibly -- across separate "
+                    "invocations and after the rate limit that briefly affected one of "
+                    "them had cleared -- so they are a real detector limitation, not a "
+                    "quota cap, and more budget will not finish them. They are excluded "
+                    f"from this cell rather than counted as misses, which means the "
+                    f"{family} column is not directly comparable across rows."
+                )
             row_cells.append(tpr_str)
         lines.append(f"| {DETECTOR_LABELS[detector_key]} | " + " | ".join(row_cells) + " |")
+
+    if footnotes:
+        lines.append("")
+        lines.extend(footnotes)
 
     lines.append("")
     lines.append("## Per-cell mechanism notes")
@@ -199,6 +260,17 @@ def main() -> None:
         "uncovered_families": uncovered_from_union,
         "detectors_included": [k for k in DETECTOR_KEYS if k in combined],
         "detectors_missing": [k for k in DETECTOR_KEYS if k not in combined],
+        "n_cells": len(DETECTOR_KEYS) * len(FAMILIES),
+        "cells_with_reduced_denominator": {
+            f"{k}.{f}": {
+                "n_scored": matrix[k][f]["n_scored"],
+                "n_unscored": matrix[k][f]["n_unscored"],
+                "unscored_ids": _unscored_by_family(combined.get(k)).get(f, []),
+            }
+            for k in DETECTOR_KEYS
+            for f in FAMILIES
+            if matrix[k][f]["n_unscored"]
+        },
     }
     Path("experiments/results/m3_2_familywise_failure_analysis.json").write_text(
         json.dumps(summary, indent=2)

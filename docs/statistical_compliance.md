@@ -20,7 +20,7 @@ The first run of this audit reported **84.6% (11/13)** with four open items. The
 
 - **Two McNemar tests reported a p-value with no effect size (R2).** `experiments/m6_1_effect_sizes.py` computes the McNemar odds ratio `b/c` with an exact Clopper-Pearson CI on the discordant cells. RF vs LLM: **OR 3.89, 95% CI [2.53, 6.18]** on 132 discordant pairs -- the interval excludes 1, consistent with p = 4.66e-12.
 - **The M2.4 pairwise family had no multiplicity correction (R4).** Holm-Bonferroni is now applied across the 4 pairwise McNemar tests; all four survive at a family-wise alpha of 0.05. Cochran's Q licenses the family but does not correct it, which is why the omnibus alone was not sufficient.
-- **The 56-cell detector x family matrix was flagged for correction (R4).** It reports per-family recall rates, not hypothesis tests, so there is no p-value to correct. Recorded as not-applicable **with that reason stated**, rather than left as a silent pass.
+- **The 49-cell detector x family matrix was flagged for correction (R4).** It reports per-family recall rates, not hypothesis tests, so there is no p-value to correct. Recorded as not-applicable **with that reason stated**, rather than left as a silent pass.
 
 ## Cell-level results
 

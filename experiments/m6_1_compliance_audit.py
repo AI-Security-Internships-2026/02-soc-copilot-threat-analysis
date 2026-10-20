@@ -186,7 +186,7 @@ def audit():
           "four survive at a family-wise alpha of 0.05. Cochran's Q licenses the "
           "family but does not correct it, which is why the omnibus alone was not "
           "sufficient.",
-          "- **The 56-cell detector x family matrix was flagged for correction (R4).** "
+          "- **The 49-cell detector x family matrix was flagged for correction (R4).** "
           "It reports per-family recall rates, not hypothesis tests, so there is no "
           "p-value to correct. Recorded as not-applicable **with that reason stated**, "
           "rather than left as a silent pass.",
