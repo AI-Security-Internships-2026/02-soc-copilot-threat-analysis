@@ -22,15 +22,13 @@ results files that reference it.
 
 from __future__ import annotations
 
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
 import pandas as pd
 
-from src.data.preprocess import transform_with_encoders
+from src.models.classifier_factory import load_classifier, to_feature_frame
 from src.models.decision import resolve_label
 
 
@@ -61,36 +59,23 @@ def should_use_fallback(alert: dict[str, Any]) -> bool:
     return evidence_field_count(alert) < 2
 
 
-@lru_cache(maxsize=1)
+# Artifact loading and feature building both live in
+# src/models/classifier_factory.py now (issue #41): the graph has to reach the
+# deployed classifier through the factory seam, and keeping two copies of the
+# feature-alignment logic is how they drift -- the factory's copy was already
+# missing this one's object-column coercion. Re-exported under their old names
+# because a dozen experiment scripts import them from here.
+_to_feature_frame = to_feature_frame
+
+
 def _load_model():
-    if not MODEL_PATH.exists():
-        raise FileNotFoundError(f"Fallback model not found at {MODEL_PATH}")
-    artifact = joblib.load(MODEL_PATH)
-    if not isinstance(artifact, dict) or {"model", "encoders"} - artifact.keys():
-        raise ValueError(
-            "Fallback model is a legacy artifact without saved encoders. "
-            "Run `python -m src.models.baseline` to create the reusable artifact."
-        )
-    return artifact
+    """The deployed artifact as a {"model", "encoders"} dict.
 
-
-def _model_features(model) -> list[str]:
-    features = getattr(model, "feature_names_in_", None)
-    if features is None:
-        raise ValueError("Fallback model has no saved feature names.")
-    return list(features)
-
-
-def _to_feature_frame(alert: dict[str, Any], model, encoders: dict) -> pd.DataFrame:
-    """Recreate the baseline's timestamp features and exact feature order."""
-    row = dict(alert)
-    timestamp = pd.to_datetime(row.get("Timestamp"), errors="coerce", utc=True)
-    row["Hour"] = timestamp.hour if not pd.isna(timestamp) else row.get("Hour")
-    row["DayOfWeek"] = timestamp.dayofweek if not pd.isna(timestamp) else row.get("DayOfWeek")
-    row["Month"] = timestamp.month if not pd.isna(timestamp) else row.get("Month")
-    frame = pd.DataFrame([row])
-    frame = transform_with_encoders(frame, encoders)
-    return frame.reindex(columns=_model_features(model))
+    A shim over load_classifier() so the experiment scripts that import it keep
+    working unchanged.
+    """
+    classifier = load_classifier()
+    return {"model": classifier.model, "encoders": classifier.encoders}
 
 
 def predict_with_fallback(alert: dict[str, Any]) -> tuple[str, float]:
@@ -116,15 +101,13 @@ def predict_with_margin(alert: dict[str, Any]) -> tuple[str, float, float]:
     when it said "high" versus 0.383 when it said "medium"), which is why
     label authority and the review gate both moved to the RF.
     """
-    artifact = _load_model()
-    model = artifact["model"]
-    features = _to_feature_frame(alert, model, artifact["encoders"])
-    probabilities = model.predict_proba(features)[0]
+    classifier = load_classifier()
+    probabilities = classifier.predict_proba(alert)
     order = np.argsort(probabilities)[::-1]
     # The tie-break rule lives in src/models/decision.py rather than here, so
     # the evaluation harness and this deployed path cannot drift apart on the
     # 0.1-0.2% of alerts where the top two classes tie exactly.
-    label = resolve_label(model.classes_, probabilities)
+    label = resolve_label(classifier.classes_, probabilities)
     top1 = float(probabilities[order[0]])
     top2 = float(probabilities[order[1]]) if len(probabilities) > 1 else 0.0
     return label, top1, top1 - top2

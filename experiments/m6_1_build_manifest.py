@@ -150,6 +150,22 @@ SUPPORTING = {
     "m5_3_wazuh_t1.json": "M5.2 PART A -- Wazuh Tier-1 schema-transfer fidelity "
                           "(verdict agreement; deliberately NOT an accuracy figure)",
     "m5_1_ablation_5config.json": "M5.1 PART A -- nomitre/noguardrails/nohitl ablations",
+    "m4_1_asr_8configs.json": "Sec 4.16 -- M4.1 security-integrity ASR matrix: five "
+                              "architectures x two defense modes, Triage-ASR and "
+                              "Explanation-ASR with bootstrap CIs and per-family rates",
+    "m4_3_study_alerts.csv": "Sec 4.15 -- M4.3 PART A explanation-study sample: 100 "
+                             "GUIDE_Test alerts, stratified TP=34/BP=33/FP=33, "
+                             "deduplicated on displayed evidence (issue #40)",
+    "m4_3_explanations.json": "Sec 4.15 -- the A4 pipeline's explanation per study alert "
+                              "(variant Y), as emitted by build_triage_graph('rf_primary')",
+    "m4_3_rating_sheet_raterA.csv": "Sec 4.15 -- blinded rating sheet, rater A (issue #40)",
+    "m4_3_rating_sheet_raterB.csv": "Sec 4.15 -- blinded rating sheet, rater B (issue #40)",
+    "m4_3_rating_sheet_raterC.csv": "Sec 4.15 -- blinded rating sheet, rater C (issue #40)",
+    "m4_3_rating_sheet_raterD.csv": "Sec 4.15 -- blinded rating sheet, rater D (issue #40)",
+    "m4_3_rating_sheet_raterE.csv": "Sec 4.15 -- blinded rating sheet, rater E (issue #40)",
+    ".m4_3_variant_key.csv": "NOT a figure source and NOT for distribution -- the A/B to "
+                             "baseline/proposed mapping the raters must not see. Committed "
+                             "for reproducibility only (issue #40)",
     "m5_1_ablation_5config.csv": "M5.1 PART A -- the same ablations as a CSV",
     "deepteam_redteam_fullgraph_llm_reached.json": "Sec 4.9 -- adversarial red-team evaluation",
     "week15_rf_benchmark.json": "Tab 9 and Fig 3",

@@ -114,12 +114,22 @@ catboost_info/
 
 # M2.4 (issue #34): both symlink forms, per the commit-995841b lesson --
 # .gitignore matching only the directory form let a symlink through once.
-models/
-models/best_classifier.joblib
-models/best_grouped_classifier.joblib
+# Anchored to the repo root (leading slash): a bare `models/` also matches
+# `src/models/`, which is a real tracked source package, not an artifact
+# directory -- an unanchored pattern here silently swallowed
+# src/models/classifier_factory.py (M4.4, issue #41) until this fix.
+/models/
+/models/best_classifier.joblib
+/models/best_grouped_classifier.joblib
 
 # Large GUIDE files and the sample fixture live only in the primary checkout;
 # a git worktree needs them symlinked in to run the full suite. Ignore those
 # links so `git add -A` from a worktree cannot commit a path that resolves to
 # one machine's filesystem.
 /datasets/sample
+
+# Per-worktree convenience symlinks into the primary checkout. Both resolve to
+# one machine's filesystem and were briefly committed by a `git add -A` from a
+# worktree; neither is meaningful to anyone else.
+/venv
+/experiments/models/models
